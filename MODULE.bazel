@@ -11,8 +11,92 @@ bazel_dep(name = "rules_python", version = "1.4.1")
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     is_default = True,
-    python_version = "3.9",
+    python_version = "3.10",
 )
+
+######################
+####  rules  C++  ####
+######################
+
+bazel_dep(name = "rules_cc", version = "0.1.2")
+
+######################
+####  rules Rust  ####
+######################
+
+bazel_dep(name = "rules_rust", version = "0.61.0")
+
+######################
+####  rules ROS2  ####
+######################
+
+bazel_dep(name = "com_github_mvukov_rules_ros2", version = "0.0.0-20250612-f0d04fe")
+
+register_toolchains(
+    "@com_github_mvukov_rules_ros2//repositories/rust:bindgen_toolchain",
+    dev_dependency = True,
+)
+
+rules_ros2_non_module_deps = use_extension("@com_github_mvukov_rules_ros2//ros2:extensions.bzl", "non_module_deps")
+use_repo(
+    rules_ros2_non_module_deps,
+    # Check the rules_ros2 root MODULE.bazel for a full list of available non-module repos
+    # Required for bazel test:
+    "ros2_common_interfaces",
+    "ros2_launch",
+    "ros2_launch_ros",
+    "ros2_rcl_interfaces",
+    "ros2_rclcpp",
+    # Required for bazel run:
+    "ros2_rclpy",
+    "ros2_rosidl",
+    "ros2cli",
+    ### ALL AVAILABLE ###
+    # "cyclonedds",
+    # "foxglove_bridge",
+    # "iceoryx",
+    # "osrf_pycommon",
+    # "ros2",
+    # "ros2_ament_index",
+    # "ros2_class_loader",
+    # "ros2_common_interfaces",
+    # "ros2_diagnostics",
+    # "ros2_geometry2",
+    # "ros2_image_common",
+    # "ros2_kdl_parser",
+    # "ros2_keyboard_handler",
+    # "ros2_launch",
+    # "ros2_launch_ros",
+    # "ros2_libstatistics_collector",
+    # "ros2_message_filters",
+    # "ros2_pluginlib",
+    # "ros2_rcl",
+    # "ros2_rcl_interfaces",
+    # "ros2_rcl_logging",
+    # "ros2_rclcpp",
+    # "ros2_rclpy",
+    # "ros2_rcpputils",
+    # "ros2_rcutils",
+    # "ros2_resource_retriever",
+    # "ros2_rmw",
+    # "ros2_rmw_cyclonedds",
+    # "ros2_rmw_dds_common",
+    # "ros2_rmw_implementation",
+    # "ros2_robot_state_publisher",
+    # "ros2_rosbag2",
+    # "ros2_rosidl",
+    # "ros2_rosidl_python",
+    # "ros2_rosidl_runtime_py",
+    # "ros2_rosidl_typesupport",
+    # "ros2_rpyutils",
+    # "ros2_tracing",
+    # "ros2_unique_identifier_msgs",
+    # "ros2_urdfdom",
+    # "ros2_urdfdom_headers",
+    # "ros2_xacro",
+    # "rules_ros2_config_clang",
+)
+
 #####################
 #### bazel tools ####
 #####################
@@ -29,7 +113,7 @@ bazel_dep(
 pip_lint = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip_lint.parse(
     hub_name = "pip_lint",
-    python_version = "3.9",
+    python_version = "3.10",
     requirements_lock = "//tools:requirements.txt",
 )
 use_repo(pip_lint, "pip_lint")
@@ -38,7 +122,7 @@ use_repo(pip_lint, "pip_lint")
 pip_simulation = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip_simulation.parse(
     hub_name = "simulation_pip",
-    python_version = "3.9",
+    python_version = "3.10",
     requirements_lock = "//simulation:requirements.txt",
 )
 use_repo(pip_simulation, "simulation_pip")
@@ -47,7 +131,7 @@ use_repo(pip_simulation, "simulation_pip")
 pip_teleop = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip_teleop.parse(
     hub_name = "teleop_pip",
-    python_version = "3.9",
+    python_version = "3.10",
     requirements_lock = "//teleop:requirements.txt",
 )
 use_repo(pip_teleop, "teleop_pip")
