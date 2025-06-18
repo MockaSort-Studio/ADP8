@@ -15,7 +15,9 @@
                 "ms-vscode.cpptools",
                 "llvm-vs-code-extensions.vscode-clangd",
                 "BazelBuild.vscode-bazel",
-                "akiramiyakoda.cppincludeguard"
+                "akiramiyakoda.cppincludeguard",
+                "ms-python.black-formatter",
+                ""
             ]
         }
     },
