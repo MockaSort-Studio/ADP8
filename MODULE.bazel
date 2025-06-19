@@ -75,6 +75,8 @@ pip_simulation.parse(
 )
 use_repo(pip_simulation, "simulation_pip")
 
+bazel_dep(name = "rules_uv", version = "0.77.0")
+
 #### teleop dependencies ####
 pip_teleop = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip_teleop.parse(

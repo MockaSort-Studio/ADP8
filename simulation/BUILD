@@ -1,5 +1,6 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@rules_uv//uv:venv.bzl", "create_venv")
 load("@simulation_pip//:requirements.bzl", "requirement")
 
 py_binary(
@@ -52,4 +53,13 @@ compile_pip_requirements(
     name = "requirements",
     src = "requirements.in",
     requirements_txt = "requirements.txt",
+)
+
+# Create a virtual environment for the simulation project, so that you can debug and use Intellisense
+# in your VS Code editor by adding the interpreter (venv/bin/python) to your workspace.
+# You must run this target to generate the venv, and re-run it if you changed the requirements.txt file.
+create_venv(
+    name = "simulation_venv",
+    destination_folder = "simulation/venv",
+    requirements_txt = "//simulation:requirements.txt",
 )

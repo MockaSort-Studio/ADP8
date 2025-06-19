@@ -15,5 +15,6 @@ __pycache__
 bazel-*
 **/*.bazel.lock
 .vscode/launch.json
-external/
 compile_commands.json
+# if you dont have external symlink use: ln -s $(bazel info output_base)/external external
+external
