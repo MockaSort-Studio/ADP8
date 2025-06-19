@@ -1,4 +1,0 @@
-{
-    "python.languageServer": "Default",
-    "python.analysis.stubPath": "./typings"
-}
