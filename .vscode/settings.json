@@ -17,4 +17,7 @@
         "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
         "editor.formatOnSave": true
     },
+    "clangd.arguments": [
+        "--query-driver=**"
+    ],
 }
