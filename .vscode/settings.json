@@ -1,0 +1,20 @@
+{
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "editor.detectIndentation": false,
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+    "C_Cpp.codeAnalysis.runAutomatically": false,
+    "editor.formatOnSave": true,
+    "bazel.buildifierExecutable": "buildifier",
+    "bazel.lsp.command": "starpls",
+    "bazel.enableCodeLens": true,
+    "C/C++ Include Guard.Comment Style": "Line",
+    "C/C++ Include Guard.Macro Type": "Filepath",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
+    },
+    "[cpp]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+        "editor.formatOnSave": true
+    },
+}

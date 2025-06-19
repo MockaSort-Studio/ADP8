@@ -1,0 +1,61 @@
+Language: Cpp
+BasedOnStyle: Google
+AccessModifierOffset: -2
+IndentWidth: 4
+ColumnLimit: 90
+
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortFunctionsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: false
+AlignAfterOpenBracket: AlwaysBreak
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakBeforeMultilineStrings: true
+BinPackArguments: false
+BinPackParameters: false
+LambdaBodyIndentation: Signature
+
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: false
+  AfterObjCDeclaration: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: false
+  BeforeElse: false
+  SplitEmptyFunction: false
+  BeforeLambdaBody: true
+BreakBeforeBraces: Custom
+
+IncludeCategories:
+  - Regex: '^(<|")(cstdlib|csignal|csetjmp|cstdarg|typeinfo|typeindex|type_traits|bitset|functional|utility|ctime|chrono|cstddef|initializer_list|tuple|any|optional|variant|new|memory|scoped_allocator|memory_resource|climits|cfloat|cstdint|cinttypes|limits|exception|stdexcept|cassert|system_error|cerrno|cctype|cwctype|cstring|cwchar|cuchar|string|string_view|array|vector|deque|list|forward_list|set|map|unordered_set|unordered_map|stack|queue|algorithm|execution|teratorslibrary|iterator|cmath|complex|valarray|random|numeric|ratio|cfenv|iosfwd|ios|istream|ostream|iostream|fstream|sstream|strstream|iomanip|streambuf|cstdio|locale|clocale|codecvt|regex|atomic|thread|mutex|shared_mutex|future|condition_variable|filesystem|ciso646|ccomplex|ctgmath|cstdalign|cstdbool)(>|")$'
+    Priority: 2
+  - Regex: '^<.*\.(h|hpp)>'
+    Priority: 3
+  - Regex: '"*.hpp"'
+    Priority: 4
+  - Regex: '"*.h"'
+    Priority: 4
+SortIncludes: CaseInsensitive
+
+Cpp11BracedListStyle: true
+# Force pointers to the type for C++.
+DerivePointerAlignment: false
+PointerAlignment: Left
+EmptyLineBeforeAccessModifier: LogicalBlock
+AlignTrailingComments:
+  Kind: Always
+  OverEmptyLines: 1
+
+# spaces in parenthesis
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpacesInAngles: false
+SpaceBeforeAssignmentOperators: true
+SpacesInContainerLiterals: true
+SpaceBeforeCpp11BracedList: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
