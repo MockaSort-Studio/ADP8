@@ -1,0 +1,9 @@
+alias(
+    name = "ros2_lifecycle",
+    actual = "@com_github_mvukov_rules_ros2//ros2:ros2_lifecycle",
+)
+
+alias(
+    name = "ros2_param",
+    actual = "@com_github_mvukov_rules_ros2//ros2:ros2_param",
+)
