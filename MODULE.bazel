@@ -7,6 +7,20 @@ module(
 ######################
 bazel_dep(name = "toolchains_llvm", version = "1.4.0")
 bazel_dep(name = "rules_cc", version = "0.1.2")
+bazel_dep(name = "platforms", version = "1.0.0")
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+    # NB: llvm doesn't release for all platforms on every patch release
+    llvm_versions = {
+        "": "15.0.6",
+        "darwin-aarch64": "15.0.7",
+        "darwin-x86_64": "15.0.7",
+    },
+)
+use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
+
+register_toolchains("@llvm_toolchain//:all")
 
 ######################
 #### rules python ####
