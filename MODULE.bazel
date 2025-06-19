@@ -21,21 +21,10 @@ python.toolchain(
 bazel_dep(name = "rules_cc", version = "0.1.2")
 
 ######################
-####  rules Rust  ####
-######################
-
-bazel_dep(name = "rules_rust", version = "0.61.0")
-
-######################
 ####  rules ROS2  ####
 ######################
 
 bazel_dep(name = "com_github_mvukov_rules_ros2", version = "0.0.0-20250612-f0d04fe")
-
-register_toolchains(
-    "@com_github_mvukov_rules_ros2//repositories/rust:bindgen_toolchain",
-    dev_dependency = True,
-)
 
 rules_ros2_non_module_deps = use_extension("@com_github_mvukov_rules_ros2//ros2:extensions.bzl", "non_module_deps")
 use_repo(
@@ -50,7 +39,9 @@ use_repo(
     # Required for bazel run:
     "ros2_rclpy",
     "ros2_rosidl",
+    # Optional:
     "ros2cli",
+    "ros2_rosbag2",
     ### ALL AVAILABLE ###
     # "cyclonedds",
     # "foxglove_bridge",
@@ -83,7 +74,6 @@ use_repo(
     # "ros2_rmw_dds_common",
     # "ros2_rmw_implementation",
     # "ros2_robot_state_publisher",
-    # "ros2_rosbag2",
     # "ros2_rosidl",
     # "ros2_rosidl_python",
     # "ros2_rosidl_runtime_py",
