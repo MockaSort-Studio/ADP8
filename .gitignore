@@ -14,3 +14,5 @@ venv
 __pycache__
 bazel-*
 **/*.bazel.lock
+# if you dont have external symlink use: ln -s $(bazel info output_base)/external external
+external
