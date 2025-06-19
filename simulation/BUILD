@@ -1,4 +1,5 @@
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@simulation_pip//:requirements.bzl", "requirement")
 
 py_binary(
@@ -44,4 +45,11 @@ py_binary(
     srcs = ["simulation_main.py"],
     data = [":model"],
     deps = [":simulation_core"],
+)
+
+# This rule adds a convenient way to update the requirements file.
+compile_pip_requirements(
+    name = "requirements",
+    src = "requirements.in",
+    requirements_txt = "requirements.txt",
 )
