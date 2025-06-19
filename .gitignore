@@ -16,3 +16,4 @@ bazel-*
 **/*.bazel.lock
 .vscode/launch.json
 external/
+compile_commands.json

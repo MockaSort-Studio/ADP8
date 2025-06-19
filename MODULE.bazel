@@ -5,6 +5,16 @@ module(
 ######################
 #### rules cpp    ####
 ######################
+# Hedron's Compile Commands Extractor for Bazel
+# https://github.com/hedronvision/bazel-compile-commands-extractor
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
+    commit = "4f28899228fb3ad0126897876f147ca15026151e",
+)
+
+bazel_dep(name = "googletest", version = "1.15.0")
 bazel_dep(name = "toolchains_llvm", version = "1.4.0")
 bazel_dep(name = "rules_cc", version = "0.1.2")
 bazel_dep(name = "platforms", version = "1.0.0")
@@ -36,6 +46,8 @@ python.toolchain(
 #####################
 #### bazel tools ####
 #####################
+
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
 
 #### buildifier ####
 bazel_dep(
