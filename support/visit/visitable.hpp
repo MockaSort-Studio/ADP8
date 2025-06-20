@@ -105,9 +105,9 @@ class Visitable : public IVisitable
         if constexpr (is_visitable)
         {
             std::string_view name {prop.name_};
+
             visitor.visit_nested_base(name);
             inner_instance_t::GetVisitable().accept(visitor, inner_instance);
-
             visitor.exit_nested_base(name);
         } else
         {

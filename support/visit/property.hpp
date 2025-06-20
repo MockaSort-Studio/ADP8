@@ -4,6 +4,32 @@
 #include <string_view>
 namespace sert::support {
 
+#define BEGIN_VISITABLE(TypeName)               \
+    inline static constexpr auto GetVisitable() \
+    {                                           \
+        using Type = TypeName;                  \
+            auto v = sert::support::visitable<Type>(
+
+#define ADD_PROPERTY_BEGIN(TypeName, PropertyName) \
+    inline static constexpr auto GetVisitable()    \
+    {                                              \
+        using Type = TypeName;                     \
+            auto v = sert::support::visitable<Type>(sert::support::property(#PropertyName, &Type::PropertyName)
+
+#define ADD_PROPERTY(PropertyName) \
+    , sert::support::property(#PropertyName, &Type::PropertyName)
+
+#define ADD_PROPERTY_END(PropertyName)                            \
+    , sert::support::property(#PropertyName, &Type::PropertyName) \
+                );                                                \
+    return v;                                                     \
+    }
+
+#define END_VISITABLE() \
+                );      \
+    return v;           \
+    }
+
 /**
  * \addtogroup support Support
  * \brief Supporting classes and functions

@@ -13,15 +13,9 @@ struct Mock
     double d {6.5};
     std::string s {"cane"};
 
-    inline static constexpr auto GetVisitable()
-    {
-        auto v = sert::support::visitable<Mock>(
-            sert::support::property("c", &Mock::c),
-            sert::support::property("d", &Mock::d),
-            sert::support::property("s", &Mock::s));
-
-        return v;
-    }
+    ADD_PROPERTY_BEGIN(Mock, c)
+    ADD_PROPERTY(d)
+    ADD_PROPERTY_END(s)
 };
 
 struct MockNested
@@ -32,16 +26,11 @@ struct MockNested
 
     Mock m {};
 
-    inline static constexpr auto GetVisitable()
-    {
-        auto v = sert::support::visitable<MockNested>(
-            sert::support::property("c_nested", &MockNested::c_nested),
-            sert::support::property("d_nested", &MockNested::d_nested),
-            sert::support::property("s_nested", &MockNested::s_nested),
-            sert::support::property("m", &MockNested::m));
-
-        return v;
-    }
+    ADD_PROPERTY_BEGIN(MockNested, c_nested)
+    ADD_PROPERTY(d_nested)
+    ADD_PROPERTY(s_nested)
+    ADD_PROPERTY(m)  // ---|
+    END_VISITABLE()  // ---|--->  equivalent to ADD_PROPERTY_END(m)
 };
 
 }  // namespace sert::test
