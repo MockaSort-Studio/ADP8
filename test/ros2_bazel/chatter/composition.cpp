@@ -43,16 +43,9 @@ class MockaSubscriber : public sert::core::TaskInterface
         : TaskInterface(name, options)
     {
         RegisterSubscriber<std_msgs::msg::String>(
-            "input_topic",
+            "output_topic",
             [this](std_msgs::msg::String::UniquePtr msg)
             { RCLCPP_INFO(get_logger(), "Received: '%s'", msg->data.c_str()); });
-    }
-
-  protected:
-    void ExecuteStep() override
-    {
-        RCLCPP_INFO(get_logger(), "Executing step in MockaSubscriber");
-        // This method can be overridden to implement specific behavior
     }
 };
 
