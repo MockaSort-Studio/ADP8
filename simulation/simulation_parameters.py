@@ -1,5 +1,6 @@
 import yaml
 from dataclasses import dataclass, fields
+import pybullet
 
 
 @dataclass

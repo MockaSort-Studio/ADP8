@@ -9,3 +9,4 @@ DEFAULT_PARAMETER_FILE_PATH = os.path.join(
 
 if __name__ == "__main__":
     sim_parameters = SimulationParameters(DEFAULT_PARAMETER_FILE_PATH)
+    print(f"Simulation Runtime Parameters: {sim_parameters.runtime_params}")

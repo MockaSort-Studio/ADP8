@@ -29,7 +29,9 @@ py_library(
     srcs = ["simulation_parameters.py"],
     data = ["simulation_parameters.yaml"],
     deps = [
-        requirement("yaml"),
+        requirement("pyyaml"),
+        requirement("pybullet"),
+        requirement("numpy"),
     ],
 )
 
@@ -40,6 +42,5 @@ py_binary(
         ":simulation_parameters",
         requirement("pybullet"),
         requirement("numpy"),
-        requirement("yaml"),
     ],
 )
