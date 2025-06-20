@@ -4,12 +4,21 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "compile commands",
+            "label": "run hedron",
             "type": "shell",
-            "command": "bazel run @hedron_compile_commands//:refresh_all -- -c dbg --copt=-O0 --repo_env=BAZEL_CXXOPTS=\"-std=c++17\"",
+            "command": "bazel run @hedron_compile_commands//:refresh_all -- --repo_env=BAZEL_CXXOPTS=\"-std=c++17\"",
             "options": {
                 "cwd": "${workspaceFolder}"
             }
+        },
+        {
+            "label": "fix compile_commands",
+            "type": "shell",
+            "command": "find . -name 'compile_commands.json' -exec sed -i 's|bazel-out/k8-fastbuild/bin|bazel-bin|g' {} +",
+            "options": {
+                "cwd": "${workspaceFolder}",
+            },
+            "dependsOn": "run hedron",
         }
     ]
 }
