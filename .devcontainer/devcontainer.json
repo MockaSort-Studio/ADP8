@@ -9,6 +9,12 @@
         "ghcr.io/balazs23/devcontainers-features/bazel:1": {},
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
+    "containerEnv": {
+        "DISPLAY": ":0"
+    },
+    "runArgs": [
+        "--network=host",
+    ],
     "customizations": {
         "vscode": {
             "extensions": [
