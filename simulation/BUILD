@@ -1,4 +1,5 @@
 load("@rules_uv//uv:venv.bzl", "create_venv")
+load("@simulation_pip//:requirements.bzl", "requirement")
 
 filegroup(
     name = "model",
@@ -12,4 +13,24 @@ create_venv(
     name = "simulation_venv",
     destination_folder = "simulation/venv",
     requirements_txt = "//simulation:requirements.txt",
+)
+
+py_library(
+    name = "simulation_parameters",
+    srcs = ["simulation_parameters.py"],
+    data = ["simulation_parameters.yaml"],
+    deps = [
+        requirement("yaml"),
+    ],
+)
+
+py_binary(
+    name = "simulation_main",
+    srcs = ["simulation_main.py"],
+    deps = [
+        ":simulation_parameters",
+        requirement("pybullet"),
+        requirement("numpy"),
+        requirement("yaml"),
+    ],
 )
