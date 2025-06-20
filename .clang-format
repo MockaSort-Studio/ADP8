@@ -45,9 +45,6 @@ Cpp11BracedListStyle: true
 DerivePointerAlignment: false
 PointerAlignment: Left
 EmptyLineBeforeAccessModifier: LogicalBlock
-AlignTrailingComments:
-  Kind: Always
-  OverEmptyLines: 1
 
 # spaces in parenthesis
 SpaceBeforeParens: ControlStatements
