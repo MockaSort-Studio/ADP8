@@ -1,0 +1,74 @@
+#ifndef CORE_TASK_INTERFACE
+#define CORE_TASK_INTERFACE
+
+#include <chrono>
+#include <cstdint>
+#include <functional>
+#include <memory>
+
+#include "rclcpp/rclcpp.hpp"
+
+namespace sert::core {
+
+class TaskInterface : public rclcpp::Node
+{
+  public:
+    TaskInterface(const std::string& name, rclcpp::NodeOptions options)
+        : Node(name, options)
+    {
+        const auto cycle_time_param_name = name + "/cycle_time_ms";
+        declare_parameter(cycle_time_param_name, 500);
+        const auto cycle_time_ms = get_parameter(cycle_time_param_name).as_int();
+        RCLCPP_INFO(get_logger(), "MockaTask created with name: %s", name.c_str());
+        execution_timer_ = create_wall_timer(
+            std::chrono::milliseconds(cycle_time_ms),
+            [this]() -> void
+            {
+                RCLCPP_INFO(get_logger(), "Executing TaskInterface step");
+                ExecuteStep();
+            });
+    }
+
+    template <typename MockaKitOutput>
+    void RegisterPublisher(const std::string topic_id, const int queue_size)
+    {
+        auto publisher = create_publisher<MockaKitOutput>(topic_id, queue_size);
+        publishers_.insert_or_assign(typeid(MockaKitOutput), std::move(publisher));
+        RCLCPP_INFO(get_logger(), "Publisher created for topic: output_topic");
+    }
+
+    template <typename MockaKitInput>
+    void RegisterSubscriber(
+        const std::string topic_id,
+        std::function<void(typename MockaKitInput::UniquePtr)> callback,
+        const uint8_t QoS = 10)
+    {
+        auto subscription = create_subscription<MockaKitInput>(topic_id, QoS, callback);
+        subscribers_.push_back(std::move(subscription));
+        RCLCPP_INFO(get_logger(), "Subscriber created for topic: %s", topic_id.c_str());
+    }
+
+    template <typename MockaKitOutput>
+    typename rclcpp::Publisher<MockaKitOutput>::SharedPtr GetPublisher()
+    {
+        const std::type_info& type_info = typeid(MockaKitOutput);
+        auto it = publishers_.find(type_info);
+        if (it != publishers_.end())
+        {
+            return std::dynamic_pointer_cast<rclcpp::Publisher<MockaKitOutput>>(
+                it->second);
+        }
+        RCLCPP_ERROR(get_logger(), "Publisher for type %s not found", type_info.name());
+        return nullptr;
+    }
+
+  protected:
+    virtual void ExecuteStep() {}
+
+  private:
+    rclcpp::TimerBase::SharedPtr execution_timer_;
+    std::map<std::type_index, rclcpp::PublisherBase::SharedPtr> publishers_;
+    std::vector<rclcpp::SubscriptionBase::SharedPtr> subscribers_;
+};
+}  // namespace sert::core
+#endif  // CORE_TASK_INTERFACE

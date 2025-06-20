@@ -19,9 +19,8 @@ ros2_cpp_binary(
     name = "composition_chatter",
     srcs = ["composition.cpp"],
     deps = [
+        "//core:task_interface",
         "@ros2_common_interfaces//:cpp_std_msgs",
-        "@ros2_rclcpp//:rclcpp",
-        "@ros2_rclcpp//:rclcpp_components",
     ],
 )
 
