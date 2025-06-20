@@ -6,32 +6,20 @@ load("@com_github_mvukov_rules_ros2//ros2:topic.bzl", "ros2_topic")
 load("@rules_python//python:defs.bzl", "py_binary")
 
 ros2_cpp_binary(
-    name = "talker",
-    srcs = ["talker.cpp"],
+    name = "task_manager_example",
+    srcs = ["task_manager_example.cpp"],
     deps = [
-        "@ros2_common_interfaces//:cpp_std_msgs",
-        "@ros2_rclcpp//:rclcpp",
-        "@ros2_rclcpp//:rclcpp_components",
-    ],
-)
-
-ros2_cpp_binary(
-    name = "composition_chatter",
-    srcs = ["composition.cpp"],
-    deps = [
-        "//core:task_interface",
+        "//core:tasks",
         "//support:utils",
-        "@boost.core",
         "@ros2_common_interfaces//:cpp_std_msgs",
     ],
 )
 
-ros2_cpp_binary(
-    name = "listener",
-    srcs = ["listener.cpp"],
-    deps = [
-        "@ros2_common_interfaces//:cpp_std_msgs",
-        "@ros2_rclcpp//:rclcpp",
+ros2_launch(
+    name = "task_manager_example_launch",
+    launch_file = "task_manager_example_launch.py",
+    nodes = [
+        ":task_manager_example",
     ],
 )
 
@@ -44,14 +32,7 @@ py_binary(
     ],
 )
 
-ros2_launch(
-    name = "chatter",
-    launch_file = "chatter.py",
-    nodes = [
-        ":composition_chatter",
-    ],
-)
-
+# broken test to be fixed
 ros2_test(
     name = "tests",
     size = "small",

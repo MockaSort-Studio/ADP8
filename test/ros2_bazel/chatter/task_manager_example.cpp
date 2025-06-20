@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <boost/core/demangle.hpp>
-
-#include "core/task_interface.hpp"
+#include "core/tasks_manager.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "support/lookup_table.hpp"
 
@@ -52,26 +50,15 @@ class MockaSubscriber : public sert::core::TaskInterface
     }
 };
 
-using ExampleChain = sert::support::LookupTable<
+using ExampleConfig = sert::support::LookupTable<
     sert::support::TableItem<MockaPublisher, sert::support::UnusedValue>,
     sert::support::TableItem<MockaSubscriber, sert::support::UnusedValue>>;
 
 int main(int argc, char* argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::executors::SingleThreadedExecutor exec;
-    rclcpp::NodeOptions options;
-    std::vector<sert::core::TaskInterface::SharedPtr> nodes;
-    ExampleChain::for_each_element(
-        [&options, &exec, &nodes](auto type)
-        {
-            using TaskType = typename decltype(type)::Key;
-            const auto node_name {boost::core::demangle(typeid(TaskType).name())};
-            auto task = std::make_shared<TaskType>(node_name, options);
-            nodes.push_back(task);
-            exec.add_node(task);
-        });
-    exec.spin();
+    auto task_manager = sert::core::BuildTasksManager<ExampleConfig>();
+    task_manager->Execute();
     rclcpp::shutdown();
     return 0;
 }
