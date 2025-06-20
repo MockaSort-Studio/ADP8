@@ -20,6 +20,8 @@ ros2_cpp_binary(
     srcs = ["composition.cpp"],
     deps = [
         "//core:task_interface",
+        "//support:utils",
+        "@boost.core",
         "@ros2_common_interfaces//:cpp_std_msgs",
     ],
 )
