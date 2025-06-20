@@ -5,8 +5,7 @@
 #include <string_view>
 #include <type_traits>
 
-namespace game::support
-{
+namespace sert::support {
 
 /**
  * \addtogroup support Support
@@ -23,8 +22,7 @@ namespace game::support
  * @{
  */
 
-namespace
-{
+namespace {
 
 template <typename T>
 constexpr auto has_visit_nested(...) -> std::false_type;
@@ -97,8 +95,7 @@ class VisitorBase
         if constexpr (has_visit_nested_v<Derived>)
         {
             derived_->visit_nested(name);
-        }
-        else
+        } else
         {
             throw std::runtime_error(
                 "visit_nested is not a member function, please implement it in the "
@@ -117,8 +114,7 @@ class VisitorBase
         if constexpr (has_exit_nested_v<Derived>)
         {
             derived_->exit_nested(name);
-        }
-        else
+        } else
         {
             throw std::runtime_error(
                 "exit_nested is not a member function, please implement it in the "
@@ -131,5 +127,5 @@ class VisitorBase
 ///@}
 ///@}
 
-}  // namespace game::support
-#endif // SUPPORT_VISIT_VISITOR_BASE
+}  // namespace sert::support
+#endif  // SUPPORT_VISIT_VISITOR_BASE

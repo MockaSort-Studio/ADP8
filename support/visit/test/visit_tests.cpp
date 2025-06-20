@@ -5,8 +5,7 @@
 #include "support/visit/visitor_base.hpp"
 #include "test_visitors.hpp"
 
-namespace game::test
-{
+namespace sert::test {
 
 struct Mock
 {
@@ -16,10 +15,10 @@ struct Mock
 
     inline static constexpr auto GetVisitable()
     {
-        auto v = game::support::visitable<Mock>(
-            game::support::property("c", &Mock::c),
-            game::support::property("d", &Mock::d),
-            game::support::property("s", &Mock::s));
+        auto v = sert::support::visitable<Mock>(
+            sert::support::property("c", &Mock::c),
+            sert::support::property("d", &Mock::d),
+            sert::support::property("s", &Mock::s));
 
         return v;
     }
@@ -35,21 +34,21 @@ struct MockNested
 
     inline static constexpr auto GetVisitable()
     {
-        auto v = game::support::visitable<MockNested>(
-            game::support::property("c_nested", &MockNested::c_nested),
-            game::support::property("d_nested", &MockNested::d_nested),
-            game::support::property("s_nested", &MockNested::s_nested),
-            game::support::property("m", &MockNested::m));
+        auto v = sert::support::visitable<MockNested>(
+            sert::support::property("c_nested", &MockNested::c_nested),
+            sert::support::property("d_nested", &MockNested::d_nested),
+            sert::support::property("s_nested", &MockNested::s_nested),
+            sert::support::property("m", &MockNested::m));
 
         return v;
     }
 };
 
-}  // namespace game::test
+}  // namespace sert::test
 
 TEST(Visitable, GivenMockNestedStructureType_MembersTraitAreCorrect)
 {
-    using namespace game::test;
+    using namespace sert::test;
 
     MockNested m {};
 
@@ -57,20 +56,20 @@ TEST(Visitable, GivenMockNestedStructureType_MembersTraitAreCorrect)
     {
     };
 
-    EXPECT_FALSE(game::support::has_get_visitable<decltype(m.c_nested)>::value);
-    EXPECT_TRUE(game::support::has_get_visitable<decltype(m)>::value);
-    EXPECT_TRUE(game::support::has_get_visitable<decltype(m.m)>::value);
+    EXPECT_FALSE(sert::support::has_get_visitable<decltype(m.c_nested)>::value);
+    EXPECT_TRUE(sert::support::has_get_visitable<decltype(m)>::value);
+    EXPECT_TRUE(sert::support::has_get_visitable<decltype(m.m)>::value);
 
-    EXPECT_FALSE(game::support::has_exit_nested_v<SimpleVisitor>);
-    EXPECT_FALSE(game::support::has_exit_nested_v<SimpleVisitor>);
-    EXPECT_TRUE(game::support::has_visit_nested_v<NestedVisitor>);
-    EXPECT_TRUE(game::support::has_visit_nested_v<NestedVisitor>);
+    EXPECT_FALSE(sert::support::has_exit_nested_v<SimpleVisitor>);
+    EXPECT_FALSE(sert::support::has_exit_nested_v<SimpleVisitor>);
+    EXPECT_TRUE(sert::support::has_visit_nested_v<NestedVisitor>);
+    EXPECT_TRUE(sert::support::has_visit_nested_v<NestedVisitor>);
 }
 
 TEST(Visitable, GivenMockStructure_MembersAreVisited)
 {
-    using namespace game::test;
-    auto r = game::support::is_i_visitable_v<decltype(Mock::GetVisitable())>;
+    using namespace sert::test;
+    auto r = sert::support::is_i_visitable_v<decltype(Mock::GetVisitable())>;
     ASSERT_TRUE(r);
 
     Mock m {};
@@ -93,7 +92,7 @@ TEST(Visitable, GivenMockStructure_MembersAreVisited)
 
 TEST(Visitable, GivenMockNestedStructure_MembersAreVisited)
 {
-    using namespace game::test;
+    using namespace sert::test;
 
     MockNested m {};
 

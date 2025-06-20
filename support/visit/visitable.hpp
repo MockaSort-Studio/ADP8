@@ -7,8 +7,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace game::support
-{
+namespace sert::support {
 
 /**
  * \addtogroup support Support
@@ -76,8 +75,7 @@ class Visitable : public IVisitable
   public:
     constexpr Visitable(Properties&&... properties)
         : props_(std::forward<Properties>(properties)...)
-    {
-    }
+    {}
 
     /**
      * @brief Accepts a visitor and triggers the visiting chain by calling the Visitor
@@ -111,8 +109,7 @@ class Visitable : public IVisitable
             inner_instance_t::GetVisitable().accept(visitor, inner_instance);
 
             visitor.exit_nested_base(name);
-        }
-        else
+        } else
         {
             visitor.visit_base(prop.name_, inner_instance);
         }
@@ -144,5 +141,5 @@ constexpr inline auto visitable(Properties&&... p)
 ///@}
 ///@}
 
-}  // namespace game::support
-#endif // SUPPORT_VISIT_VISITABLE
+}  // namespace sert::support
+#endif  // SUPPORT_VISIT_VISITABLE

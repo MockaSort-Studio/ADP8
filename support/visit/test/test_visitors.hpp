@@ -6,10 +6,9 @@
 
 #include "support/visit/visitor_base.hpp"
 
-namespace game::test
-{
+namespace sert::test {
 
-struct SimpleVisitor final : public game::support::VisitorBase<SimpleVisitor>
+struct SimpleVisitor final : public sert::support::VisitorBase<SimpleVisitor>
 {
     template <typename T>
     void visit(std::string_view name, const T& value)
@@ -40,9 +39,8 @@ struct SimpleVisitor final : public game::support::VisitorBase<SimpleVisitor>
     std::pair<std::string_view, std::string> s_result {};
 };
 
-struct NestedVisitor final : public game::support::VisitorBase<NestedVisitor>
+struct NestedVisitor final : public sert::support::VisitorBase<NestedVisitor>
 {
-
     template <typename T>
     void visit(std::string_view name, const T& value)
     {
@@ -100,6 +98,6 @@ struct NestedVisitor final : public game::support::VisitorBase<NestedVisitor>
     bool in_nested {false};
 };
 
-}  // namespace game::test
+}  // namespace sert::test
 
-#endif // SUPPORT_VISIT_TEST_TEST_VISITORS
+#endif  // SUPPORT_VISIT_TEST_TEST_VISITORS
