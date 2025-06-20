@@ -154,3 +154,6 @@ pip_teleop.parse(
     requirements_lock = "//teleop:requirements.txt",
 )
 use_repo(pip_teleop, "teleop_pip")
+
+#### eigen dependencies ####
+bazel_dep(name = "eigen", version = "4.0.0-20241125.bcr.2")
