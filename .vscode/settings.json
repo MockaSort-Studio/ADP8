@@ -1,23 +1,23 @@
 {
-    "C_Cpp.intelliSenseEngine": "disabled",
     "editor.detectIndentation": false,
-    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
-    "C_Cpp.codeAnalysis.runAutomatically": false,
     "editor.formatOnSave": true,
     "bazel.buildifierExecutable": "buildifier",
     "bazel.lsp.command": "starpls",
     "bazel.enableCodeLens": true,
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+    "C_Cpp.codeAnalysis.runAutomatically": false,
     "C/C++ Include Guard.Comment Style": "Line",
     "C/C++ Include Guard.Macro Type": "Filepath",
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter",
-        "editor.formatOnSave": true
-    },
     "[cpp]": {
         "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
-        "editor.formatOnSave": true
+    },
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
     },
     "clangd.arguments": [
-        "--query-driver=**"
+        "--query-driver=**",
+        "--compile-commands-dir=${workspaceFolder}/"
     ],
+    "clangd.checkUpdates": true,
 }
