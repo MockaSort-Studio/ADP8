@@ -19,7 +19,7 @@ class TaskInterface : public rclcpp::Node
         const auto cycle_time_param_name = name + "/cycle_time_ms";
         declare_parameter(cycle_time_param_name, 500);
         const auto cycle_time_ms = get_parameter(cycle_time_param_name).as_int();
-        RCLCPP_INFO(get_logger(), "MockaTask created with name: %s", name.c_str());
+        RCLCPP_INFO(get_logger(), "TaskInterface created with name: %s", name.c_str());
         execution_timer_ = create_wall_timer(
             std::chrono::milliseconds(cycle_time_ms),
             [this]() -> void
@@ -29,34 +29,33 @@ class TaskInterface : public rclcpp::Node
             });
     }
 
-    template <typename MockaKitOutput>
+    template <typename MessageType>
     void RegisterPublisher(const std::string topic_id, const int queue_size)
     {
-        auto publisher = create_publisher<MockaKitOutput>(topic_id, queue_size);
-        publishers_.insert_or_assign(typeid(MockaKitOutput), std::move(publisher));
-        RCLCPP_INFO(get_logger(), "Publisher created for topic: output_topic");
+        auto publisher = create_publisher<MessageType>(topic_id, queue_size);
+        publishers_.insert_or_assign(typeid(MessageType), std::move(publisher));
+        RCLCPP_INFO(get_logger(), "Publisher created for topic: %s", topic_id.c_str());
     }
 
-    template <typename MockaKitInput>
+    template <typename MessageType>
     void RegisterSubscriber(
         const std::string topic_id,
-        std::function<void(typename MockaKitInput::UniquePtr)> callback,
+        std::function<void(typename MessageType::UniquePtr)> callback,
         const uint8_t QoS = 10)
     {
-        auto subscription = create_subscription<MockaKitInput>(topic_id, QoS, callback);
+        auto subscription = create_subscription<MessageType>(topic_id, QoS, callback);
         subscribers_.push_back(std::move(subscription));
         RCLCPP_INFO(get_logger(), "Subscriber created for topic: %s", topic_id.c_str());
     }
 
-    template <typename MockaKitOutput>
-    typename rclcpp::Publisher<MockaKitOutput>::SharedPtr GetPublisher()
+    template <typename MessageType>
+    typename rclcpp::Publisher<MessageType>::SharedPtr GetPublisher()
     {
-        const std::type_info& type_info = typeid(MockaKitOutput);
+        const std::type_info& type_info = typeid(MessageType);
         auto it = publishers_.find(type_info);
         if (it != publishers_.end())
         {
-            return std::dynamic_pointer_cast<rclcpp::Publisher<MockaKitOutput>>(
-                it->second);
+            return std::dynamic_pointer_cast<rclcpp::Publisher<MessageType>>(it->second);
         }
         RCLCPP_ERROR(get_logger(), "Publisher for type %s not found", type_info.name());
         return nullptr;
