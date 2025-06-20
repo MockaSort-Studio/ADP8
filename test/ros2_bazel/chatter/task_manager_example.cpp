@@ -31,7 +31,10 @@ class MockaPublisher : public sert::core::TaskInterface
     {
         auto message = std_msgs::msg::String();
         message.data = "Hello from MockaPublisher!";
-        RCLCPP_INFO(get_logger(), "Publishing: '%s'", message.data.c_str());
+        RCLCPP_INFO(
+            rclcpp::get_logger("MockaPublisher"),
+            "Publishing: '%s'",
+            message.data.c_str());
         auto publisher = GetPublisher<decltype(message)>();
         publisher->publish(message);
     }
@@ -46,7 +49,12 @@ class MockaSubscriber : public sert::core::TaskInterface
         RegisterSubscriber<std_msgs::msg::String>(
             "output_topic",
             [this](std_msgs::msg::String::UniquePtr msg)
-            { RCLCPP_INFO(get_logger(), "Received: '%s'", msg->data.c_str()); });
+            {
+                RCLCPP_INFO(
+                    rclcpp::get_logger("MockaSubscriber"),
+                    "Received: '%s'",
+                    msg->data.c_str());
+            });
     }
 };
 
