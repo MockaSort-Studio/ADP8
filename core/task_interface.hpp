@@ -9,16 +9,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 namespace sert::core {
-// class TopicInterface
-// {
-//   public:
-//     virtual ~TopicInterface() = default;
-//   const std::string TopicId() const
-//   {
-//     return "";
-//   }
 
-// };
 class TaskInterface : public rclcpp::Node
 {
   public:
