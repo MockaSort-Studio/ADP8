@@ -38,7 +38,7 @@ ros2_test(
     size = "small",
     launch_file = "tests.py",
     nodes = [
-        ":talker",
+        ":task_manager_example",
     ],
     deps = [
         "@ros2_common_interfaces//:py_std_msgs",

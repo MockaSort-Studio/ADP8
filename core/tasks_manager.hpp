@@ -65,7 +65,8 @@ TasksManagerPtr BuildTasksManager()
         {
             using TaskType = typename decltype(type)::Key;
             const auto node_name {boost::core::demangle(typeid(TaskType).name())};
-            RCLCPP_INFO(rclcpp::get_logger("TasksManager"), "Adding task: %s", node_name.c_str());
+            RCLCPP_INFO(
+                rclcpp::get_logger("TasksManager"), "Adding task: %s", node_name.c_str());
             manager->AddTask<TaskType>(node_name, rclcpp::NodeOptions());
         });
     return manager;

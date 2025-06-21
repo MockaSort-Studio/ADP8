@@ -25,7 +25,7 @@ class TaskInterface : public rclcpp::Node
     TaskInterface(const std::string& name, rclcpp::NodeOptions options)
         : Node(name, options)
     {
-        const auto cycle_time_param_name = name + "/cycle_time_ms";
+        const auto cycle_time_param_name = "cycle_time_ms";
         declare_parameter(cycle_time_param_name, 500);
         const auto cycle_time_ms = get_parameter(cycle_time_param_name).as_int();
         RCLCPP_INFO(get_logger(), "TaskInterface created with name: %s", name.c_str());

@@ -24,8 +24,8 @@ import std_msgs.msg
 
 @launch_testing.markers.keep_alive
 def generate_test_description():
-    talker_node = launch_ros.actions.Node(
-        executable="test/ros2_bazel/chatter/talker",
+    task_manager_example = launch_ros.actions.Node(
+        executable="test/ros2_bazel/chatter/task_manager_example",
         parameters=[
             {"callback_period_ms": 10},
         ],
@@ -34,13 +34,13 @@ def generate_test_description():
     return (
         launch.LaunchDescription(
             [
-                talker_node,
+                task_manager_example,
                 # Start tests right away - no need to wait for anything.
                 launch_testing.actions.ReadyToTest(),
             ]
         ),
         {
-            "talker": talker_node,
+            "talker": task_manager_example,
         },
     )
 

@@ -23,7 +23,7 @@ class MockaPublisher : public sert::core::TaskInterface
     MockaPublisher(const std::string& name, rclcpp::NodeOptions options)
         : TaskInterface(name, options)
     {
-        RegisterPublisher<std_msgs::msg::String>("output_topic", 10);
+        RegisterPublisher<std_msgs::msg::String>("topic", 10);
     }
 
   protected:
@@ -47,8 +47,8 @@ class MockaSubscriber : public sert::core::TaskInterface
         : TaskInterface(name, options)
     {
         RegisterSubscriber<std_msgs::msg::String>(
-            "output_topic",
-            [this](std_msgs::msg::String::UniquePtr msg)
+            "topic",
+            [](std_msgs::msg::String::UniquePtr msg)
             {
                 RCLCPP_INFO(
                     rclcpp::get_logger("MockaSubscriber"),
