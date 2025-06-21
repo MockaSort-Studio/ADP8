@@ -39,10 +39,10 @@ class TaskInterface : public rclcpp::Node
     }
 
     template <typename MessageType>
-    void RegisterPublisher(const std::string topic_id, const int queue_size)
+    void RegisterPublisher(const std::string& topic_id, const int queue_size)
     {
         auto publisher = create_publisher<MessageType>(topic_id, queue_size);
-        publishers_.insert_or_assign(typeid(MessageType), std::move(publisher));
+        publishers_.insert_or_assign(topic_id, std::move(publisher));
         RCLCPP_INFO(get_logger(), "Publisher created for topic: %s", topic_id.c_str());
     }
 
@@ -58,15 +58,15 @@ class TaskInterface : public rclcpp::Node
     }
 
     template <typename MessageType>
-    typename rclcpp::Publisher<MessageType>::SharedPtr GetPublisher()
+    typename rclcpp::Publisher<MessageType>::SharedPtr GetPublisher(
+        const std::string& topic_id)
     {
-        const std::type_info& type_info = typeid(MessageType);
-        auto it = publishers_.find(type_info);
+        auto it = publishers_.find(topic_id);
         if (it != publishers_.end())
         {
             return std::dynamic_pointer_cast<rclcpp::Publisher<MessageType>>(it->second);
         }
-        RCLCPP_ERROR(get_logger(), "Publisher for type %s not found", type_info.name());
+        RCLCPP_ERROR(get_logger(), "Publisher for %s not found", topic_id.c_str());
         return nullptr;
     }
 
@@ -75,7 +75,7 @@ class TaskInterface : public rclcpp::Node
 
   private:
     rclcpp::TimerBase::SharedPtr execution_timer_;
-    std::map<std::type_index, rclcpp::PublisherBase::SharedPtr> publishers_;
+    std::map<std::string, rclcpp::PublisherBase::SharedPtr> publishers_;
     std::vector<rclcpp::SubscriptionBase::SharedPtr> subscribers_;
 };
 }  // namespace sert::core

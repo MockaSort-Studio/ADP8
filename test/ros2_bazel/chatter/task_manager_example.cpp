@@ -35,7 +35,7 @@ class MockaPublisher : public sert::core::TaskInterface
             rclcpp::get_logger("MockaPublisher"),
             "Publishing: '%s'",
             message.data.c_str());
-        auto publisher = GetPublisher<decltype(message)>();
+        auto publisher = GetPublisher<decltype(message)>("topic");
         publisher->publish(message);
     }
 };
