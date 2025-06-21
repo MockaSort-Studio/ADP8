@@ -1,20 +1,18 @@
 load("@pip_requirements//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_library")
 
 package(default_visibility = ["//visibility:public"])
 
-py_binary(
-    name = "main",
+py_library(
+    name = "agent",
     srcs = [
-        "main.py",
+        "agent.py",
     ],
     deps = [
         requirement("lightning"),
         requirement("torch"),
         requirement("torchmetrics"),
         requirement("gymnasium"),
-        "//ai/models:agent",
-        "//ai/train",
-        "//ai/utils",
+        "//ai/loss",
     ],
 )

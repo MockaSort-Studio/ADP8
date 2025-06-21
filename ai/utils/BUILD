@@ -4,15 +4,24 @@ load("@rules_python//python:defs.bzl", "py_library")
 package(default_visibility = ["//visibility:public"])
 
 py_library(
-    name = "train",
+    name = "utils",
     srcs = [
-        "train.py",
+        "utils.py",
     ],
     deps = [
-        requirement("lightning"),
         requirement("torch"),
-        requirement("moviepy"),
-        requirement("pygame"),
+        requirement("gymnasium"),
+        requirement("tensorboard"),
         "//ai/models:agent",
+    ],
+)
+
+py_binary(
+    name = "tensorboard",
+    srcs = [
+        "tensorboard.py",
+    ],
+    deps = [
+        requirement("tensorboard"),
     ],
 )
