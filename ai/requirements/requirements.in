@@ -1,0 +1,11 @@
+lightning == 2.5.2
+torch
+torchmetrics
+tensorboard
+numpy
+pandas
+jsonargparse[signatures]
+mlxtend
+gymnasium[mujoco]
+moviepy
+pygame
