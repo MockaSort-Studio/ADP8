@@ -1,5 +1,6 @@
 #ifndef CORE_TASKS_MANAGER
 #define CORE_TASKS_MANAGER
+
 #include <boost/core/demangle.hpp>
 
 #include "core/task_interface.hpp"

@@ -1,5 +1,6 @@
 #ifndef SUPPORT_LOOKUP_TABLE
 #define SUPPORT_LOOKUP_TABLE
+
 #include <tuple>
 
 namespace sert::support {

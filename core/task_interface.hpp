@@ -18,10 +18,11 @@ class TaskInterface : public rclcpp::Node
     {
         const auto cycle_time_param_name = "cycle_time_ms";
         declare_parameter(cycle_time_param_name, 500);
-        const auto cycle_time_ms = get_parameter(cycle_time_param_name).as_int();
+        const auto cycle_time_ms =
+            std::chrono::milliseconds(get_parameter(cycle_time_param_name).as_int());
         RCLCPP_INFO(get_logger(), "TaskInterface created with name: %s", name.c_str());
         execution_timer_ = create_wall_timer(
-            std::chrono::milliseconds(cycle_time_ms),
+            cycle_time_ms,
             [this]() -> void
             {
                 RCLCPP_INFO(get_logger(), "Executing TaskInterface step");

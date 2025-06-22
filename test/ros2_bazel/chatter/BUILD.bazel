@@ -32,7 +32,6 @@ py_binary(
     ],
 )
 
-# broken test to be fixed
 ros2_test(
     name = "tests",
     size = "small",
