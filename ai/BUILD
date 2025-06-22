@@ -13,6 +13,7 @@ py_binary(
         requirement("torch"),
         requirement("torchmetrics"),
         requirement("gymnasium"),
+        "//ai/loss:ppo_loss",
         "//ai/models:agent",
         "//ai/train",
         "//ai/utils",

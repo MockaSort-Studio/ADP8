@@ -7,6 +7,7 @@ import gymnasium as gym
 import torch
 import torchmetrics
 from ai.models.agent import PPOLightningAgent
+from ai.loss.ppo_loss import PPOLoss
 from ai.utils.utils import linear_annealing, parse_args, test
 from ai.train.train import train
 from ai.env.cartpole_env import make_cartpole_env
@@ -63,21 +64,23 @@ def main(args: argparse.Namespace):
         envs.single_action_space, gym.spaces.Discrete
     ), "only discrete action space is supported"
 
-    # Define the agent and the optimizer and setup them with Fabric
-    agent: PPOLightningAgent = PPOLightningAgent(
-        envs,
-        act_fun=args.activation_function,
+    ppo_loss = PPOLoss(
         vf_coef=args.vf_coef,
         ent_coef=args.ent_coef,
         clip_coef=args.clip_coef,
         clip_vloss=args.clip_vloss,
-        ortho_init=args.ortho_init,
         normalize_advantages=args.normalize_advantages,
+    )
+    # Define the agent and the optimizer and setup them with Fabric
+    agent: PPOLightningAgent = PPOLightningAgent(
+        envs,
+        ppo_loss,
+        act_fun=args.activation_function,
+        ortho_init=args.ortho_init,
     )
     optimizer = agent.configure_optimizers(args.learning_rate)
     agent, optimizer = fabric.setup(agent, optimizer)
-    agent.mark_forward_method("get_action_and_value")
-    agent.mark_forward_method("estimate_returns_and_advantages")
+
     # Player metrics
     rew_avg = torchmetrics.MeanMetric().to(device)
     ep_len_avg = torchmetrics.MeanMetric().to(device)
@@ -117,7 +120,7 @@ def main(args: argparse.Namespace):
 
             # Sample an action given the observation received by the environment
             with torch.no_grad():
-                action, logprob, _, value = agent.get_action_and_value(next_obs)
+                action, logprob, _, value = agent.model.get_action_and_value(next_obs)
                 values[step] = value.flatten()
             actions[step] = action
             logprobs[step] = logprob
@@ -150,7 +153,7 @@ def main(args: argparse.Namespace):
         ep_len_avg.reset()
 
         # Estimate returns with GAE (https://arxiv.org/abs/1506.02438)
-        returns, advantages = agent.estimate_returns_and_advantages(
+        returns, advantages = agent.model.estimate_returns_and_advantages(
             rewards,
             values,
             dones,

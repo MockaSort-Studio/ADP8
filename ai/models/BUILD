@@ -13,6 +13,6 @@ py_library(
         requirement("torch"),
         requirement("torchmetrics"),
         requirement("gymnasium"),
-        "//ai/loss",
+        "//ai/loss:ppo_loss",
     ],
 )

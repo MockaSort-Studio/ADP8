@@ -1,12 +1,12 @@
 import argparse
 import math
 import torch
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 from torch.utils.tensorboard import SummaryWriter
 from ai.env.cartpole_env import make_cartpole_env
 
 if TYPE_CHECKING:
-    from ai.models.agent import PPOAgent, PPOLightningAgent
+    from ai.models.agent import PPOLightningAgent
 
 
 def strtobool(val):
@@ -220,7 +220,7 @@ def linear_annealing(
 
 @torch.no_grad()
 def test(
-    agent: Union["PPOLightningAgent", "PPOAgent"],
+    agent: "PPOLightningAgent",
     device: torch.device,
     logger: SummaryWriter,
     args: argparse.Namespace,
@@ -234,7 +234,7 @@ def test(
     next_obs = torch.tensor(env.reset(seed=args.seed)[0], device=device)
     while not done:
         # Act greedly through the environment
-        action = agent.get_greedy_action(next_obs)
+        action = agent.model.get_greedy_action(next_obs)
 
         # Single environment step
         next_obs, reward, done, truncated, _ = env.step(action.cpu().numpy())
