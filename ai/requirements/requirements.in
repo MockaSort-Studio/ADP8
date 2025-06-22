@@ -1,4 +1,4 @@
-lightning == 2.5.1.post0
+lightning == 2.5.2
 torch
 torchmetrics
 tensorboard
@@ -6,6 +6,6 @@ numpy
 pandas
 jsonargparse[signatures]
 mlxtend
-gymnasium
+gymnasium[mujoco]
 moviepy
 pygame

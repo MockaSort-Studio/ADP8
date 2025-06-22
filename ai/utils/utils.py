@@ -1,11 +1,9 @@
 import argparse
 import math
-import os
-from typing import TYPE_CHECKING, Optional, Union
-
-import gymnasium as gym
 import torch
+from typing import TYPE_CHECKING, Union
 from torch.utils.tensorboard import SummaryWriter
+from ai.env.cartpole_env import make_cartpole_env
 
 if TYPE_CHECKING:
     from ai.models.agent import PPOAgent, PPOLightningAgent
@@ -220,30 +218,6 @@ def linear_annealing(
         pg["lr"] = lrnow
 
 
-def make_env(
-    env_id: str,
-    seed: int,
-    idx: int,
-    capture_video: bool,
-    run_name: Optional[str] = None,
-    prefix: str = "",
-):
-    def thunk():
-        env = gym.make(env_id, render_mode="rgb_array")
-        env = gym.wrappers.RecordEpisodeStatistics(env)
-        if capture_video and idx == 0 and run_name is not None:
-            env = gym.wrappers.RecordVideo(
-                env,
-                os.path.join(run_name, prefix + "_videos" if prefix else "videos"),
-                disable_logger=True,
-            )
-        env.action_space.seed(seed)
-        env.observation_space.seed(seed)
-        return env
-
-    return thunk
-
-
 @torch.no_grad()
 def test(
     agent: Union["PPOLightningAgent", "PPOAgent"],
@@ -251,7 +225,7 @@ def test(
     logger: SummaryWriter,
     args: argparse.Namespace,
 ):
-    env = make_env(
+    env = make_cartpole_env(
         args.env_id, args.seed, 0, args.capture_video, logger.log_dir, "test"
     )()
     step = 0

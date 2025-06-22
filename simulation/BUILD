@@ -13,6 +13,7 @@ py_binary(
 filegroup(
     name = "model",
     srcs = ["robot_model/spot.xml"] + glob(["robot_model/stl/*"]),
+    visibility = ["//ai/env:__subpackages__"],
 )
 
 py_library(

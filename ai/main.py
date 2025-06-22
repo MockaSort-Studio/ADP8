@@ -7,8 +7,9 @@ import gymnasium as gym
 import torch
 import torchmetrics
 from ai.models.agent import PPOLightningAgent
-from ai.utils.utils import linear_annealing, make_env, parse_args, test
+from ai.utils.utils import linear_annealing, parse_args, test
 from ai.train.train import train
+from ai.env.cartpole_env import make_cartpole_env
 from lightning.fabric import Fabric
 from lightning.fabric.loggers import TensorBoardLogger
 
@@ -47,7 +48,7 @@ def main(args: argparse.Namespace):
     # Environment setup
     envs = gym.vector.SyncVectorEnv(
         [
-            make_env(
+            make_cartpole_env(
                 args.env_id,
                 args.seed + rank * args.num_envs + i,
                 rank,

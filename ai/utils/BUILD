@@ -10,8 +10,8 @@ py_library(
     ],
     deps = [
         requirement("torch"),
-        requirement("gymnasium"),
         requirement("tensorboard"),
+        "//ai/env:cartpole_env",
         "//ai/models:agent",
     ],
 )
