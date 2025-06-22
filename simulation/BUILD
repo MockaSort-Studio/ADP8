@@ -2,6 +2,7 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@rules_uv//uv:venv.bzl", "create_venv")
 load("@simulation_pip//:requirements.bzl", "requirement")
+package(default_visibility = ["//visibility:public"])
 
 py_binary(
     name = "example",
@@ -13,7 +14,6 @@ py_binary(
 filegroup(
     name = "model",
     srcs = ["robot_model/spot.xml"] + glob(["robot_model/stl/*"]),
-    visibility = ["//ai/env:__subpackages__"],
 )
 
 py_library(
