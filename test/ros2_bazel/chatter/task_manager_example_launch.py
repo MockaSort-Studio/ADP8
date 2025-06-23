@@ -22,14 +22,9 @@ def generate_launch_description():
         [
             launch_ros.actions.Node(
                 # Provide the rootpath for the node.
-                executable="test/ros2_bazel/chatter/talker",
+                executable="test/ros2_bazel/chatter/task_manager_example",
                 output="screen",
-                name="talker",
-            ),
-            launch_ros.actions.Node(
-                executable="test/ros2_bazel/chatter/listener",
-                output="screen",
-                name="listener",
+                name="TaskManagerExample",
             ),
         ]
     )
