@@ -13,17 +13,21 @@ from ai.train.train import train
 from ai.env.cartpole_env import make_cartpole_env
 from lightning.fabric import Fabric
 from lightning.fabric.loggers import TensorBoardLogger
+from typing import Tuple
+from dataclasses import dataclass
 
 
-def main(args: argparse.Namespace):
-    run_name = f"{args.env_id}_{args.exp_name}_{args.seed}_{int(time.time())}"
-    logger = TensorBoardLogger(
-        root_dir=os.path.join(
-            "logs", "fabric_logs", datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
-        ),
-        name=run_name,
-    )
+@dataclass
+class TrainingCache:
+    observations: torch.Tensor
+    actions: torch.Tensor
+    logprobs: torch.Tensor
+    rewards: torch.Tensor
+    dones: torch.Tensor
+    values: torch.Tensor
 
+
+def setup_fabric(args: argparse.Namespace, logger: TensorBoardLogger) -> Fabric:
     # Initialize Fabric
     fabric = Fabric(
         accelerator=args.accelerator,
@@ -32,9 +36,6 @@ def main(args: argparse.Namespace):
         loggers=logger,
     )
     fabric.launch()
-    rank = fabric.global_rank
-    world_size = fabric.world_size
-    device = fabric.device
     fabric.seed_everything(args.seed)
     torch.backends.cudnn.deterministic = args.torch_deterministic
 
@@ -45,7 +46,14 @@ def main(args: argparse.Namespace):
             "\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])
         ),
     )
+    return fabric
 
+
+def setup_environment(
+    args: argparse.Namespace, fabric: Fabric
+) -> gym.vector.SyncVectorEnv:
+    rank = fabric.global_rank
+    logger = fabric.logger
     # Environment setup
     envs = gym.vector.SyncVectorEnv(
         [
@@ -63,7 +71,12 @@ def main(args: argparse.Namespace):
     assert isinstance(
         envs.single_action_space, gym.spaces.Discrete
     ), "only discrete action space is supported"
+    return envs
 
+
+def setup_agent_and_optimizer(
+    args: argparse.Namespace, envs: gym.vector.SyncVectorEnv, fabric: Fabric
+) -> Tuple[PPOLightningAgent, torch.optim.Optimizer]:
     ppo_loss = PPOLoss(
         vf_coef=args.vf_coef,
         ent_coef=args.ent_coef,
@@ -71,38 +84,61 @@ def main(args: argparse.Namespace):
         clip_vloss=args.clip_vloss,
         normalize_advantages=args.normalize_advantages,
     )
-    # Define the agent and the optimizer and setup them with Fabric
-    agent: PPOLightningAgent = PPOLightningAgent(
+    agent = PPOLightningAgent(
         envs,
         ppo_loss,
         act_fun=args.activation_function,
         ortho_init=args.ortho_init,
     )
+
     optimizer = agent.configure_optimizers(args.learning_rate)
     agent, optimizer = fabric.setup(agent, optimizer)
+
+    return agent, optimizer
+
+
+def initialize_training_cache(
+    args: argparse.Namespace,
+    envs: gym.vector.SyncVectorEnv,
+    device: torch.device,
+) -> TrainingCache:
+    return TrainingCache(
+        observations=torch.zeros(
+            (args.num_steps, args.num_envs) + envs.single_observation_space.shape,
+            device=device,
+        ),
+        actions=torch.zeros(
+            (args.num_steps, args.num_envs) + envs.single_action_space.shape,
+            device=device,
+        ),
+        logprobs=torch.zeros((args.num_steps, args.num_envs), device=device),
+        rewards=torch.zeros((args.num_steps, args.num_envs), device=device),
+        dones=torch.zeros((args.num_steps, args.num_envs), device=device),
+        values=torch.zeros((args.num_steps, args.num_envs), device=device),
+    )
+
+
+def training_loop(
+    args: argparse.Namespace,
+    local_training_cache: TrainingCache,
+    envs: gym.vector.SyncVectorEnv,
+    agent: PPOLightningAgent,
+    optimizer: torch.optim.Optimizer,
+    fabric: Fabric,
+) -> None:
+
+    # Global variables
+    device = fabric.device
+    world_size = fabric.world_size
+    global_step = 0
+    start_time = time.time()
+    num_updates = args.total_timesteps // int(
+        args.num_envs * args.num_steps * world_size
+    )
 
     # Player metrics
     rew_avg = torchmetrics.MeanMetric().to(device)
     ep_len_avg = torchmetrics.MeanMetric().to(device)
-
-    # Local data
-    obs = torch.zeros(
-        (args.num_steps, args.num_envs) + envs.single_observation_space.shape,
-        device=device,
-    )
-    actions = torch.zeros(
-        (args.num_steps, args.num_envs) + envs.single_action_space.shape, device=device
-    )
-    logprobs = torch.zeros((args.num_steps, args.num_envs), device=device)
-    rewards = torch.zeros((args.num_steps, args.num_envs), device=device)
-    dones = torch.zeros((args.num_steps, args.num_envs), device=device)
-    values = torch.zeros((args.num_steps, args.num_envs), device=device)
-
-    # Global variables
-    global_step = 0
-    start_time = time.time()
-    single_global_rollout = int(args.num_envs * args.num_steps * world_size)
-    num_updates = args.total_timesteps // single_global_rollout
 
     # Get the first environment observation and start the optimization
     next_obs = torch.tensor(envs.reset(seed=args.seed)[0], device=device)
@@ -115,20 +151,20 @@ def main(args: argparse.Namespace):
 
         for step in range(0, args.num_steps):
             global_step += args.num_envs * world_size
-            obs[step] = next_obs
-            dones[step] = next_done
+            local_training_cache.observations[step] = next_obs
+            local_training_cache.dones[step] = next_done
 
             # Sample an action given the observation received by the environment
             with torch.no_grad():
                 action, logprob, _, value = agent.model.get_action_and_value(next_obs)
-                values[step] = value.flatten()
-            actions[step] = action
-            logprobs[step] = logprob
+                local_training_cache.values[step] = value.flatten()
+            local_training_cache.actions[step] = action
+            local_training_cache.logprobs[step] = logprob
 
             # Single environment step
             next_obs, reward, done, truncated, info = envs.step(action.cpu().numpy())
             done = torch.logical_or(torch.tensor(done), torch.tensor(truncated))
-            rewards[step] = torch.tensor(
+            local_training_cache.rewards[step] = torch.tensor(
                 reward, device=device, dtype=torch.float32
             ).view(-1)
             next_obs, next_done = torch.tensor(next_obs, device=device), done.to(device)
@@ -154,9 +190,9 @@ def main(args: argparse.Namespace):
 
         # Estimate returns with GAE (https://arxiv.org/abs/1506.02438)
         returns, advantages = agent.model.estimate_returns_and_advantages(
-            rewards,
-            values,
-            dones,
+            local_training_cache.rewards,
+            local_training_cache.values,
+            local_training_cache.dones,
             next_obs,
             next_done,
             args.num_steps,
@@ -166,12 +202,16 @@ def main(args: argparse.Namespace):
 
         # Flatten the batch
         local_data = {
-            "obs": obs.reshape((-1,) + envs.single_observation_space.shape),
-            "logprobs": logprobs.reshape(-1),
-            "actions": actions.reshape((-1,) + envs.single_action_space.shape),
+            "obs": local_training_cache.observations.reshape(
+                (-1,) + envs.single_observation_space.shape
+            ),
+            "logprobs": local_training_cache.logprobs.reshape(-1),
+            "actions": local_training_cache.actions.reshape(
+                (-1,) + envs.single_action_space.shape
+            ),
             "advantages": advantages.reshape(-1),
             "returns": returns.reshape(-1),
-            "values": values.reshape(-1),
+            "values": local_training_cache.values.reshape(-1),
         }
 
         if args.share_data:
@@ -196,10 +236,28 @@ def main(args: argparse.Namespace):
             int(global_step / (time.time() - start_time)),
             global_step,
         )
+    return
+
+
+def main(args: argparse.Namespace):
+    run_name = f"{args.env_id}_{args.exp_name}_{args.seed}_{int(time.time())}"
+    logger = TensorBoardLogger(
+        root_dir=os.path.join(
+            "logs", "fabric_logs", datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+        ),
+        name=run_name,
+    )
+
+    fabric = setup_fabric(args, logger)
+    envs = setup_environment(args, fabric)
+    agent, optimizer = setup_agent_and_optimizer(args, envs, fabric)
+    # Local training cache
+    training_cache = initialize_training_cache(args, envs, fabric.device)
+    training_loop(args, training_cache, envs, agent, optimizer, fabric)
 
     envs.close()
     if fabric.is_global_zero:
-        test(agent.module, device, fabric.logger.experiment, args)
+        test(agent.module, fabric.device, fabric.logger.experiment, args)
 
 
 if __name__ == "__main__":
