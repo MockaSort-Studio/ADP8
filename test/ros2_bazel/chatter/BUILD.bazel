@@ -6,20 +6,20 @@ load("@com_github_mvukov_rules_ros2//ros2:topic.bzl", "ros2_topic")
 load("@rules_python//python:defs.bzl", "py_binary")
 
 ros2_cpp_binary(
-    name = "talker",
-    srcs = ["talker.cpp"],
+    name = "task_manager_example",
+    srcs = ["task_manager_example.cpp"],
     deps = [
+        "//core:tasks",
+        "//support:utils",
         "@ros2_common_interfaces//:cpp_std_msgs",
-        "@ros2_rclcpp//:rclcpp",
     ],
 )
 
-ros2_cpp_binary(
-    name = "listener",
-    srcs = ["listener.cpp"],
-    deps = [
-        "@ros2_common_interfaces//:cpp_std_msgs",
-        "@ros2_rclcpp//:rclcpp",
+ros2_launch(
+    name = "task_manager_example_launch",
+    launch_file = "task_manager_example_launch.py",
+    nodes = [
+        ":task_manager_example",
     ],
 )
 
@@ -32,21 +32,12 @@ py_binary(
     ],
 )
 
-ros2_launch(
-    name = "chatter",
-    launch_file = "chatter.py",
-    nodes = [
-        ":listener",
-        ":talker",
-    ],
-)
-
 ros2_test(
     name = "tests",
     size = "small",
     launch_file = "tests.py",
     nodes = [
-        ":talker",
+        ":task_manager_example",
     ],
     deps = [
         "@ros2_common_interfaces//:py_std_msgs",
