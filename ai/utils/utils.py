@@ -210,9 +210,9 @@ def layer_init(
 
 
 def linear_annealing(
-    optimizer: torch.optim.Optimizer, update: int, num_updates: int, initial_lr: float
+    optimizer: torch.optim.Optimizer, episode: int, num_episodes: int, initial_lr: float
 ):
-    frac = 1.0 - (update - 1.0) / num_updates
+    frac = 1.0 - (episode - 1.0) / num_episodes
     lrnow = frac * initial_lr
     for pg in optimizer.param_groups:
         pg["lr"] = lrnow
@@ -229,16 +229,16 @@ def test(
         args.env_id, args.seed, 0, args.capture_video, logger.log_dir, "test"
     )()
     step = 0
-    done = False
+    terminated = False
     cumulative_rew = 0
     next_obs = torch.tensor(env.reset(seed=args.seed)[0], device=device)
-    while not done:
+    while not terminated:
         # Act greedly through the environment
         action = agent.model.get_greedy_action(next_obs)
 
         # Single environment step
-        next_obs, reward, done, truncated, _ = env.step(action.cpu().numpy())
-        done = done or truncated
+        next_obs, reward, terminated, truncated, _ = env.step(action.cpu().numpy())
+        terminated = terminated or truncated
         cumulative_rew += reward
         next_obs = torch.tensor(next_obs, device=device)
         step += 1

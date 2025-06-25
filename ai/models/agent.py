@@ -97,9 +97,9 @@ class PPOAgent(torch.nn.Module):
         self,
         rewards: Tensor,
         values: Tensor,
-        dones: Tensor,
+        terminateds: Tensor,
         next_obs: Tensor,
-        next_done: Tensor,
+        next_terminated: Tensor,
         num_steps: int,
         gamma: float,
         gae_lambda: float,
@@ -109,10 +109,10 @@ class PPOAgent(torch.nn.Module):
         lastgaelam = 0
         for t in reversed(range(num_steps)):
             if t == num_steps - 1:
-                nextnonterminal = torch.logical_not(next_done)
+                nextnonterminal = torch.logical_not(next_terminated)
                 nextvalues = next_value
             else:
-                nextnonterminal = torch.logical_not(dones[t + 1])
+                nextnonterminal = torch.logical_not(terminateds[t + 1])
                 nextvalues = values[t + 1]
             delta = rewards[t] + gamma * nextvalues * nextnonterminal - values[t]
             advantages[t] = lastgaelam = (

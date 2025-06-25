@@ -23,7 +23,7 @@ class TrainingCache:
     actions: torch.Tensor
     logprobs: torch.Tensor
     rewards: torch.Tensor
-    dones: torch.Tensor
+    terminateds: torch.Tensor
     values: torch.Tensor
 
 
@@ -113,7 +113,7 @@ def initialize_training_cache(
         ),
         logprobs=torch.zeros((args.num_steps, args.num_envs), device=device),
         rewards=torch.zeros((args.num_steps, args.num_envs), device=device),
-        dones=torch.zeros((args.num_steps, args.num_envs), device=device),
+        terminateds=torch.zeros((args.num_steps, args.num_envs), device=device),
         values=torch.zeros((args.num_steps, args.num_envs), device=device),
     )
 
@@ -132,7 +132,7 @@ def training_loop(
     world_size = fabric.world_size
     global_step = 0
     start_time = time.time()
-    num_updates = args.total_timesteps // int(
+    num_episodes = args.total_timesteps // int(
         args.num_envs * args.num_steps * world_size
     )
 
@@ -142,17 +142,17 @@ def training_loop(
 
     # Get the first environment observation and start the optimization
     next_obs = torch.tensor(envs.reset(seed=args.seed)[0], device=device)
-    next_done = torch.zeros(args.num_envs, device=device)
-    for update in range(1, num_updates + 1):
+    next_terminated = torch.zeros(args.num_envs, device=device)
+    for episode in range(1, num_episodes + 1):
         # Learning rate annealing
         if args.anneal_lr:
-            linear_annealing(optimizer, update, num_updates, args.learning_rate)
+            linear_annealing(optimizer, episode, num_episodes, args.learning_rate)
         fabric.log("Info/learning_rate", optimizer.param_groups[0]["lr"], global_step)
 
         for step in range(0, args.num_steps):
             global_step += args.num_envs * world_size
             local_training_cache.observations[step] = next_obs
-            local_training_cache.dones[step] = next_done
+            local_training_cache.terminateds[step] = next_terminated
 
             # Sample an action given the observation received by the environment
             with torch.no_grad():
@@ -162,12 +162,18 @@ def training_loop(
             local_training_cache.logprobs[step] = logprob
 
             # Single environment step
-            next_obs, reward, done, truncated, info = envs.step(action.cpu().numpy())
-            done = torch.logical_or(torch.tensor(done), torch.tensor(truncated))
+            next_obs, reward, terminated, truncated, info = envs.step(
+                action.cpu().numpy()
+            )
+            terminated = torch.logical_or(
+                torch.tensor(terminated), torch.tensor(truncated)
+            )
             local_training_cache.rewards[step] = torch.tensor(
                 reward, device=device, dtype=torch.float32
             ).view(-1)
-            next_obs, next_done = torch.tensor(next_obs, device=device), done.to(device)
+            next_obs, next_terminated = torch.tensor(
+                next_obs, device=device
+            ), terminated.to(device)
 
             if "final_info" in info:
                 for i, agent_final_info in enumerate(info["final_info"]):
@@ -192,9 +198,9 @@ def training_loop(
         returns, advantages = agent.model.estimate_returns_and_advantages(
             local_training_cache.rewards,
             local_training_cache.values,
-            local_training_cache.dones,
+            local_training_cache.terminateds,
             next_obs,
-            next_done,
+            next_terminated,
             args.num_steps,
             args.gamma,
             args.gae_lambda,
