@@ -19,5 +19,6 @@
         "--query-driver=**",
         "--compile-commands-dir=${workspaceFolder}/"
     ],
+    "clangd.path": ".devcontainer/scripts/clangd.sh",
     "clangd.checkUpdates": true,
 }

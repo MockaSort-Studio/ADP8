@@ -5,9 +5,10 @@ RUN sudo apt-get update \
     sudo apt-get install --no-install-recommends --assume-yes \
     libx11-dev \
     libgl1 \
-    libopenmpi-dev
+    libopenmpi-dev \
+    direnv
 
 # Install misc deps
 RUN mkdir /home/vscode/scripts
-COPY scripts/install-deps.sh /home/vscode/scripts
-RUN chmod +x /home/vscode/scripts/install-deps.sh
+COPY scripts/bootstrap.sh /home/vscode/scripts
+RUN chmod +x /home/vscode/scripts/bootstrap.sh
