@@ -3,6 +3,7 @@ from typing import Optional
 import os
 
 
+# return shapes of the observation and action spaces
 def make_cartpole_env(
     env_id: str,
     seed: int,
