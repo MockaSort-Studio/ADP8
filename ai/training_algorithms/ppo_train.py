@@ -8,7 +8,7 @@ from ai.utils.utils import linear_annealing
 from lightning.fabric import Fabric
 import lightning as L
 from ai.train.trainer import trainer, TrainingCache
-from typing import Dict
+from typing import Any, Dict
 from torch import Tensor
 from torch.utils.data import BatchSampler, DistributedSampler, RandomSampler
 
@@ -19,38 +19,38 @@ def train(
     optimizer: torch.optim.Optimizer,
     data: Dict[str, Tensor],
     global_step: int,
-    args: argparse.Namespace,
+    parameters: Any,
 ):
     indexes = list(range(data["obs"].shape[0]))
-    if args.share_data:
+    if parameters.share_data:
         sampler = DistributedSampler(
             indexes,
             num_replicas=fabric.world_size,
             rank=fabric.global_rank,
             shuffle=True,
-            seed=args.seed,
+            seed=parameters.seed,
         )
     else:
         sampler = RandomSampler(indexes)
     sampler = BatchSampler(
-        sampler, batch_size=args.per_rank_batch_size, drop_last=False
+        sampler, batch_size=parameters.per_rank_batch_size, drop_last=False
     )
 
-    for epoch in range(args.update_epochs):
-        if args.share_data:
+    for epoch in range(parameters.update_epochs):
+        if parameters.share_data:
             sampler.sampler.set_epoch(epoch)
         for batch_idxes in sampler:
             loss = agent.training_step({k: v[batch_idxes] for k, v in data.items()})
             optimizer.zero_grad(set_to_none=True)
             fabric.backward(loss)
-            fabric.clip_gradients(agent, optimizer, max_norm=args.max_grad_norm)
+            fabric.clip_gradients(agent, optimizer, max_norm=parameters.max_grad_norm)
             optimizer.step()
         agent.on_train_epoch_end(global_step)
 
 
 @trainer()
 def ppo_train(
-    args: argparse.Namespace,
+    parameters: Any,
     local_training_cache: TrainingCache,
     envs: gym.vector.SyncVectorEnv,
     agent: L.LightningModule,
@@ -63,8 +63,8 @@ def ppo_train(
     world_size = fabric.world_size
     global_step = 0
     start_time = time.time()
-    num_episodes = args.total_timesteps // int(
-        args.num_envs * args.num_steps * world_size
+    num_episodes = parameters.total_timesteps // int(
+        parameters.num_envs * parameters.num_steps * world_size
     )
 
     # Player metrics
@@ -72,16 +72,16 @@ def ppo_train(
     ep_len_avg = torchmetrics.MeanMetric().to(device)
 
     # Get the first environment observation and start the optimization
-    next_obs = torch.tensor(envs.reset(seed=args.seed)[0], device=device)
-    next_terminated = torch.zeros(args.num_envs, device=device)
+    next_obs = torch.tensor(envs.reset(seed=parameters.seed)[0], device=device)
+    next_terminated = torch.zeros(parameters.num_envs, device=device)
     for episode in range(1, num_episodes + 1):
         # Learning rate annealing
-        if args.anneal_lr:
-            linear_annealing(optimizer, episode, num_episodes, args.learning_rate)
+        if parameters.anneal_lr:
+            linear_annealing(optimizer, episode, num_episodes, parameters.learning_rate)
         fabric.log("Info/learning_rate", optimizer.param_groups[0]["lr"], global_step)
 
-        for step in range(0, args.num_steps):
-            global_step += args.num_envs * world_size
+        for step in range(0, parameters.num_steps):
+            global_step += parameters.num_envs * world_size
             local_training_cache.observations[step] = next_obs
             local_training_cache.terminateds[step] = next_terminated
 
@@ -132,9 +132,9 @@ def ppo_train(
             local_training_cache.terminateds,
             next_obs,
             next_terminated,
-            args.num_steps,
-            args.gamma,
-            args.gae_lambda,
+            parameters.num_steps,
+            parameters.gamma,
+            parameters.gae_lambda,
         )
 
         # Flatten the batch
@@ -151,7 +151,7 @@ def ppo_train(
             "values": local_training_cache.values.reshape(-1),
         }
 
-        if args.share_data:
+        if parameters.share_data:
             # Gather all the tensors from all the world and reshape them
             gathered_data = fabric.all_gather(local_data)
             for k, v in gathered_data.items():
@@ -167,7 +167,7 @@ def ppo_train(
             gathered_data = local_data
 
         # Train the agent
-        train(fabric, agent, optimizer, gathered_data, global_step, args)
+        train(fabric, agent, optimizer, gathered_data, global_step, parameters)
         fabric.log(
             "Time/step_per_second",
             int(global_step / (time.time() - start_time)),

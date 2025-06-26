@@ -3,7 +3,7 @@ import argparse
 import gymnasium as gym
 import torch
 from lightning.fabric import Fabric
-from typing import Callable, Type
+from typing import Any, Callable, Type
 from dataclasses import dataclass
 import lightning as L
 from ai.utils.utils import test
@@ -17,28 +17,34 @@ class TrainingCache:
     actions: torch.Tensor
     logprobs: torch.Tensor
     rewards: torch.Tensor
-    dones: torch.Tensor
+    terminateds: torch.Tensor
     values: torch.Tensor
 
 
 def initialize_training_cache(
-    args: argparse.Namespace,
+    parameters: Any,
     envs: gym.vector.SyncVectorEnv,
     device: torch.device,
 ) -> TrainingCache:
     return TrainingCache(
         observations=torch.zeros(
-            (args.num_steps, args.num_envs) + envs.single_observation_space.shape,
+            (parameters.num_steps, parameters.num_envs)
+            + envs.single_observation_space.shape,
             device=device,
         ),
         actions=torch.zeros(
-            (args.num_steps, args.num_envs) + envs.single_action_space.shape,
+            (parameters.num_steps, parameters.num_envs)
+            + envs.single_action_space.shape,
             device=device,
         ),
-        logprobs=torch.zeros((args.num_steps, args.num_envs), device=device),
-        rewards=torch.zeros((args.num_steps, args.num_envs), device=device),
-        dones=torch.zeros((args.num_steps, args.num_envs), device=device),
-        values=torch.zeros((args.num_steps, args.num_envs), device=device),
+        logprobs=torch.zeros(
+            (parameters.num_steps, parameters.num_envs), device=device
+        ),
+        rewards=torch.zeros((parameters.num_steps, parameters.num_envs), device=device),
+        terminateds=torch.zeros(
+            (parameters.num_steps, parameters.num_envs), device=device
+        ),
+        values=torch.zeros((parameters.num_steps, parameters.num_envs), device=device),
     )
 
 
@@ -48,7 +54,7 @@ class BaseTrainer(ABC):
     _envs: gym.vector.SyncVectorEnv
     _agent: L.LightningModule
     _optimizer: torch.optim.Optimizer
-    _args: argparse.Namespace
+    _parameters: Any
     _name: str
 
     @abstractmethod
@@ -57,7 +63,7 @@ class BaseTrainer(ABC):
 
     def train(self):
         training_cache = initialize_training_cache(
-            self._args, self._envs, self._fabric.device
+            self._parameters, self._envs, self._fabric.device
         )
         self.train_impl(training_cache)
         self._envs.close()
@@ -66,7 +72,7 @@ class BaseTrainer(ABC):
                 self._agent.module,
                 self._fabric.device,
                 self._fabric.logger.experiment,
-                self._args,
+                self._parameters,
             )
 
 
@@ -79,13 +85,13 @@ def trainer() -> Callable[[Callable], Type[BaseTrainer]]:
                 envs: gym.vector.SyncVectorEnv,
                 agent: L.LightningModule,
                 optimizer: torch.optim.Optimizer,
-                args: argparse.Namespace,
+                parameters: Any,
             ):
                 self._fabric = fabric
                 self._envs = envs
                 self._agent = agent
                 self._optimizer = optimizer
-                self._args = args
+                self._parameters = parameters
                 self._name = training_loop_func.__name__
 
             @property
@@ -94,7 +100,7 @@ def trainer() -> Callable[[Callable], Type[BaseTrainer]]:
 
             def train_impl(self, training_cache: TrainingCache) -> None:
                 training_loop_func(
-                    self._args,
+                    self._parameters,
                     training_cache,
                     self._envs,
                     self._agent,

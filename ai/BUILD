@@ -9,6 +9,7 @@ py_binary(
         "main.py",
     ],
     data = [
+        ":parameters",
         "//ai/loss:ppo_loss",
         "//ai/models:agent",
         "//ai/training_algorithms",
@@ -24,4 +25,9 @@ py_binary(
         "//ai/utils",
         "//ai/utils:module_loader",
     ],
+)
+
+filegroup(
+    name = "parameters",
+    srcs = glob(["parameters/*.yaml"]),
 )
