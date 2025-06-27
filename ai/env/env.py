@@ -3,16 +3,23 @@ from typing import Optional
 import os
 
 
-def make_cartpole_env(
+# return shapes of the observation and action spaces
+def make_env(
     env_id: str,
     seed: int,
     idx: int,
     capture_video: bool,
+    env_specs=None,
     run_name: Optional[str] = None,
     prefix: str = "",
 ):
     def thunk():
-        env = gym.make(env_id, render_mode="rgb_array")
+
+        kwargs_env_specs = {}
+        if isinstance(env_specs, dict):
+            kwargs_env_specs.update(env_specs)
+
+        env = gym.make(env_id, **kwargs_env_specs)
         env = gym.wrappers.RecordEpisodeStatistics(env)
         if capture_video and idx == 0 and run_name is not None:
             env = gym.wrappers.RecordVideo(

@@ -8,13 +8,27 @@ py_binary(
     srcs = [
         "main.py",
     ],
+    data = [
+        ":parameters",
+        "//ai/loss:ppo_loss",
+        "//ai/models:agent",
+        "//ai/training_algorithms",
+        "//simulation:model",
+    ],
     deps = [
         requirement("lightning"),
         requirement("torch"),
         requirement("torchmetrics"),
         requirement("gymnasium"),
-        "//ai/models:agent",
-        "//ai/train",
+        #gym deps
+        requirement("moviepy"),
+        requirement("pygame"),
         "//ai/utils",
+        "//ai/utils:module_loader",
     ],
+)
+
+filegroup(
+    name = "parameters",
+    srcs = glob(["parameters/*.yaml"]),
 )

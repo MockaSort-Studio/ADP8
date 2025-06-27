@@ -6,13 +6,10 @@ package(default_visibility = ["//visibility:public"])
 py_library(
     name = "train",
     srcs = [
-        "train.py",
+        "trainer.py",
     ],
     deps = [
         requirement("lightning"),
         requirement("torch"),
-        requirement("moviepy"),
-        requirement("pygame"),
-        "//ai/models:agent",
     ],
 )
