@@ -10,9 +10,10 @@ cuda: false
 player_on_gpu: false
 torch_deterministic: true
 num_envs: 2
+env_id: CartPole-v1
+env_specs: {render_mode: "rgb_array",}
 share_data: false
 per_rank_batch_size: 64
-env_id: CartPole-v1
 num_steps: 128
 capture_video: true
 total_timesteps: 65536

@@ -27,8 +27,8 @@ python.toolchain(
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
 git_override(
     module_name = "hedron_compile_commands",
-    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
     commit = "4f28899228fb3ad0126897876f147ca15026151e",
+    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
 )
 
 bazel_dep(name = "googletest", version = "1.17.0")
@@ -70,8 +70,8 @@ use_repo(
     "ros2_rclpy",
     "ros2_rosidl",
     # Optional:
-    "ros2cli",
     "ros2_rosbag2",
+    "ros2cli",
     ### ALL AVAILABLE ###
     # "cyclonedds",
     # "foxglove_bridge",

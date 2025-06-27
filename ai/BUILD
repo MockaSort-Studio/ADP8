@@ -13,6 +13,7 @@ py_binary(
         "//ai/loss:ppo_loss",
         "//ai/models:agent",
         "//ai/training_algorithms",
+        "//simulation:model",
     ],
     deps = [
         requirement("lightning"),

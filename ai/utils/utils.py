@@ -4,7 +4,7 @@ import torch
 import yaml
 from typing import Any, Type, TYPE_CHECKING
 from torch.utils.tensorboard import SummaryWriter
-from ai.env.cartpole_env import make_cartpole_env
+from ai.env.env import make_env
 
 if TYPE_CHECKING:
     from ai.models.agent import PPOLightningAgent
@@ -85,15 +85,21 @@ def test(
     agent: "PPOLightningAgent",
     device: torch.device,
     logger: SummaryWriter,
-    args: Any,
+    parameters: Any,
 ):
-    env = make_cartpole_env(
-        args.env_id, args.seed, 0, args.capture_video, logger.log_dir, "test"
+    env = make_env(
+        parameters.env_id,
+        parameters.seed,
+        0,
+        parameters.capture_video,
+        parameters.env_specs,
+        logger.log_dir,
+        "test",
     )()
     step = 0
     terminated = False
     cumulative_rew = 0
-    next_obs = torch.tensor(env.reset(seed=args.seed)[0], device=device)
+    next_obs = torch.tensor(env.reset(seed=parameters.seed)[0], device=device)
     while not terminated:
         # Act greedly through the environment
         action = agent.model.get_greedy_action(next_obs)

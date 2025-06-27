@@ -11,7 +11,7 @@ py_library(
     deps = [
         requirement("torch"),
         requirement("tensorboard"),
-        "//ai/env:cartpole_env",
+        "//ai/env",
         "//ai/models:agent",
     ],
 )

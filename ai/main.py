@@ -7,7 +7,7 @@ import gymnasium as gym
 import torch
 
 from ai.utils.utils import parse_parameters
-from ai.env.cartpole_env import make_cartpole_env
+from ai.env.env import make_env
 from lightning.fabric import Fabric
 from lightning.fabric.loggers import TensorBoardLogger
 from typing import Any, Tuple
@@ -45,20 +45,18 @@ def setup_environment(parameters: Any, fabric: Fabric) -> gym.vector.SyncVectorE
     # Environment setup
     envs = gym.vector.SyncVectorEnv(
         [
-            make_cartpole_env(
+            make_env(
                 parameters.env_id,
                 parameters.seed + rank * parameters.num_envs + i,
                 rank,
                 parameters.capture_video,
+                parameters.env_specs,
                 logger.log_dir,
                 "train",
             )
             for i in range(parameters.num_envs)
         ]
     )
-    assert isinstance(
-        envs.single_action_space, gym.spaces.Discrete
-    ), "only discrete action space is supported"
     return envs
 
 

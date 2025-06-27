@@ -12,9 +12,9 @@ py_binary(
 py_library(
     name = "input_controller",
     srcs = [
-        "input_controller.py",
-        "event_handler.py",
         "device_manager.py",
+        "event_handler.py",
+        "input_controller.py",
     ],
     deps = [
         requirement("evdev"),
