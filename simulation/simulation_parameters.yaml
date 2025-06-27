@@ -2,3 +2,4 @@
 real_time: true
 time_step: 0.0041
 max_physics_solver_iterations: 200
+gravity_vector: [0.0, 0.0, -9.81]

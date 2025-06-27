@@ -8,6 +8,7 @@ class RuntimeParams:
     real_time: bool
     time_step: float
     max_physics_solver_iterations: int
+    gravity_vector: tuple[float, float, float]
 
 
 class SimulationParameters:
