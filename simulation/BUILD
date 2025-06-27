@@ -35,10 +35,44 @@ py_library(
     ],
 )
 
+py_library(
+    name = "simulation_entity_base",
+    srcs = ["simulation_entity_base.py"],
+)
+
+py_library(
+    name = "simulation_runner",
+    srcs = ["simulation_runner.py"],
+    deps = [
+        ":simulation_entity_base",
+        requirement("pybullet"),
+        requirement("numpy"),
+    ],
+)
+
+
+filegroup(
+    name = "spot_model",
+    srcs = ["robot_model/spot.xml"] + glob(["robot_model/stl/*"]),
+)
+
+py_library(
+    name = "spotmicro_sim_model",
+    srcs = ["spotmicro_sim_model.py"],
+    data = [":spot_model"],
+    deps = [
+        ":simulation_entity_base",
+        requirement("pybullet"),
+        requirement("numpy"),
+    ],
+)
+
 py_binary(
     name = "simulation_main",
     srcs = ["simulation_main.py"],
     deps = [
+        ":simulation_runner",
+        ":spotmicro_sim_model",
         ":simulation_parameters",
         requirement("pybullet"),
         requirement("numpy"),
