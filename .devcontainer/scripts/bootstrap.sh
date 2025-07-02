@@ -3,6 +3,7 @@
 set -e
 
 BIN_DIR=$HOME/.local/bin
+WS_DIR=$1
 
 if [ ! -d "$BIN_DIR" ]; then
     mkdir -p $BIN_DIR
@@ -17,3 +18,7 @@ chmod +x buildifier
 wget -O starpls.tar.gz https://github.com/withered-magic/starpls/releases/download/v0.1.14/starpls-linux-amd64.tar.gz
 tar -xf starpls.tar.gz && rm -rf starpls.tar.gz
 chmod +x starpls
+
+chmod +x $WS_DIR/.devcontainer/scripts/clangd.sh
+echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
+echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
