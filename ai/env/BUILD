@@ -1,5 +1,5 @@
 load("@pip_requirements//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -10,5 +10,20 @@ py_library(
     ],
     deps = [
         requirement("gymnasium"),
+    ],
+)
+
+py_binary(
+    name = "env_test",
+    srcs = [
+        "env_test.py",
+    ],
+    data = [
+        "//simulation:model",
+    ],
+    deps = [
+        requirement("gymnasium"),
+        requirement("moviepy"),
+        requirement("pygame"),
     ],
 )
