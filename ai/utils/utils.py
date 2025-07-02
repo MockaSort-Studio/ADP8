@@ -1,12 +1,15 @@
 import argparse
 import math
 import torch
-from typing import TYPE_CHECKING, Union
+import yaml
+from typing import Any, Type, TYPE_CHECKING
 from torch.utils.tensorboard import SummaryWriter
-from ai.env.cartpole_env import make_cartpole_env
+from ai.env.env import make_env
 
 if TYPE_CHECKING:
-    from ai.models.agent import PPOAgent, PPOLightningAgent
+    from ai.models.agent import PPOLightningAgent
+
+from dataclasses import make_dataclass
 
 
 def strtobool(val):
@@ -26,175 +29,34 @@ def strtobool(val):
     raise ValueError(f"invalid truth value {val!r}")
 
 
-def parse_args():
+def parse_yaml(file_path: str) -> Any:
+    """Parse a YAML file and return its contents as a dictionary."""
+    with open(file_path, "r") as file:
+        try:
+            params_dict = yaml.safe_load(file)
+            Parameters = make_dataclass(
+                "Parameters",
+                params_dict.keys(),
+                frozen=True,
+            )
+            return Parameters(**params_dict)
+        except yaml.YAMLError as exc:
+            raise ValueError(f"Error parsing YAML file: {exc}")
+
+
+def parse_parameters() -> Any:
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--exp-name", type=str, default="default", help="the name of this experiment"
-    )
-
-    # Fabric arguments
-    parser.add_argument("--devices", type=int, default=2, help="number of devices")
-    parser.add_argument(
-        "--accelerator", type=str, default="cpu", help="accelerator to use"
-    )
-    parser.add_argument("--strategy", type=str, default="ddp", help="strategy to use")
-
-    # PyTorch arguments
-    parser.add_argument("--seed", type=int, default=42, help="seed of the experiment")
-    parser.add_argument(
-        "--cuda",
-        type=lambda x: bool(strtobool(x)),
-        default=False,
-        nargs="?",
-        const=True,
-        help="If toggled, GPU training will be used. "
-        "This affects also the distributed backend used (NCCL (gpu) vs GLOO (cpu))",
-    )
-    parser.add_argument(
-        "--player-on-gpu",
-        type=lambda x: bool(strtobool(x)),
-        default=False,
-        nargs="?",
-        const=True,
-        help="If toggled, player will run on GPU (used only by `train_fabric_decoupled.py` script). "
-        "This affects also the distributed backend used (NCCL (gpu) vs GLOO (cpu))",
-    )
-    parser.add_argument(
-        "--torch-deterministic",
-        type=lambda x: bool(strtobool(x)),
-        default=True,
-        nargs="?",
-        const=True,
-        help="if toggled, `torch.backends.cudnn.deterministic=False`",
-    )
-
-    # Distributed arguments
-    parser.add_argument(
-        "--num-envs",
-        type=int,
-        default=2,
-        help="the number of parallel game environments",
-    )
-    parser.add_argument(
-        "--share-data",
-        type=lambda x: bool(strtobool(x)),
-        default=False,
-        nargs="?",
-        const=True,
-        help="Toggle sharing data between processes",
-    )
-    parser.add_argument(
-        "--per-rank-batch-size",
-        type=int,
-        default=64,
-        help="the batch size for each rank",
-    )
-
-    # Environment arguments
-    parser.add_argument(
-        "--env-id", type=str, default="CartPole-v1", help="the id of the environment"
-    )
-    parser.add_argument(
-        "--num-steps",
-        type=int,
-        default=128,
-        help="the number of steps to run in each environment per policy rollout",
-    )
-    parser.add_argument(
-        "--capture-video",
-        type=lambda x: bool(strtobool(x)),
-        default=False,
-        nargs="?",
-        const=True,
-        help="whether to capture videos of the agent performances (check out `videos` folder)",
-    )
-
-    # PPO arguments
-    parser.add_argument(
-        "--total-timesteps",
-        type=int,
-        default=2**16,
-        help="total timesteps of the experiments",
-    )
-    parser.add_argument(
-        "--learning-rate",
-        type=float,
-        default=1e-3,
-        help="the learning rate of the optimizer",
-    )
-    parser.add_argument(
-        "--anneal-lr",
-        type=lambda x: bool(strtobool(x)),
-        default=False,
-        nargs="?",
-        const=True,
-        help="Toggle learning rate annealing for policy and value networks",
-    )
-    parser.add_argument(
-        "--gamma", type=float, default=0.99, help="the discount factor gamma"
-    )
-    parser.add_argument(
-        "--gae-lambda",
-        type=float,
-        default=0.95,
-        help="the lambda for the general advantage estimation",
-    )
-    parser.add_argument(
-        "--update-epochs",
-        type=int,
-        default=10,
-        help="the K epochs to update the policy",
-    )
-    parser.add_argument(
-        "--activation-function",
+        "--parameters",
         type=str,
-        default="relu",
-        choices=["relu", "tanh"],
-        help="The activation function of the model",
+        default="",
+        help="path to the YAML configuration file",
     )
-    parser.add_argument(
-        "--ortho-init",
-        type=lambda x: bool(strtobool(x)),
-        default=False,
-        nargs="?",
-        const=True,
-        help="Toggles the orthogonal initialization of the model",
-    )
-    parser.add_argument(
-        "--normalize-advantages",
-        type=lambda x: bool(strtobool(x)),
-        default=False,
-        nargs="?",
-        const=True,
-        help="Toggles advantages normalization",
-    )
-    parser.add_argument(
-        "--clip-coef",
-        type=float,
-        default=0.2,
-        help="the surrogate clipping coefficient",
-    )
-    parser.add_argument(
-        "--clip-vloss",
-        type=lambda x: bool(strtobool(x)),
-        default=False,
-        nargs="?",
-        const=True,
-        help="Toggles whether or not to use a clipped loss for the value function, as per the paper.",
-    )
-    parser.add_argument(
-        "--ent-coef", type=float, default=0.0, help="coefficient of the entropy"
-    )
-    parser.add_argument(
-        "--vf-coef", type=float, default=1.0, help="coefficient of the value function"
-    )
-    parser.add_argument(
-        "--max-grad-norm",
-        type=float,
-        default=0.5,
-        help="the maximum norm for the gradient clipping",
-    )
-    return parser.parse_args()
+
+    args = parser.parse_args()
+    parameters = parse_yaml(args.parameters)
+    return parameters
 
 
 def layer_init(
@@ -210,9 +72,9 @@ def layer_init(
 
 
 def linear_annealing(
-    optimizer: torch.optim.Optimizer, update: int, num_updates: int, initial_lr: float
+    optimizer: torch.optim.Optimizer, episode: int, num_episodes: int, initial_lr: float
 ):
-    frac = 1.0 - (update - 1.0) / num_updates
+    frac = 1.0 - (episode - 1.0) / num_episodes
     lrnow = frac * initial_lr
     for pg in optimizer.param_groups:
         pg["lr"] = lrnow
@@ -220,25 +82,31 @@ def linear_annealing(
 
 @torch.no_grad()
 def test(
-    agent: Union["PPOLightningAgent", "PPOAgent"],
+    agent: "PPOLightningAgent",
     device: torch.device,
     logger: SummaryWriter,
-    args: argparse.Namespace,
+    parameters: Any,
 ):
-    env = make_cartpole_env(
-        args.env_id, args.seed, 0, args.capture_video, logger.log_dir, "test"
+    env = make_env(
+        parameters.env_id,
+        parameters.seed,
+        0,
+        parameters.capture_video,
+        parameters.env_specs,
+        logger.log_dir,
+        "test",
     )()
     step = 0
-    done = False
+    terminated = False
     cumulative_rew = 0
-    next_obs = torch.tensor(env.reset(seed=args.seed)[0], device=device)
-    while not done:
+    next_obs = torch.tensor(env.reset(seed=parameters.seed)[0], device=device)
+    while not terminated:
         # Act greedly through the environment
-        action = agent.get_greedy_action(next_obs)
+        action = agent.model.get_greedy_action(next_obs)
 
         # Single environment step
-        next_obs, reward, done, truncated, _ = env.step(action.cpu().numpy())
-        done = done or truncated
+        next_obs, reward, terminated, truncated, _ = env.step(action.cpu().numpy())
+        terminated = terminated or truncated
         cumulative_rew += reward
         next_obs = torch.tensor(next_obs, device=device)
         step += 1

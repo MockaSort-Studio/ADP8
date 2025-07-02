@@ -1,5 +1,5 @@
 load("@pip_requirements//:requirements.bzl", "requirement")
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -11,8 +11,15 @@ py_library(
     deps = [
         requirement("torch"),
         requirement("tensorboard"),
-        "//ai/env:cartpole_env",
+        "//ai/env",
         "//ai/models:agent",
+    ],
+)
+
+py_library(
+    name = "module_loader",
+    srcs = [
+        "module_loader.py",
     ],
 )
 
