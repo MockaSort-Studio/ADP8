@@ -10,10 +10,10 @@
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
     "mounts": [
-        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache,target=/home/vscode/.cache,type=bind,consistency=cached"
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache,target=/home/vscode/.cache,type=bind"
     ],
     "containerEnv": {
-        "DISPLAY": ":0"
+        "DISPLAY": "${localEnv:DISPLAY}",
     },
     "runArgs": [
         "--network=host",
