@@ -6,7 +6,8 @@ RUN sudo apt-get update \
     libx11-dev \
     libgl1 \
     libopenmpi-dev \
-    direnv
+    direnv \
+    libosmesa6-dev
 
 # Install misc deps
 RUN mkdir /home/vscode/scripts
