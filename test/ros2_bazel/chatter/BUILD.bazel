@@ -5,6 +5,9 @@ load("@com_github_mvukov_rules_ros2//ros2:test.bzl", "ros2_test")
 load("@com_github_mvukov_rules_ros2//ros2:topic.bzl", "ros2_topic")
 load("@rules_python//python:defs.bzl", "py_binary")
 
+# NOTE: ros2 rules throw warnings with the current llvm versi&on.
+# for the time being run these executables with --copt "-Wno-thread-safety-attributes" --copt "-Wno-deprecated-declarations" --copt "-Wno-unused-lambda-capture"
+
 ros2_cpp_binary(
     name = "task_manager_example",
     srcs = ["task_manager_example.cpp"],

@@ -21,3 +21,4 @@ chmod +x starpls
 
 chmod +x $WS_DIR/.devcontainer/scripts/clangd.sh
 echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
+echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc

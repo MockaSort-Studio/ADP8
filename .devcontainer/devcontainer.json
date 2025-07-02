@@ -9,6 +9,7 @@
         "ghcr.io/balazs23/devcontainers-features/bazel:1": {},
         "ghcr.io/devcontainers/features/docker-in-docker:2": {}
     },
+    "initializeCommand": "mkdir -p ${localEnv:HOME}/.cache && chmod 777 ${localEnv:HOME}/.cache",
     "mounts": [
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache,target=/home/vscode/.cache,type=bind"
     ],
