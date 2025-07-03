@@ -1,11 +1,10 @@
 import numpy as np
 
 import gymnasium as gym
-import os
 
 env = gym.make(
     "Ant-v5",
-    xml_file="./simulation/robot_model/spot.xml",
+    # xml_file="./simulation/robot_model/spot_mini.xml",
     render_mode="human",
     forward_reward_weight=0,
     ctrl_cost_weight=0,
@@ -29,12 +28,21 @@ env = gym.make(
 obs, info = env.reset()
 env.render()
 
-for _ in range(100):
+while True:
     action = env.action_space.sample()  # Replace with your agent's action
     obs, reward, terminated, truncated, info = env.step(action)
-    # print(action)
+    print(action)
+    print(obs)
     if terminated or truncated:
         obs, info = env.reset()
 
 env.close()
 print("Environment tested successfully!")
+
+# from urdf2mjcf import run
+
+# run(
+#     urdf_path="./simulation/robot_model/spot.xml",
+#     mjcf_path="/home/vscode/spot.mjcf",
+#     copy_meshes=True,
+# )

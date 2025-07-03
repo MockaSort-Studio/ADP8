@@ -19,7 +19,7 @@ py_binary(
         "env_test.py",
     ],
     data = [
-        "//simulation:model",
+        "//simulation:model_mujoco",
     ],
     deps = [
         requirement("gymnasium"),
