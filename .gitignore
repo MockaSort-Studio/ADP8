@@ -18,3 +18,4 @@ bazel-*
 compile_commands.json
 # if you dont have external symlink use: ln -s $(bazel info output_base)/external external
 external
+node_modules
