@@ -20,6 +20,16 @@ def import_symbol_from_file(import_path: str):
         raise AttributeError(f"Symbol '{symbol}' not found in module '{module_name}'")
 
 
+def import_module(module_name: str):
+    if not all(part.isidentifier() for part in module_name.split(".")):
+        raise ValueError(f"{module_name} is not a valid Python module path")
+
+    try:
+        return importlib.import_module(module_name)
+    except ModuleNotFoundError as e:
+        raise ImportError(f"Module '{module_name}' could not be imported") from e
+
+
 def import_symbol_from_module(package_name: str, symbol: str):
     if not all(part.isidentifier() for part in package_name.split(".")):
         raise ValueError(f"{package_name} is not a valid Python module path")

@@ -229,24 +229,25 @@
   </worldbody>
 
   <actuator>
-    <motor name="fl.hx" gear="1" joint="fl.hx" />
-    <motor name="fl.hy" gear="1" joint="fl.hy" />
-    <motor name="fl.kn" gear="1" joint="fl.kn" />
-    <motor name="fr.hx" gear="1" joint="fr.hx" />
-    <motor name="fr.hy" gear="1" joint="fr.hy" />
-    <motor name="fr.kn" gear="1" joint="fr.kn" />
-    <motor name="hl.hx" gear="1" joint="hl.hx" />
-    <motor name="hl.hy" gear="1" joint="hl.hy" />
-    <motor name="hl.kn" gear="1" joint="hl.kn" />
-    <motor name="hr.hx" gear="1" joint="hr.hx" />
-    <motor name="hr.hy" gear="1" joint="hr.hy" />
-    <motor name="hr.kn" gear="1" joint="hr.kn" />
+    <position name="fl.hx" gear="1" joint="fl.hx" />
+    <position name="fl.hy" gear="1" joint="fl.hy" />
+    <position name="fl.kn" gear="1" joint="fl.kn" />
+    <position name="fr.hx" gear="1" joint="fr.hx" />
+    <position name="fr.hy" gear="1" joint="fr.hy" />
+    <position name="fr.kn" gear="1" joint="fr.kn" />
+    <position name="hl.hx" gear="1" joint="hl.hx" />
+    <position name="hl.hy" gear="1" joint="hl.hy" />
+    <position name="hl.kn" gear="1" joint="hl.kn" />
+    <position name="hr.hx" gear="1" joint="hr.hx" />
+    <position name="hr.hy" gear="1" joint="hr.hy" />
+    <position name="hr.kn" gear="1" joint="hr.kn" />
   </actuator>
 
   <sensor>
     <framequat name="Body_Quat" objtype="site" objname="imu" />
     <gyro name="Body_Gyro" site="imu" />
     <accelerometer name="Body_Acc" site="imu" />
+    <velocimeter name="Body_Vel" site="imu" />
 
     <jointpos name="fl.hx_pos" joint="fl.hx" />
     <jointpos name="fl.hy_pos" joint="fl.hy" />
