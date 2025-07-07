@@ -1,14 +1,8 @@
 import type { Node, NodeTypes, BuiltInNode } from "@xyflow/react";
 import { PositionLoggerNode } from "./PositionLoggerNode";
+import { MockFlowNode } from "./MockFlowNode";
 
-export type PositionLoggerNode = Node<
-  {
-    label?: string;
-  },
-  "position-logger"
->;
-
-export type AppNode = BuiltInNode | PositionLoggerNode;
+export type AppNode = BuiltInNode | PositionLoggerNode | MockFlowNode;
 
 export const initialNodes: AppNode[] = [
   { id: "a", type: "input", position: { x: 0, y: 0 }, data: { label: "wire" } },
@@ -25,9 +19,16 @@ export const initialNodes: AppNode[] = [
     position: { x: 0, y: 200 },
     data: { label: "with React Flow" },
   },
+  {
+    id: "e",
+    type: "mock-flow",
+    position: { x: -100, y: -100 },
+    data: { label: 'NodeResizer when selected' },
+  },
 ];
 
 export const nodeTypes = {
   "position-logger": PositionLoggerNode,
+  "mock-flow": MockFlowNode,
   // Add any of your custom nodes here!
 } satisfies NodeTypes;

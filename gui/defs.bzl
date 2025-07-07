@@ -4,7 +4,7 @@ load("@aspect_rules_swc//swc:defs.bzl", "swc")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 
 ASSET_PATTERNS = [
-    "*.css",
+    "**/*.css",
 ]
 
 SRC_PATTERNS = [
