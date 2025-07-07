@@ -6,11 +6,12 @@ import { MockFlowNodeConfig, IODataConfig } from "./MockFlowNodeConfig"; // <-- 
 export type AppNode = BuiltInNode | PositionLoggerNode | MockFlowNode;
 
 const randomMockFlowConfig = new MockFlowNodeConfig(
-  "Random Node",
+  "MockFlow Node",
   "mock-1",
   [
     new IODataConfig("InputA", "input-a"),
     new IODataConfig("InputB", "input-b"),
+    new IODataConfig("InputC", "input-c"),
   ],
   [
     new IODataConfig("OutputX", "output-x"),

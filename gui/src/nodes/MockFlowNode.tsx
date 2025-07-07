@@ -9,6 +9,17 @@ export type MockFlowNode = Node<
     "mock-flow"
 >;
 
+function getHandleBounds(n: number): [number, number] {
+    // improve handles positioning spacing based on the number of handles
+    const f = 35 * Math.tanh((n - 1) / 2);
+    return [50 - f, 50 + f];
+}
+
+function generateEvenHandlesPositioning(idx: number, total: number): string {
+    const [min_position, max_position] = getHandleBounds(total);
+    const step = (max_position - min_position) / (total - 1);
+    return `${min_position + idx * step}%`; // Evenly distribute handles
+}
 
 export function MockFlowNode({
     data,
@@ -18,22 +29,24 @@ export function MockFlowNode({
     const config: MockFlowNodeConfig = data.config;
 
     // Map input handles
-    const inputHandles = config.input.map(input => (
+    const inputHandles = config.input.map((input, idx) => (
         <Handle
             key={input.id}
             type="target"
             position={Position.Left}
             id={input.id}
+            style={{ top: generateEvenHandlesPositioning(idx, config.input.length) }}
         />
     ));
 
     // Map output handles
-    const outputHandles = config.output.map(output => (
+    const outputHandles = config.output.map((output, idx) => (
         <Handle
             key={output.id}
             type="source"
             position={Position.Right}
             id={output.id}
+            style={{ top: generateEvenHandlesPositioning(idx, config.output.length) }}
         />
     ));
 
