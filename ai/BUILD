@@ -27,8 +27,3 @@ py_binary(
         "//ai/utils:module_loader",
     ],
 )
-
-filegroup(
-    name = "parameters",
-    srcs = glob(["parameters/*.yaml"]),
-)

@@ -20,6 +20,7 @@ py_library(
     ],
     deps = [
         requirement("gymnasium"),
+        "//ai/parameters:registry",
     ],
 )
 
@@ -36,6 +37,7 @@ py_binary(
         requirement("moviepy"),
         requirement("pygame"),
         ":spot_env",
+        "//ai/parameters:registry",
         "//ai/utils:module_loader",
     ],
 )

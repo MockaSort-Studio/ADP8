@@ -1,12 +1,20 @@
 import gymnasium as gym
+from dataclasses import dataclass
 
 
 import numpy as np
 from gymnasium import utils
 from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium.spaces import Box
+from ai.parameters.registry import register_parameters
 
-import os
+
+@register_parameters("environment")
+class SpotEnvParameters:
+    vel_x: np.float64 = 0.0
+    vel_y: np.float64 = 0.0
+    yaw_rate: np.float64 = 0.0
+    target_height: np.float64 = 0.0
 
 
 # Courtesy of https://github.com/denisgriaznov/CustomMuJoCoEnviromentForRL
@@ -19,16 +27,13 @@ class SpotEnv(MujocoEnv, utils.EzPickle):
         ]
     }
 
-    def __init__(self, episode_len=500, **kwargs):
+    def __init__(
+        self, xml_file: str, parameters: SpotEnvParameters, episode_len=500, **kwargs
+    ):
         utils.EzPickle.__init__(self, **kwargs)
-        self.previous_action = np.zeros((12,), dtype=np.float64)
-        MujocoEnv.__init__(
-            self,
-            "./simulation/robot_model/spot_mini.xml",
-            5,
-            observation_space=None,
-            **kwargs
-        )
+        self.parameters = parameters
+        MujocoEnv.__init__(self, xml_file, 5, observation_space=None, **kwargs)
+        self.previous_action = np.zeros((self.model.nu,), dtype=np.float64)
         self.observation_space = Box(
             low=-np.inf, high=np.inf, shape=(48,), dtype=np.float64
         )
@@ -110,8 +115,14 @@ class SpotEnv(MujocoEnv, utils.EzPickle):
                 joint_pos,
                 joint_vel,
                 self.previous_action,
-                np.array([0.0, 0.0, 0.0]),  # Placeholder target vx,vy, yaw_rate
-                np.array([0.0]),  # placeholder target z
+                np.array(
+                    [
+                        self.parameters.vel_x,
+                        self.parameters.vel_y,
+                        self.parameters.yaw_rate,
+                    ]
+                ),  # Placeholder target vx,vy, yaw_rate
+                np.array([self.parameters.target_height]),  # placeholder target z
             ),
             axis=0,
         )
@@ -120,7 +131,7 @@ class SpotEnv(MujocoEnv, utils.EzPickle):
 
 # Register the custom environment
 gym.register(
-    id="Spot-v0",  # Unique ID for the environment
-    entry_point="env.spot_env:SpotEnv",  # Path to the environment class
-    kwargs={"episode_len": 500},  # Optional arguments passed to the environment
+    id="Spot-v0",
+    entry_point=SpotEnv,
+    kwargs={"episode_len": 500},
 )

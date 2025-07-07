@@ -32,3 +32,11 @@ def make_env(
         return env
 
     return thunk
+
+
+def register_env(env_id: str, entry_point: str, **kwargs):
+    def decorator(cls):
+        gym.register(id=env_id, entry_point=entry_point, **kwargs)
+        return cls
+
+    return decorator
