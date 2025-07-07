@@ -1,6 +1,6 @@
 import yaml
-
 from dataclasses import dataclass
+from typing import Type, Dict, Any
 
 """
 ParameterRegistry and register_parameters utility for managing and loading parameters using YAML files.
@@ -38,19 +38,19 @@ Documented with care by GitHub Copilot!
 
 
 class ParameterRegistry:
-    _registry = {}
-    _loaded_data = {}
+    _registry: Dict[str, Type[Any]] = {}
+    _loaded_data: Dict[str, Any] = {}
 
     @classmethod
-    def register(cls, name, dataclass_type):
+    def register(cls, name: str, dataclass_type: Type[Any]) -> None:
         cls._registry[name] = dataclass_type
 
     @classmethod
-    def flush(cls):
+    def flush(cls) -> None:
         cls._loaded_data = {}
 
     @classmethod
-    def load_parameters(cls, yaml_file):
+    def load_parameters(cls, yaml_file: str) -> None:
         with open(yaml_file, "r", encoding="utf-8") as file:
             try:
                 cls._loaded_data = yaml.safe_load(file)
@@ -58,18 +58,19 @@ class ParameterRegistry:
                 raise ValueError(f"Error parsing YAML file: {exc}")
 
     @classmethod
-    def get_parameters(cls, name):
+    def get_parameters(cls, name: str) -> Any:
         print(cls._loaded_data)
         if name not in cls._registry:
             raise ValueError(f"Parameters for '{name}' not registered.")
-        if name not in cls._loaded_data:
-            raise ValueError(f"'{name}' not found in loaded data.")
         dataclass_type = cls._registry[name]
+        if name not in cls._loaded_data:
+            # return default params (add logging line using fabric)
+            return dataclass_type()
         return dataclass_type(**cls._loaded_data[name])
 
 
-def register_parameters(name):
-    def decorator(cls):
+def register_parameters(name: str) -> Any:
+    def decorator(cls: Type[Any]) -> Type[Any]:
         cls = dataclass(cls)
         ParameterRegistry.register(name, cls)
         return cls
