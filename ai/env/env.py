@@ -1,8 +1,16 @@
 import gymnasium as gym
-from typing import Optional
 import os
+from ai.parameters.registry import ParameterRegistry
+from typing import Any, Callable, Dict, Optional, Type
+
+_ENV_COMMON_PARAMETERS: Dict[str, Any] = {
+    "episode_len": 500,
+    "xml_file": "./simulation/robot_model/spot_mini.xml",
+    "capture_video": False,
+}
 
 
+# REFERENCE CODE
 # return shapes of the observation and action spaces
 def make_env(
     env_id: str,
@@ -34,9 +42,26 @@ def make_env(
     return thunk
 
 
-def register_env(env_id: str, entry_point: str, **kwargs):
-    def decorator(cls):
-        gym.register(id=env_id, entry_point=entry_point, **kwargs)
+# NEW CODE
+
+
+def environment_parameters(**parameters: Dict[str, Any]) -> Callable:
+    def decorator(cls: Type) -> Type:
+        # Register the environment and its parameters in the ParameterServer
+        registered_parameters = _ENV_COMMON_PARAMETERS.copy()
+        registered_parameters.update(parameters)
+        ParameterRegistry.register("environment", registered_parameters)
+
+        # Modify the class to inject the parameters
+        original_init = cls.__init__
+
+        def new_init(self, **kwargs):
+            # Inject the parameter dataclass instance
+            self.parameters = ParameterRegistry.get_parameters("environment")
+            # Call the original __init__ method
+            original_init(self, **kwargs)
+
+        cls.__init__ = new_init
         return cls
 
     return decorator

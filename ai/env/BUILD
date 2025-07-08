@@ -10,6 +10,7 @@ py_library(
     ],
     deps = [
         requirement("gymnasium"),
+        "//ai/parameters:registry",
     ],
 )
 
@@ -19,8 +20,8 @@ py_library(
         "spot_env.py",
     ],
     deps = [
+        ":env",
         requirement("gymnasium"),
-        "//ai/parameters:registry",
     ],
 )
 

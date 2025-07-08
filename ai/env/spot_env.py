@@ -6,19 +6,10 @@ import numpy as np
 from gymnasium import utils
 from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium.spaces import Box
-from ai.parameters.registry import register_parameters
+from ai.env.env import environment_parameters
 
 
-@register_parameters("environment")
-class SpotEnvParameters:
-    vel_x: np.float64 = 0.0
-    vel_y: np.float64 = 0.0
-    yaw_rate: np.float64 = 0.0
-    target_height: np.float64 = 0.0
-
-
-# Courtesy of https://github.com/denisgriaznov/CustomMuJoCoEnviromentForRL
-class SpotEnv(MujocoEnv, utils.EzPickle):
+class BaseGymnasiumEnv(MujocoEnv, utils.EzPickle):
     metadata = {
         "render_modes": [
             "human",
@@ -27,21 +18,26 @@ class SpotEnv(MujocoEnv, utils.EzPickle):
         ]
     }
 
-    def __init__(
-        self, xml_file: str, parameters: SpotEnvParameters, episode_len=500, **kwargs
-    ):
+    def __init__(self, **kwargs):
         utils.EzPickle.__init__(self, **kwargs)
-        self.parameters = parameters
-        MujocoEnv.__init__(self, xml_file, 5, observation_space=None, **kwargs)
+        MujocoEnv.__init__(
+            self, self.parameters.xml_file, 5, observation_space=None, **kwargs
+        )
         self.previous_action = np.zeros((self.model.nu,), dtype=np.float64)
         self.observation_space = Box(
             low=-np.inf, high=np.inf, shape=(48,), dtype=np.float64
         )
 
         self.step_number = 0
-        self.episode_len = episode_len
+        self.episode_len = self.parameters.episode_len
         self.frame_skip = 5
 
+
+# Courtesy of https://github.com/denisgriaznov/CustomMuJoCoEnviromentForRL
+@environment_parameters(
+    name="Spot", vel_x=0.0, vel_y=0.0, yaw_rate=0.0, target_height=0.5
+)
+class SpotEnv(BaseGymnasiumEnv):
     def step(self, a):
         reward = 0.785398
         self.do_simulation(a, self.frame_skip)
@@ -121,8 +117,8 @@ class SpotEnv(MujocoEnv, utils.EzPickle):
                         self.parameters.vel_y,
                         self.parameters.yaw_rate,
                     ]
-                ),  # Placeholder target vx,vy, yaw_rate
-                np.array([self.parameters.target_height]),  # placeholder target z
+                ),
+                np.array([self.parameters.target_height]),
             ),
             axis=0,
         )
@@ -133,5 +129,4 @@ class SpotEnv(MujocoEnv, utils.EzPickle):
 gym.register(
     id="Spot-v0",
     entry_point=SpotEnv,
-    kwargs={"episode_len": 500},
 )
