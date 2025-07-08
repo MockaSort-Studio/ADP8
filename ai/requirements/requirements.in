@@ -10,3 +10,4 @@ gymnasium[mujoco]
 moviepy
 pygame
 pyyaml
+flatdict

@@ -10,6 +10,7 @@ py_library(
     ],
     deps = [
         requirement("pyyaml"),
+        requirement("flatdict"),
     ],
 )
 

@@ -1,14 +1,9 @@
+import dataclasses
 import pytest
 import os
 import sys
-from typing import Generator
-from ai.parameters.registry import ParameterRegistry, register_parameters
-
-
-@register_parameters("example_parameters")
-class ExampleParameters:
-    param1: str = ""
-    param2: str = ""
+from typing import Any, Dict, Generator
+from ai.parameters.registry import ParameterRegistry
 
 
 @pytest.fixture
@@ -18,9 +13,13 @@ def yaml_file() -> Generator[str, None, None]:
     with open(file_name, "w", encoding="utf-8") as file:
         file.write(
             """
-example_parameters:
-  param1: value1
-  param2: value2
+  unregistered:
+    param1 : "value1"
+    param2 : "value2"
+  nested:
+    sub1 : 1.0
+    sub2 : True
+    sub3 : ["oid","enac"]
         """
         )
     yield file_name
@@ -29,50 +28,40 @@ example_parameters:
 
 
 def test_register_parameters() -> None:
-    assert "example_parameters" in ParameterRegistry._registry
-    assert ParameterRegistry._registry["example_parameters"] == ExampleParameters
+    example_params: Dict[str, Any] = {"param1": "value1", "param2": "value2"}
+    ParameterRegistry.register("example", example_params)
+    registered = dataclasses.asdict(ParameterRegistry.get_parameters("example"))
+    assert registered == example_params
+    ParameterRegistry.flush()
 
 
 def test_load_parameters(yaml_file: str) -> None:
+    nested_params = {"sub1": 0.0, "sub2": False, "sub3": []}
+    ParameterRegistry.register("nested", nested_params)
     ParameterRegistry.load_parameters(yaml_file)
-    assert "example_parameters" in ParameterRegistry._loaded_data
-    assert ParameterRegistry._loaded_data["example_parameters"]["param1"] == "value1"
-    assert ParameterRegistry._loaded_data["example_parameters"]["param2"] == "value2"
+    loaded = ParameterRegistry.get_parameters("nested")
+    assert loaded.sub1 == 1.0
+    assert loaded.sub2 == True
+    assert loaded.sub3 == ["oid", "enac"]
 
-
-def test_get_parameters(yaml_file: str) -> None:
-    ParameterRegistry.load_parameters(yaml_file)
-    parameters: ExampleParameters = ParameterRegistry.get_parameters(
-        "example_parameters"
-    )
-    assert parameters.param1 == "value1"
-    assert parameters.param2 == "value2"
+    # checking if unresistered parameters are filtered out
+    with pytest.raises(ValueError, match="Unregisterd parameter set 'unregistered'"):
+        ParameterRegistry.get_parameters("unregistered")
 
 
 def test_get_parameters_not_registered() -> None:
     with pytest.raises(
-        ValueError, match="Parameters for 'nonexistent_parameters' not registered."
+        ValueError, match="Unregisterd parameter set 'nonexistent_parameters'"
     ):
         ParameterRegistry.get_parameters("nonexistent_parameters")
 
 
-def test_flush_registry(yaml_file: str) -> None:
-    ParameterRegistry.load_parameters(yaml_file)
-    assert "example_parameters" in ParameterRegistry._loaded_data
+def test_flush_registry() -> None:
+    ParameterRegistry.register("example", {"param1": "value1", "param2": "value2"})
+    assert ParameterRegistry._registry, "Registry should not be empty before flush."
 
     ParameterRegistry.flush()
-    assert (
-        not ParameterRegistry._loaded_data
-    ), "Loaded data should be empty after flush."
-
-
-def test_get_parameters_not_loaded() -> None:
-    ParameterRegistry.flush()
-    parameters: ExampleParameters = ParameterRegistry.get_parameters(
-        "example_parameters"
-    )
-    assert parameters.param1 == ""
-    assert parameters.param2 == ""
+    assert not ParameterRegistry._registry, "Loaded data should be empty after flush."
 
 
 def test_load_parameters_invalid_yaml() -> None:

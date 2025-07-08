@@ -1,6 +1,8 @@
 import yaml
 from dataclasses import dataclass
-from typing import Type, Dict, Any
+from flatdict import FlatDict
+from typing import Any, Dict, Set, Type
+from dataclasses import make_dataclass
 
 """
 ParameterRegistry and register_parameters utility for managing and loading parameters using YAML files.
@@ -38,41 +40,54 @@ Documented with care by GitHub Copilot!
 
 
 class ParameterRegistry:
-    _registry: Dict[str, Type[Any]] = {}
-    _loaded_data: Dict[str, Any] = {}
+    _registry: FlatDict = FlatDict({}, delimiter=".")
+    _registered_parameter_sets: Set[str] = set()
 
     @classmethod
-    def register(cls, name: str, dataclass_type: Type[Any]) -> None:
-        cls._registry[name] = dataclass_type
+    def register(cls, name: str, parameters: Dict[str, Any]) -> None:
+        if any(isinstance(value, dict) for value in parameters.values()):
+            raise ValueError("Nested dictionaries are not allowed in parameters.")
+        cls._registered_parameter_sets.add(name)
+        cls._registry.update(FlatDict({name: parameters}, delimiter="."))
 
     @classmethod
     def flush(cls) -> None:
-        cls._loaded_data = {}
+        cls._registered_parameter_sets = set()
+        cls._registry = FlatDict({}, delimiter=".")
 
     @classmethod
     def load_parameters(cls, yaml_file: str) -> None:
         with open(yaml_file, "r", encoding="utf-8") as file:
             try:
-                cls._loaded_data = yaml.safe_load(file)
+                filtered_yaml = {
+                    key: value
+                    for key, value in yaml.safe_load(file).items()
+                    if key in cls._registered_parameter_sets
+                }
+                cls._registry.update(
+                    FlatDict(
+                        filtered_yaml,
+                        delimiter=".",
+                    )
+                )
             except yaml.YAMLError as exc:
                 raise ValueError(f"Error parsing YAML file: {exc}")
 
     @classmethod
     def get_parameters(cls, name: str) -> Any:
-        print(cls._loaded_data)
-        if name not in cls._registry:
-            raise ValueError(f"Parameters for '{name}' not registered.")
-        dataclass_type = cls._registry[name]
-        if name not in cls._loaded_data:
-            # return default params (add logging line using fabric)
-            return dataclass_type()
-        return dataclass_type(**cls._loaded_data[name])
+        if name not in cls._registered_parameter_sets:
+            raise ValueError(f"Unregisterd parameter set '{name}'")
+        # we're looking for all entries in _registry(FlatDict) having the key starting with "name."
+        matching_keys = [
+            key for key in cls._registry.keys() if key.startswith(f"{name}.")
+        ]
 
-
-def register_parameters(name: str) -> Any:
-    def decorator(cls: Type[Any]) -> Type[Any]:
-        cls = dataclass(cls)
-        ParameterRegistry.register(name, cls)
-        return cls
-
-    return decorator
+        parameters_dict = {
+            key.split(f"{name}.", 1)[1]: cls._registry[key] for key in matching_keys
+        }
+        dataclass_type = make_dataclass(
+            f"{name.capitalize()}Parameters",
+            parameters_dict.keys(),
+            frozen=True,
+        )
+        return dataclass_type(**parameters_dict)
