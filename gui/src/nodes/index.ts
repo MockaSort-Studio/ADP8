@@ -6,17 +6,27 @@ import { MockFlowNodeConfig, IODataConfig } from "./MockFlowNodeConfig"; // <-- 
 export type AppNode = BuiltInNode | PositionLoggerNode | MockFlowNode;
 
 const randomMockFlowConfig = new MockFlowNodeConfig(
-  "MockFlow Node",
+  "MockFlow Node 1",
   "mock-1",
   [
-    new IODataConfig("InputA", "input-a"),
-    new IODataConfig("InputB", "input-b"),
-    new IODataConfig("InputC", "input-c"),
+    new IODataConfig("InputA", "a"),
+    new IODataConfig("InputB", "b"),
+    new IODataConfig("InputC", "c"),
   ],
   [
-    new IODataConfig("OutputX", "output-x"),
-    new IODataConfig("OutputY", "output-y"),
+    new IODataConfig("OutputX", "x"),
+    new IODataConfig("OutputY", "y"),
   ],
+  [{ param: "foo", value: 42 }]
+);
+const randomMockFlowConfig2 = new MockFlowNodeConfig(
+  "MockFlow Node 2",
+  "mock-2",
+  [
+    new IODataConfig("InputX", "x"),
+    new IODataConfig("InputY", "y"),
+  ],
+  [],
   [{ param: "foo", value: 42 }]
 );
 
@@ -41,6 +51,12 @@ export const initialNodes: AppNode[] = [
     type: "mock-flow",
     position: { x: -100, y: -100 },
     data: { config: randomMockFlowConfig },
+  },
+  {
+    id: "f",
+    type: "mock-flow",
+    position: { x: +200, y: -100 },
+    data: { config: randomMockFlowConfig2 },
   },
 ];
 
