@@ -84,6 +84,29 @@
     background-color: var(--xy-handle-background-color-default);
 }
 
+.react-flow__handle-left .handle-label {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    margin-left: 8px;
+}
+
+.react-flow__handle-right .handle-label {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    margin-right: 8px;
+}
+
+.handle-label {
+    font-size: 10px;
+    color: grey;
+}
+
 .react-flow__handle.connectionindicator:hover {
     pointer-events: all;
     border-color: var(--xy-theme-edge-hover);

@@ -36,7 +36,9 @@ export function MockFlowNode({
             position={Position.Left}
             id={input.id}
             style={{ top: generateEvenHandlesPositioning(idx, config.input.length) }}
-        />
+        >
+            <div className="handle-label">{input.name}</div>
+        </Handle>
     ));
 
     // Map output handles
@@ -47,7 +49,9 @@ export function MockFlowNode({
             position={Position.Right}
             id={output.id}
             style={{ top: generateEvenHandlesPositioning(idx, config.output.length) }}
-        />
+        >
+            <div className="handle-label">{output.name}</div>
+        </Handle>
     ));
 
     return (
