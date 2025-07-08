@@ -21,6 +21,20 @@ function generateEvenHandlesPositioning(idx: number, total: number): string {
     return `${min_position + idx * step}%`; // Evenly distribute handles
 }
 
+function generateIOHandles(io_data, idx, type, n_handles) {
+    return (
+        <Handle
+            key={io_data.id}
+            type={type}
+            position={type === "source" ? Position.Right : Position.Left}
+            id={io_data.id}
+            style={{ top: generateEvenHandlesPositioning(idx, n_handles) }}
+        >
+            <div className="handle-label">{io_data.name}</div>
+        </Handle>
+    );
+}
+
 export function MockFlowNode({
     data,
     selected
@@ -28,31 +42,13 @@ export function MockFlowNode({
 
     const config: MockFlowNodeConfig = data.config;
 
-    // Map input handles
-    const inputHandles = config.input.map((input, idx) => (
-        <Handle
-            key={input.id}
-            type="target"
-            position={Position.Left}
-            id={input.id}
-            style={{ top: generateEvenHandlesPositioning(idx, config.input.length) }}
-        >
-            <div className="handle-label">{input.name}</div>
-        </Handle>
-    ));
+    const inputHandles = config.input.map((input, idx) =>
+        generateIOHandles(input, idx, "target", config.input.length)
+    );
 
-    // Map output handles
-    const outputHandles = config.output.map((output, idx) => (
-        <Handle
-            key={output.id}
-            type="source"
-            position={Position.Right}
-            id={output.id}
-            style={{ top: generateEvenHandlesPositioning(idx, config.output.length) }}
-        >
-            <div className="handle-label">{output.name}</div>
-        </Handle>
-    ));
+    const outputHandles = config.output.map((output, idx) =>
+        generateIOHandles(output, idx, "source", config.output.length)
+    );
 
     return (
         <>
