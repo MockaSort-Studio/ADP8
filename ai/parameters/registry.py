@@ -59,14 +59,9 @@ class ParameterRegistry:
     def load_parameters(cls, yaml_file: str) -> None:
         with open(yaml_file, "r", encoding="utf-8") as file:
             try:
-                filtered_yaml = {
-                    key: value
-                    for key, value in yaml.safe_load(file).items()
-                    if key in cls._registered_parameter_sets
-                }
                 cls._registry.update(
                     FlatDict(
-                        filtered_yaml,
+                        yaml.safe_load(file),
                         delimiter=".",
                     )
                 )

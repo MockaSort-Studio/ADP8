@@ -1,0 +1,33 @@
+environment:
+  env_path: ai.env.spot_env.SpotEnv
+  xml_file: ./simulation/robot_model/spot_mini.xml
+  render_mode: rgb_array
+seed: 42
+env_id: diolurido
+model: ai.models.agent.PPOLightningAgent
+loss: ai.loss.ppo_loss.PPOLoss
+trainer: ai.training_algorithms.ppo_train.ppo_train
+exp_name: default
+devices: 2
+accelerator: cpu
+strategy: ddp
+cuda: false
+player_on_gpu: false
+torch_deterministic: true
+share_data: false
+per_rank_batch_size: 64
+num_steps: 128
+total_timesteps: 65536
+learning_rate: 0.001
+anneal_lr: false
+gamma: 0.99
+gae_lambda: 0.95
+update_epochs: 10
+activation_function: relu
+ortho_init: false
+normalize_advantages: false
+clip_coef: 0.2
+clip_vloss: false
+ent_coef: 0.0
+vf_coef: 1.0
+max_grad_norm: 0.5

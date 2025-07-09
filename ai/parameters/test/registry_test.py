@@ -44,10 +44,6 @@ def test_load_parameters(yaml_file: str) -> None:
     assert loaded.sub2 == True
     assert loaded.sub3 == ["oid", "enac"]
 
-    # checking if unresistered parameters are filtered out
-    with pytest.raises(ValueError, match="Unregistered parameter set 'unregistered'"):
-        ParameterRegistry.get_parameters("unregistered")
-
 
 def test_set_parameter() -> None:
     registered_params = {"sub1": 0.0}
