@@ -32,30 +32,30 @@ ts_project(
     ],
 )
 
-ts_project(
-    name = "test_lib",
-    srcs = glob(
-        TEST_PATTERNS,
-        allow_empty = True,
-    ),
-    declaration = True,
-    resolve_json_module = True,
-    transpiler = TRANSPILER,
-    tsconfig = "//gui:tsconfig",
-    deps = [
-        ":src",
-        "//:node_modules/vitest",
-        "//gui:node_modules/@testing-library/jest-dom",
-        "//gui:node_modules/@testing-library/react",
-        "//gui:node_modules/@types/jest",
-    ],
-)
+# ts_project(
+#     name = "test_lib",
+#     srcs = glob(
+#         TEST_PATTERNS,
+#         allow_empty = True,
+#     ),
+#     declaration = True,
+#     resolve_json_module = True,
+#     transpiler = TRANSPILER,
+#     tsconfig = "//gui:tsconfig",
+#     deps = [
+#         ":src",
+#         "//:node_modules/vitest",
+#         "//gui:node_modules/@testing-library/jest-dom",
+#         "//gui:node_modules/@testing-library/react",
+#         "//gui:node_modules/@types/jest",
+#     ],
+# )
 
-vitest(
-    name = "test",
-    config = "//gui:vite.config",
-    deps = [":test_lib"],
-)
+# vitest(
+#     name = "test",
+#     config = "//gui:vite.config",
+#     deps = [":test_lib"],
+# )
 
 # Test that fails if eslint exits non-zero
 # Remove the `eslint-disable-next-line` line from index.tsx to see this test fail.

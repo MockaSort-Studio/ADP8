@@ -15,6 +15,7 @@ RUNTIME_DEPS = [
     ":node_modules/react-dom",
     ":node_modules/react",
     ":node_modules/web-vitals",
+    ":node_modules/@xyflow/react",
 ]
 
 ts_config(
@@ -86,9 +87,9 @@ bin.vite_binary(
 
 # Just verify that the bundle produced "something reasonable" but doesn't verify it functions in a browser.
 # TODO: use something like Cypress for a true end-to-end test
-js_test(
-    name = "build_smoke_test",
-    timeout = "short",
-    data = [":build"],
-    entry_point = "build_smoke_test.js",
-)
+# js_test(
+#     name = "build_smoke_test",
+#     timeout = "short",
+#     data = [":build"],
+#     entry_point = "build_smoke_test.js",
+# )

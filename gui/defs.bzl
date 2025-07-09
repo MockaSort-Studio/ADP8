@@ -4,13 +4,12 @@ load("@aspect_rules_swc//swc:defs.bzl", "swc")
 load("@bazel_skylib//lib:partial.bzl", "partial")
 
 ASSET_PATTERNS = [
-    "*.svg",
-    "*.css",
+    "**/*.css",
 ]
 
 SRC_PATTERNS = [
-    "*.tsx",
-    "*.ts",
+    "**/*.tsx",
+    "**/*.ts",
 ]
 
 # Filename conventions described at
