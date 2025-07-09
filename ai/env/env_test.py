@@ -1,20 +1,21 @@
 import numpy as np
 
-import gymnasium as gym
-
-
-import numpy as np
-
-from ai.utils.module_loader import import_module
 from ai.parameters.registry import ParameterRegistry
-
-# to be handled differently
-import_module(
-    "ai.env.spot_env",
+from ai.env.env import (
+    register_common_environment_parameters,
+    build_env,
 )
 
-env = gym.make("Spot-v0", render_mode="human")
+# Register common environment parameters
+register_common_environment_parameters()
 
+ParameterRegistry.set_parameter_value(
+    "environment", "xml_file", "./simulation/robot_model/spot_mini.xml"
+)
+ParameterRegistry.set_parameter_value(
+    "environment", "env_path", "ai.env.spot_env.SpotEnv"
+)
+env = build_env()
 # Example of running the environment for a few steps
 obs, info = env.reset()
 env.render()

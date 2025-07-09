@@ -1,69 +1,36 @@
 import gymnasium as gym
-from dataclasses import dataclass
-
-
 import numpy as np
-from gymnasium import utils
-from gymnasium.envs.mujoco import MujocoEnv
-from gymnasium.spaces import Box
-from ai.env.env import environment_parameters
+from typing import override
+
+from ai.env.env import BaseGymnasiumEnv, environment_parameters
 
 
-class BaseGymnasiumEnv(MujocoEnv, utils.EzPickle):
-    metadata = {
-        "render_modes": [
-            "human",
-            "rgb_array",
-            "depth_array",
-        ]
-    }
-
-    def __init__(self, **kwargs):
-        utils.EzPickle.__init__(self, **kwargs)
-        MujocoEnv.__init__(
-            self, self.parameters.xml_file, 5, observation_space=None, **kwargs
-        )
-        self.previous_action = np.zeros((self.model.nu,), dtype=np.float64)
-        self.observation_space = Box(
-            low=-np.inf, high=np.inf, shape=(48,), dtype=np.float64
-        )
-
-        self.step_number = 0
-        self.episode_len = self.parameters.episode_len
-        self.frame_skip = 5
-
-
-# Courtesy of https://github.com/denisgriaznov/CustomMuJoCoEnviromentForRL
 @environment_parameters(
     name="Spot", vel_x=0.0, vel_y=0.0, yaw_rate=0.0, target_height=0.5
 )
 class SpotEnv(BaseGymnasiumEnv):
-    def step(self, a):
-        reward = 0.785398
-        self.do_simulation(a, self.frame_skip)
-        self.step_number += 1
-        self.previous_action = a
-        obs = self._get_obs()
-        done = bool(not np.isfinite(obs).all() or (obs[2] < 0))
-        truncated = self.step_number > self.episode_len
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.previous_action = np.zeros(12, dtype=np.float64)
 
-        if self.render_mode == "human":
-            self.render()
-        return obs, reward, done, truncated, {}
+    @override
+    def init_observation_space(self) -> gym.spaces.Space:
+        return gym.spaces.Box(low=-np.inf, high=np.inf, shape=(48,), dtype=np.float64)
 
-    def reset_model(self):
-        self.step_number = 0
+    @override
+    def is_done(self, obs: np.ndarray) -> bool:
+        return bool(not np.isfinite(obs).all() or (obs[2] < 0))
 
-        qpos = self.init_qpos + self.np_random.uniform(
-            size=self.model.nq, low=-0.01, high=0.01
-        )
-        qvel = self.init_qvel + self.np_random.uniform(
-            size=self.model.nv, low=-0.01, high=0.01
-        )
-        self.set_state(qpos, qvel)
-        return self._get_obs()
+    @override
+    def is_truncated(self) -> bool:
+        return self.step_number > self.episode_len
 
-    def _get_obs(self):
+    @override
+    def step_post(self, action: np.ndarray) -> None:
+        self.previous_action = action
+
+    @override
+    def get_obs_impl(self):
         w, x, y, z = self.data.sensor("Body_Quat").data
         roll = np.arctan2(2 * (w * x + y * z), 1 - 2 * (x**2 + y**2))
         pitch = np.arcsin(2 * (w * y - z * x))
@@ -102,6 +69,7 @@ class SpotEnv(BaseGymnasiumEnv):
             ),
             axis=0,
         )
+        print(self.data.sensor("Body_Vel").data)
         obs = np.concatenate(
             (
                 self.data.sensor("Body_Vel").data,
