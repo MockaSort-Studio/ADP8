@@ -45,13 +45,25 @@ def test_load_parameters(yaml_file: str) -> None:
     assert loaded.sub3 == ["oid", "enac"]
 
     # checking if unresistered parameters are filtered out
-    with pytest.raises(ValueError, match="Unregisterd parameter set 'unregistered'"):
+    with pytest.raises(ValueError, match="Unregistered parameter set 'unregistered'"):
         ParameterRegistry.get_parameters("unregistered")
+
+
+def test_set_parameter() -> None:
+    registered_params = {"sub1": 0.0}
+    ParameterRegistry.register("registered", registered_params)
+    ParameterRegistry.set_parameter_value("registered", "sub1", 1.0)
+    loaded = ParameterRegistry.get_parameters("registered")
+    assert loaded.sub1 == 1.0
+
+    # checking if get of unregistered parameters raises an error
+    with pytest.raises(ValueError, match="Unregistered parameter set 'unregistered'"):
+        ParameterRegistry.set_parameter_value("unregistered", "oid", "enac")
 
 
 def test_get_parameters_not_registered() -> None:
     with pytest.raises(
-        ValueError, match="Unregisterd parameter set 'nonexistent_parameters'"
+        ValueError, match="Unregistered parameter set 'nonexistent_parameters'"
     ):
         ParameterRegistry.get_parameters("nonexistent_parameters")
 

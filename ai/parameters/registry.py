@@ -74,9 +74,18 @@ class ParameterRegistry:
                 raise ValueError(f"Error parsing YAML file: {exc}")
 
     @classmethod
+    def set_parameter_value(
+        cls, parameter_set_name: str, parameter_name: str, parameter_value: Any
+    ) -> None:
+        if parameter_set_name not in cls._registered_parameter_sets:
+            raise ValueError(f"Unregistered parameter set '{parameter_set_name}'")
+        key = f"{parameter_set_name}.{parameter_name}"
+        cls._registry[key] = parameter_value
+
+    @classmethod
     def get_parameters(cls, name: str) -> Any:
         if name not in cls._registered_parameter_sets:
-            raise ValueError(f"Unregisterd parameter set '{name}'")
+            raise ValueError(f"Unregistered parameter set '{name}'")
         # we're looking for all entries in _registry(FlatDict) having the key starting with "name."
         matching_keys = [
             key for key in cls._registry.keys() if key.startswith(f"{name}.")
