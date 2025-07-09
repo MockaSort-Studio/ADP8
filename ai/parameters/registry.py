@@ -1,7 +1,7 @@
 import yaml
 from dataclasses import dataclass
 from flatdict import FlatDict
-from typing import Any, Dict, Set, Type
+from typing import Any, Dict, List, Set
 from dataclasses import make_dataclass
 
 """
@@ -81,6 +81,13 @@ class ParameterRegistry:
             raise ValueError(f"Unregistered parameter set '{parameter_set_name}'")
         key = f"{parameter_set_name}.{parameter_name}"
         cls._registry[key] = parameter_value
+
+    @classmethod
+    def get_parameter_value(cls, parameter_set_name: str, parameter_name: str) -> Any:
+        if parameter_set_name not in cls._registered_parameter_sets:
+            raise ValueError(f"Unregistered parameter set '{parameter_set_name}'")
+        key = f"{parameter_set_name}.{parameter_name}"
+        return cls._registry[key]
 
     @classmethod
     def get_parameters(cls, name: str) -> Any:

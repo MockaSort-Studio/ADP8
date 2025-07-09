@@ -57,13 +57,31 @@ def test_set_parameter() -> None:
     assert loaded.sub1 == 1.0
 
     # checking if get of unregistered parameters raises an error
-    with pytest.raises(ValueError, match="Unregistered parameter set 'unregistered'"):
+    with pytest.raises(
+        ValueError,
+        match="Unregistered parameter set 'unregistered'",
+    ):
         ParameterRegistry.set_parameter_value("unregistered", "oid", "enac")
+
+
+def test_get_parameter() -> None:
+    registered_params = {"sub1": 0.0}
+    ParameterRegistry.register("registered", registered_params)
+    value = ParameterRegistry.get_parameter_value("registered", "sub1")
+    assert value == 0.0
+
+    # checking if get of unregistered parameters raises an error
+    with pytest.raises(
+        ValueError,
+        match="Unregistered parameter set 'unregistered'",
+    ):
+        ParameterRegistry.get_parameter_value("unregistered", "oid")
 
 
 def test_get_parameters_not_registered() -> None:
     with pytest.raises(
-        ValueError, match="Unregistered parameter set 'nonexistent_parameters'"
+        ValueError,
+        match="Unregistered parameter set 'nonexistent_parameters'",
     ):
         ParameterRegistry.get_parameters("nonexistent_parameters")
 
