@@ -1,4 +1,4 @@
-import { MockFlowNode } from '../nodes/MockFlowNode'; // adjust path as needed
+import { MockFlowNode } from '../nodes/mock_flow_node'; // adjust path as needed
 
 export function isValidMockFlowConnection(
     sourceNode: any,

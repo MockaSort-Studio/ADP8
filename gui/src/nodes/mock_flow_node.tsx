@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { Node, Handle, Position, NodeResizer, type NodeProps } from '@xyflow/react';
-import { MockFlowNodeConfig } from './MockFlowNodeConfig'
+import { MockFlowNodeConfig } from './mock_flow_node_config'
 
 export type MockFlowNode = Node<
     {
