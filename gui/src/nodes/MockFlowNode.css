@@ -41,6 +41,8 @@
     border-radius: var(--xy-node-border-radius-default);
     background-color: var(--xy-node-background-color-default);
     display: flex;
+    width: 250px;
+    height: 100px;
     justify-content: center;
     align-items: center;
     text-align: center;
@@ -104,6 +106,11 @@
 
 .handle-label {
     font-size: 10px;
+    color: rgb(70, 70, 70);
+}
+
+.handle-type {
+    font-size: 8px;
     color: grey;
 }
 

@@ -1,9 +1,11 @@
 export class IODataConfig {
     name: string;
     id: string;
-    constructor(name: string, id: string) {
+    data_type: string;
+    constructor(name: string, id: string, data_type: string) {
         this.name = name;
         this.id = id;
+        this.data_type = data_type;
     }
 }
 

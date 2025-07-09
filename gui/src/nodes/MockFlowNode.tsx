@@ -30,7 +30,8 @@ function generateIOHandles(io_data, idx, type, n_handles) {
             id={io_data.id}
             style={{ top: generateEvenHandlesPositioning(idx, n_handles) }}
         >
-            <div className="handle-label">{io_data.name}</div>
+            <div className="handle-label">{io_data.name}<div className="handle-type">({io_data.data_type})</div></div>
+
         </Handle>
     );
 }
