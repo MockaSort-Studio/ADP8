@@ -134,13 +134,13 @@ bazel_dep(
 bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
 
 #### python linter ####
-pip_lint = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
-pip_lint.parse(
-    hub_name = "pip_lint",
+pip_tools = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip_tools.parse(
+    hub_name = "pip_tools",
     python_version = "3.12",
     requirements_lock = "//tools:requirements.txt",
 )
-use_repo(pip_lint, "pip_lint")
+use_repo(pip_tools, "pip_tools")
 
 #### simulation dependencies ####
 pip_simulation = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
