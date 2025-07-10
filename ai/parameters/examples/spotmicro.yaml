@@ -1,7 +1,8 @@
 environment:
-  env_path: ai.env.spot_env.SpotEnv
+  env_name: Spot-v0
   xml_file: ./simulation/robot_model/spot_mini.xml
   render_mode: rgb_array
+num_envs: 1
 seed: 42
 env_id: diolurido
 model: ai.models.agent.PPOLightningAgent
