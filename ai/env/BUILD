@@ -27,6 +27,18 @@ py_library(
     ],
 )
 
+py_library(
+    name = "env_registrations",
+    srcs = [
+        "env_registrations.py",
+    ],
+    deps = [
+        requirement("gymnasium"),
+        ":env",
+        ":spot_env",
+    ],
+)
+
 py_binary(
     name = "env_test",
     srcs = [
@@ -39,8 +51,7 @@ py_binary(
         requirement("gymnasium"),
         requirement("moviepy"),
         requirement("pygame"),
-        ":spot_env",
+        ":env_registrations",
         "//ai/parameters:registry",
-        "//ai/utils:module_loader",
     ],
 )

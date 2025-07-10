@@ -11,11 +11,11 @@ from ai.env.env import BaseGymnasiumEnv, environment_parameters
 class SpotEnv(BaseGymnasiumEnv):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.previous_action = np.zeros(12, dtype=np.float64)
+        self.previous_action = np.zeros(12, dtype=np.float32)
 
     @override
     def init_observation_space(self) -> gym.spaces.Space:
-        return gym.spaces.Box(low=-np.inf, high=np.inf, shape=(48,), dtype=np.float64)
+        return gym.spaces.Box(low=-np.inf, high=np.inf, shape=(48,), dtype=np.float32)
 
     @override
     def is_done(self, obs: np.ndarray) -> bool:
@@ -91,10 +91,3 @@ class SpotEnv(BaseGymnasiumEnv):
             axis=0,
         )
         return obs
-
-
-# Register the custom environment
-gym.register(
-    id="Spot-v0",
-    entry_point=SpotEnv,
-)

@@ -4,8 +4,7 @@ import numpy as np
 from gymnasium import utils
 from gymnasium.envs.mujoco import MujocoEnv
 from ai.parameters.registry import ParameterRegistry
-from ai.utils.module_loader import import_symbol_from_file
-from typing import Any, Callable, Dict, List, Optional, Type, Tuple
+from typing import Any, Callable, Dict, Optional, Type, Tuple
 
 
 # REFERENCE CODE
@@ -42,12 +41,12 @@ def make_env(
 
 # NEW CODE
 _COMMON_PARAMETERS: Dict[str, Any] = {
-    "env_path": "",
+    "env_name": "",
     "episode_len": 500,
     "xml_file": "",
     "capture_video": False,
     "frame_skip": 5,
-    "render_mode": "human",
+    "render_mode": "rgb_array",
     "seed": 42,
     "num_envs": 1,
 }
@@ -65,23 +64,17 @@ def build_env() -> gym.Env:
     """
     Build a single environment
     """
-    env_type = import_symbol_from_file(
-        ParameterRegistry.get_parameter_value("environment", "env_path")
-    )
-    env = env_type()
+    env_name = ParameterRegistry.get_parameter_value("environment", "env_name")
+    env = gym.make(id=env_name)
     env = gym.wrappers.RecordEpisodeStatistics(env)
     return env
 
 
 # putting this aside until first impl of loss vegas is done
 def build_vectorized_envs() -> gym.vector.SyncVectorEnv:
-    env_type = import_symbol_from_file(
-        ParameterRegistry.get_parameter_value("environment", "env_path")
-    )
-
     envs = gym.vector.SyncVectorEnv(
         [
-            lambda: gym.wrappers.RecordEpisodeStatistics(env_type())
+            build_env
             for _ in range(
                 ParameterRegistry.get_parameter_value("environment", "num_envs")
             )
@@ -91,7 +84,7 @@ def build_vectorized_envs() -> gym.vector.SyncVectorEnv:
     return envs
 
 
-def environment_parameters(**parameters: Dict[str, Any]) -> Callable:
+def environment_parameters(name, **parameters: Dict[str, Any]) -> Callable:
     def decorator(cls: Type) -> Type:
         # Register the environment and its parameters in the ParameterRegistry
         ParameterRegistry.register("environment", parameters)
@@ -123,21 +116,12 @@ class BaseGymnasiumEnv(MujocoEnv, utils.EzPickle):
             render_mode=self.parameters.render_mode,
         )
 
+        self.action_space = gym.spaces.Discrete(self.model.nu)
         self.observation_space = self.init_observation_space()
         self.observation_space.seed(self.parameters.seed)
-        self._obs_size = self.observation_space.shape[0]
         self.action_space.seed(self.parameters.seed)
-        self._action_size = self.action_space.shape[0]
         self.episode_len = self.parameters.episode_len
         self.step_number = 0
-
-    @property
-    def action_space_size(self) -> int:
-        return self._action_size
-
-    @property
-    def observation_space_size(self) -> int:
-        return self._obs_size
 
     def step(self, a: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
         self.step_pre(action=a)
