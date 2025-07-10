@@ -94,6 +94,77 @@ def environment_parameters(name, **parameters: Dict[str, Any]) -> Callable:
     return decorator
 
 
+# ## BaseGymnasiumEnv
+
+# BaseGymnasiumEnv is an abstract base class for creating custom Gymnasium environments using the Mujoco physics engine.
+# It provides a structured framework for defining environment behavior, including initialization, stepping through the environment,
+# resetting, and rendering. Subclasses are expected to implement specific methods to customize the environment's behavior.
+
+# ## Metadata
+# - `render_modes`: Supported rendering modes include:
+#     - `human`: Render the environment for human visualization.
+#     - `rgb_array`: Render the environment as an RGB image array.
+#     - `depth_array`: Render the environment as a depth image array.
+
+# ## Attributes
+# - `parameters`: Configuration parameters for the environment, retrieved from `ParameterRegistry`.
+# - `action_space`: The action space of the environment, defined as a discrete space based on the Mujoco model's degrees of freedom.
+# - `observation_space`: The observation space of the environment, initialized by the subclass.
+# - `episode_len`: The maximum length of an episode.
+# - `step_number`: The current step number in the episode.
+
+# ## Methods
+
+# ### `__init__(**kwargs: Dict[str, Any]) -> None`
+# Initializes the environment with parameters from `ParameterRegistry` and sets up the Mujoco model, action space, and observation space.
+
+# ### `step(a: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]`
+# Performs a single step in the environment.
+# - **Parameters**:
+#     - `a`: The action to be taken.
+# - **Returns**:
+#     - `obs`: The observation after the step.
+#     - `reward`: The reward obtained from the step.
+#     - `done`: Whether the episode has ended.
+#     - `truncated`: Whether the episode was truncated.
+#     - `info`: Additional information.
+
+# ### `reset_model() -> np.ndarray`
+# Resets the environment to its initial state.
+# - **Returns**:
+#     - The initial observation.
+
+# ### `_get_obs() -> np.ndarray`
+# Retrieves the current observation. This method calls `get_obs_impl()`.
+
+# ### `init_observation_space() -> gym.spaces.Space`
+# Abstract method to initialize the observation space. Must be implemented by subclasses.
+
+# ### `get_obs_impl() -> np.ndarray`
+# Abstract method to define custom observation logic. Must be implemented by subclasses.
+
+# ### `is_done(obs: np.ndarray) -> bool`
+# Abstract method to define episode termination conditions. Must be implemented by subclasses.
+
+# ### `is_truncated() -> bool`
+# Abstract method to define episode truncation conditions. Must be implemented by subclasses.
+
+# ### `reward(obs: np.ndarray, action: np.ndarray) -> float`
+# Defines the reward logic. Can be overridden by subclasses.
+# - **Returns**:
+#     - A float value representing the reward (default is `0.0`).
+
+# ### `step_pre(action: np.ndarray) -> None`
+# Optional method to define custom logic before the simulation step. Can be overridden by subclasses.
+
+# ### `step_post(action: np.ndarray) -> None`
+# Optional method to define custom logic after the simulation step. Can be overridden by subclasses.
+
+# ---
+
+# *Documented with care by GitHub Copilot.*
+
+
 # Mujoco env tutorial: https://github.com/denisgriaznov/CustomMuJoCoEnviromentForRL
 class BaseGymnasiumEnv(MujocoEnv, utils.EzPickle):
     metadata = {
@@ -125,7 +196,6 @@ class BaseGymnasiumEnv(MujocoEnv, utils.EzPickle):
 
     def step(self, a: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
         self.step_pre(action=a)
-        print(a)
         self.do_simulation(a, self.frame_skip)
         self.step_number += 1
         self.step_post(action=a)
