@@ -11,6 +11,7 @@ import {
 } from "@xyflow/react";
 
 import { isValidMockFlowConnection } from "./utils/connection_utils";
+import { Sidebar } from "./sidebar/sidebar"
 
 import "@xyflow/react/dist/style.css";
 
@@ -26,30 +27,39 @@ export default function App() {
     );
 
     return (
-        <ReactFlow
-            nodes={nodes}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            edges={edges}
-            edgeTypes={edgeTypes}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            isValidConnection={(connection) => {
-                const sourceNode = nodes.find((node) => node.id === connection.source);
-                const targetNode = nodes.find((node) => node.id === connection.target);
+        <div className="dndflow">
 
-                return isValidMockFlowConnection(
-                    sourceNode,
-                    targetNode,
-                    connection.sourceHandle,
-                    connection.targetHandle
-                );
-            }}
-            fitView
-        >
-            <Background />
-            <MiniMap />
-            <Controls />
-        </ReactFlow>
+            <div className="reactflow-wrapper" >
+                <ReactFlow
+                    nodes={nodes}
+                    nodeTypes={nodeTypes}
+                    onNodesChange={onNodesChange}
+                    edges={edges}
+                    edgeTypes={edgeTypes}
+                    onEdgesChange={onEdgesChange}
+                    onConnect={onConnect}
+                    deleteKeyCode={['Backspace', 'Delete']}
+                    isValidConnection={(connection) => {
+                        const sourceNode = nodes.find((node) => node.id === connection.source);
+                        const targetNode = nodes.find((node) => node.id === connection.target);
+
+                        return isValidMockFlowConnection(
+                            sourceNode,
+                            targetNode,
+                            connection.sourceHandle,
+                            connection.targetHandle
+                        );
+                    }}
+                    fitView
+                >
+                    <Background />
+                    <MiniMap />
+                    <Controls />
+                </ReactFlow>
+
+            </div>
+
+            <Sidebar />
+        </div>
     );
 }

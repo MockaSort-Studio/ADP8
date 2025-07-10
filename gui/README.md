@@ -59,5 +59,3 @@ Sometimes Bazel's cache may cause persistent issues with JavaScript libraries. I
 This resets the Bazel cache for a fresh build environment.
 
 ## RoadMap
-
-## Changelog
