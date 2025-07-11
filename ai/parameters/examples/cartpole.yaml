@@ -1,4 +1,4 @@
-model: ai.models.agent.PPOLightningAgent
+model: ai.models.ppo_agent.PPOAgent
 loss: ai.loss.ppo_loss.PPOLoss
 trainer: ai.training_algorithms.ppo_train.ppo_train
 exp_name: default

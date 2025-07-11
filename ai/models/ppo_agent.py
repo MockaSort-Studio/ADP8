@@ -8,6 +8,7 @@ from torch.distributions import Categorical
 
 import lightning as L
 from ai.loss.ppo_loss import PPOLoss
+from ai.core.model import forward_variant, lightning_model
 
 
 def layer_init(
@@ -22,10 +23,12 @@ def layer_init(
     return layer
 
 
+@lightning_model
 class PPOAgent(torch.nn.Module):
     def __init__(
         self,
         envs: gym.vector.SyncVectorEnv,
+        loss: PPOLoss,
         act_fun: str = "relu",
         ortho_init: bool = False,
     ) -> None:
@@ -38,6 +41,7 @@ class PPOAgent(torch.nn.Module):
             raise ValueError(
                 "Unrecognized activation function: `act_fun` must be either `relu` or `tanh`"
             )
+        self.loss = loss
         self.critic = torch.nn.Sequential(
             layer_init(
                 torch.nn.Linear(math.prod(envs.single_observation_space.shape), 64),
@@ -77,6 +81,7 @@ class PPOAgent(torch.nn.Module):
         probs = F.softmax(logits, dim=-1)
         return torch.argmax(probs, dim=-1)
 
+    @forward_variant
     def get_value(self, x: Tensor) -> Tensor:
         return self.critic(x)
 
@@ -92,69 +97,21 @@ class PPOAgent(torch.nn.Module):
     ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
         return self.get_action_and_value(x, action)
 
-    @torch.no_grad()
-    def estimate_returns_and_advantages(
-        self,
-        rewards: Tensor,
-        values: Tensor,
-        terminateds: Tensor,
-        next_obs: Tensor,
-        next_terminated: Tensor,
-        num_steps: int,
-        gamma: float,
-        gae_lambda: float,
-    ) -> tuple[Tensor, Tensor]:
-        next_value = self.get_value(next_obs).reshape(1, -1)
-        advantages = torch.zeros_like(rewards)
-        lastgaelam = 0
-        for t in reversed(range(num_steps)):
-            if t == num_steps - 1:
-                nextnonterminal = torch.logical_not(next_terminated)
-                nextvalues = next_value
-            else:
-                nextnonterminal = torch.logical_not(terminateds[t + 1])
-                nextvalues = values[t + 1]
-            delta = rewards[t] + gamma * nextvalues * nextnonterminal - values[t]
-            advantages[t] = lastgaelam = (
-                delta + gamma * gae_lambda * nextnonterminal * lastgaelam
-            )
-        returns = advantages + values
-        return returns, advantages
-
-
-class PPOLightningAgent(L.LightningModule):
-    def __init__(
-        self,
-        envs: gym.vector.SyncVectorEnv,
-        ppo_loss: PPOLoss,
-        act_fun: str = "relu",
-        ortho_init: bool = False,
-    ):
-        super().__init__()
-
-        self.model = PPOAgent(envs, act_fun, ortho_init)
-        self.ppo_loss = ppo_loss
-
-    def forward(
-        self, x: Tensor, action: Tensor = None
-    ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
-        return self.model.forward(x, action)
-
     def training_step(self, batch: dict[str, Tensor]):
         # Get actions and values given the current observations
         _, newlogprob, entropy, newvalue = self(batch["obs"], batch["actions"].long())
         logratio = newlogprob - batch["logprobs"]
         ratio = logratio.exp()
         # Policy loss
-        return self.ppo_loss.compute_losses(batch, entropy, newvalue, ratio)
+        return self.loss.compute_losses(batch, entropy, newvalue, ratio)
+
+    def configure_optimizers(self, lr: float):
+        return torch.optim.Adam(self.parameters(), lr=lr, eps=1e-4)
 
     def on_train_epoch_end(self, global_step: int) -> None:
         # Log metrics and reset their internal state
         self.logger.log_metrics(
-            self.ppo_loss.log_losses_metrics(),
+            self.loss.log_losses_metrics(),
             global_step,
         )
-        self.ppo_loss.reset_losses_metrics()
-
-    def configure_optimizers(self, lr: float):
-        return torch.optim.Adam(self.parameters(), lr=lr, eps=1e-4)
+        self.loss.reset_losses_metrics()

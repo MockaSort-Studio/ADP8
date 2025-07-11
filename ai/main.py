@@ -1,4 +1,3 @@
-import argparse
 import os
 import time
 from datetime import datetime
@@ -76,13 +75,14 @@ def setup_agent_and_optimizer(
     agent = agent_sym(
         envs,
         ppo_loss,
-        act_fun=parameters.activation_function,
-        ortho_init=parameters.ortho_init,
+        parameters.activation_function,
+        parameters.ortho_init,
     )
 
     optimizer = agent.configure_optimizers(parameters.learning_rate)
     agent, optimizer = fabric.setup(agent, optimizer)
-
+    for method in agent.marked_as_forward:
+        agent.mark_forward_method(method)
     return agent, optimizer
 
 

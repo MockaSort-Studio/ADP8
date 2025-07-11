@@ -13,6 +13,35 @@ from torch import Tensor
 from torch.utils.data import BatchSampler, DistributedSampler, RandomSampler
 
 
+@torch.no_grad()
+def estimate_returns_and_advantages(
+    rewards: Tensor,
+    values: Tensor,
+    terminateds: Tensor,
+    next_terminated: Tensor,
+    next_value: Tensor,
+    num_steps: int,
+    gamma: float,
+    gae_lambda: float,
+) -> tuple[Tensor, Tensor]:
+    next_value = next_value.reshape(1, -1)
+    advantages = torch.zeros_like(rewards)
+    lastgaelam = 0
+    for t in reversed(range(num_steps)):
+        if t == num_steps - 1:
+            nextnonterminal = torch.logical_not(next_terminated)
+            nextvalues = next_value
+        else:
+            nextnonterminal = torch.logical_not(terminateds[t + 1])
+            nextvalues = values[t + 1]
+        delta = rewards[t] + gamma * nextvalues * nextnonterminal - values[t]
+        advantages[t] = lastgaelam = (
+            delta + gamma * gae_lambda * nextnonterminal * lastgaelam
+        )
+    returns = advantages + values
+    return returns, advantages
+
+
 def train(
     fabric: Fabric,
     agent: L.LightningModule,
@@ -45,7 +74,8 @@ def train(
             fabric.backward(loss)
             fabric.clip_gradients(agent, optimizer, max_norm=parameters.max_grad_norm)
             optimizer.step()
-        agent.on_train_epoch_end(global_step)
+        # lets fix log and loss later
+        # agent.on_train_epoch_end(global_step)
 
 
 @trainer()
@@ -87,7 +117,7 @@ def ppo_train(
 
             # Sample an action given the observation received by the environment
             with torch.no_grad():
-                action, logprob, _, value = agent.model.get_action_and_value(next_obs)
+                action, logprob, _, value = agent.forward(next_obs)
                 local_training_cache.values[step] = value.flatten()
             local_training_cache.actions[step] = action
             local_training_cache.logprobs[step] = logprob
@@ -126,12 +156,12 @@ def ppo_train(
         ep_len_avg.reset()
 
         # Estimate returns with GAE (https://arxiv.org/abs/1506.02438)
-        returns, advantages = agent.model.estimate_returns_and_advantages(
+        returns, advantages = estimate_returns_and_advantages(
             local_training_cache.rewards,
             local_training_cache.values,
             local_training_cache.terminateds,
-            next_obs,
             next_terminated,
+            agent.get_value(next_obs),
             parameters.num_steps,
             parameters.gamma,
             parameters.gae_lambda,
