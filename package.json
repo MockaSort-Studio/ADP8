@@ -2,11 +2,12 @@
     "// To install dependencies with Bazel-managed pnpm, run": "./tools/pnpm install",
     "private": true,
     "devDependencies": {
+        "@bazel/ibazel": "^0.25.0",
         "@eslint/js": "^9.21.0",
         "eslint": "^9.21.0",
         "jsdom": "^23.0.1",
-        "vitest": "^1.0.2",
-        "typescript-eslint": "^8.17.0"
+        "typescript-eslint": "^8.17.0",
+        "vitest": "^1.0.2"
     },
     "pnpm": {
         "//packageExtensions": "Fix missing dependencies in npm packages, see https://pnpm.io/package_json#pnpmpackageextensions",
@@ -29,5 +30,6 @@
                 }
             }
         }
-    }
+    },
+    "dependencies": {}
 }

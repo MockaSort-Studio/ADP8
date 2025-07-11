@@ -5,6 +5,7 @@ export function Sidebar() {
     const [_, setType] = useDnD();
 
     const onDragStart = (event, nodeType) => {
+        console.log(`Dragging node type: ${nodeType}`);
         setType(nodeType);
         event.dataTransfer.effectAllowed = 'move';
     };
