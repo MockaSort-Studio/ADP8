@@ -1,7 +1,7 @@
 import torch
 
 import lightning as L
-from typing import Callable, List, Type
+from typing import Any, Callable, Dict, List, Type
 
 
 # Fabric has a special way to handle forward functions (i.e. forward pass on the model)
@@ -35,7 +35,7 @@ def lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]:
     class LightningWrapper(L.LightningModule):
         marked_as_forward: List[str] = []
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args: Dict[str, Any], **kwargs: Dict[str, Any]) -> None:
             super().__init__()
             print(*args, **kwargs)  # Debugging: print the arguments
             self.model = cls(*args, **kwargs)  # Instantiate the wrapped class
@@ -48,15 +48,18 @@ def lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]:
                     self.marked_as_forward.append(name)
                     setattr(self, name, attr)
 
-        def forward(self, *args, **kwargs):
+        # return values to be revisited
+        def forward(self, *args: Dict[str, Any], **kwargs: Dict[str, Any]) -> tuple:
             # Forward method must respect the base interface
             return self.model.forward(*args, **kwargs)
 
-        def training_step(self, *args, **kwargs):
+        def training_step(
+            self, *args: Dict[str, Any], **kwargs: Dict[str, Any]
+        ) -> tuple:
             # Call the wrapped class's training step
             return self.model.training_step(*args, **kwargs)
 
-        def configure_optimizers(self, lr: float):
+        def configure_optimizers(self, lr: float) -> torch.optim.Optimizer:
             return self.model.configure_optimizers(lr)
 
     return LightningWrapper

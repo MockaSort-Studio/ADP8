@@ -10,13 +10,15 @@ import lightning as L
 from ai.loss.ppo_loss import PPOLoss
 from ai.core.model import forward_variant, lightning_model
 
+from typing import Tuple
+
 
 def layer_init(
     layer: torch.nn.Module,
     std: float = math.sqrt(2),
     bias_const: float = 0.0,
     ortho_init: bool = True,
-):
+) -> torch.nn.Module:
     if ortho_init:
         torch.nn.init.orthogonal_(layer.weight, std)
         torch.nn.init.constant_(layer.bias, bias_const)
@@ -97,7 +99,7 @@ class PPOAgent(torch.nn.Module):
     ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
         return self.get_action_and_value(x, action)
 
-    def training_step(self, batch: dict[str, Tensor]):
+    def training_step(self, batch: dict[str, Tensor]) -> Tuple[Tensor, Tensor, Tensor]:
         # Get actions and values given the current observations
         _, newlogprob, entropy, newvalue = self(batch["obs"], batch["actions"].long())
         logratio = newlogprob - batch["logprobs"]
@@ -105,7 +107,7 @@ class PPOAgent(torch.nn.Module):
         # Policy loss
         return self.loss.compute_losses(batch, entropy, newvalue, ratio)
 
-    def configure_optimizers(self, lr: float):
+    def configure_optimizers(self, lr: float) -> torch.optim.Optimizer:
         return torch.optim.Adam(self.parameters(), lr=lr, eps=1e-4)
 
     def on_train_epoch_end(self, global_step: int) -> None:
