@@ -76,12 +76,15 @@ export function isValidMockFlowConnection(
         return false;
     }
 
-    let isValid = checkSameDataType(
+    if (sourceNode.id === targetNode.id) {
+        // Prevent self-connections
+        return false;
+    }
+
+    return checkSameDataType(
         sourceNode,
         targetNode,
         sourceHandle,
         targetHandle
     );
-
-    return isValid;
 }

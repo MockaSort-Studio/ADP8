@@ -81,12 +81,6 @@ function AppInternal() {
         [screenToFlowPosition, type],
     );
 
-    const onDragStart = (event, nodeType) => {
-        setType(nodeType);
-        event.dataTransfer.setData('text/plain', nodeType);
-        event.dataTransfer.effectAllowed = 'move';
-    };
-
     return (
         <div className="dndflow">
             <div className="reactflow-wrapper" >
@@ -100,7 +94,6 @@ function AppInternal() {
                     onConnect={onConnect}
                     onDragOver={onDragOver}
                     onDrop={onDrop}
-                    onDragStart={onDragStart}
                     deleteKeyCode={['Backspace', 'Delete']}
                     isValidConnection={(connection) => {
                         const sourceNode = nodes.find((node) => node.id === connection.source);
