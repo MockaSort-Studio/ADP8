@@ -4,6 +4,7 @@ import {
     Controls,
     MiniMap,
     ReactFlow,
+    ReactFlowProvider,
     addEdge,
     useNodesState,
     useEdgesState,
@@ -12,13 +13,14 @@ import {
 
 import { isValidMockFlowConnection } from "./utils/connection_utils";
 import { Sidebar } from "./sidebar/sidebar"
+import { DnDProvider } from "./sidebar/drag_and_drop_context"
 
 import "@xyflow/react/dist/style.css";
 
 import { initialNodes, nodeTypes, type AppNode } from "./nodes";
 import { initialEdges, edgeTypes } from "./edges";
 
-export default function App() {
+function AppInternal() {
     const [nodes, , onNodesChange] = useNodesState<AppNode>(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const onConnect: OnConnect = useCallback(
@@ -28,7 +30,6 @@ export default function App() {
 
     return (
         <div className="dndflow">
-
             <div className="reactflow-wrapper" >
                 <ReactFlow
                     nodes={nodes}
@@ -63,3 +64,19 @@ export default function App() {
         </div>
     );
 }
+
+function ProviderWrapper({ children }: { children: React.ReactNode }) {
+    return (
+        <ReactFlowProvider>
+            <DnDProvider>
+                {children}
+            </DnDProvider>
+        </ReactFlowProvider>
+    );
+}
+
+export default () => (
+    <ProviderWrapper>
+        <AppInternal />
+    </ProviderWrapper>
+);
