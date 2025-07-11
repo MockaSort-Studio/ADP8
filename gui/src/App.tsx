@@ -11,7 +11,7 @@ import {
     type OnConnect,
 } from "@xyflow/react";
 
-import { isValidMockFlowConnection } from "./utils/connection_utils";
+import { isValidMockFlowConnection, updateEdgesIfnecessary } from "./utils/connection_utils";
 import { Sidebar } from "./sidebar/sidebar"
 import { DnDProvider } from "./sidebar/drag_and_drop_context"
 
@@ -24,7 +24,13 @@ function AppInternal() {
     const [nodes, , onNodesChange] = useNodesState<AppNode>(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const onConnect: OnConnect = useCallback(
-        (connection) => setEdges((edges) => addEdge(connection, edges)),
+        (connection) => {
+            const targetNode = nodes.find((node) => node.id === connection.target);
+            const targetHandle = connection.targetHandle;
+            const new_edges = updateEdgesIfnecessary(edges, targetNode, targetHandle);
+            setEdges(new_edges);
+            setEdges((edges) => addEdge(connection, edges));
+        },
         [setEdges]
     );
 
@@ -45,6 +51,7 @@ function AppInternal() {
                         const targetNode = nodes.find((node) => node.id === connection.target);
 
                         return isValidMockFlowConnection(
+                            edges,
                             sourceNode,
                             targetNode,
                             connection.sourceHandle,

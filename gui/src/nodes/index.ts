@@ -14,7 +14,8 @@ const randomMockFlowConfig = new MockFlowNodeConfig(
     ],
     [
         new IODataConfig("OutputX", "mock-1-x", "float"),
-        new IODataConfig("OutputY", "mock-1-y", "int"),
+        new IODataConfig("OutputY", "mock-1-y", "float"),
+        new IODataConfig("OutputZ", "mock-1-z", "int"),
     ],
     [{ param: "foo", value: 42 }]
 );
