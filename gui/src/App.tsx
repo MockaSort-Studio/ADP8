@@ -41,7 +41,7 @@ function AppInternal() {
             setEdges((eds) => addEdge(connection, eds));
             console.log(`Connected: ${connection.source} to ${connection.target} with handle ${targetHandle}`);
         },
-        [setEdges]
+        [nodes, edges, setEdges]
     );
 
     const onDragOver = useCallback((event) => {
@@ -66,9 +66,11 @@ function AppInternal() {
             if (!nodeConfig) {
                 return;
             }
+            let id = getId();
+            console.log(`Creating node with id: ${id} and type: ${type}`);
             const newNode = {
-                id: getId(),
-                type: [mockFlowNodeType],
+                id: id,
+                type: mockFlowNodeType,
                 position,
                 data: { config: nodeConfig },
             };
