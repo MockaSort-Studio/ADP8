@@ -1,5 +1,5 @@
 import type { Node, NodeTypes, BuiltInNode } from "@xyflow/react";
-import { MockFlowNode } from "./mock_flow_node";
+import { MockFlowNode, mockFlowNodeType } from "./mock_flow_node";
 import { MockFlowNodeConfig, IODataConfig } from "./mock_flow_node_config"; // <-- import
 
 export type AppNode = BuiltInNode | MockFlowNode;
@@ -34,19 +34,19 @@ const randomMockFlowConfig2 = new MockFlowNodeConfig(
 export const initialNodes: AppNode[] = [
     {
         id: "e",
-        type: "mock-flow",
+        type: mockFlowNodeType,
         position: { x: -100, y: -100 },
         data: { config: randomMockFlowConfig },
     },
     {
         id: "f",
-        type: "mock-flow",
+        type: mockFlowNodeType,
         position: { x: +200, y: -100 },
         data: { config: randomMockFlowConfig2 },
     },
 ];
 
 export const nodeTypes = {
-    "mock-flow": MockFlowNode,
+    [mockFlowNodeType]: MockFlowNode,
     // Add any of your custom nodes here!
 } satisfies NodeTypes;

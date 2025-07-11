@@ -21,14 +21,16 @@ import "@xyflow/react/dist/style.css";
 
 import { initialNodes, nodeTypes, type AppNode } from "./nodes";
 import { initialEdges, edgeTypes } from "./edges";
+import { nodesCatalog } from "./nodes/nodes_catalog";
+import { mockFlowNodeType } from "./nodes/mock_flow_node"
 
 let id = 0;
 const getId = () => `dndnode_${id++}`;
 
 function AppInternal() {
-    const [nodes, onNodesChange, setNodes] = useNodesState<AppNode>(initialNodes);
+    const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const [type] = useDnD();
+    const [type, setType] = useDnD();
     const { screenToFlowPosition } = useReactFlow();
     const onConnect: OnConnect = useCallback(
         (connection) => {
@@ -41,49 +43,48 @@ function AppInternal() {
         },
         [setEdges]
     );
-    /*
-        const onDragOver = useCallback((event) => {
+
+    const onDragOver = useCallback((event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+    }, []);
+
+    const onDrop = useCallback(
+        (event) => {
             event.preventDefault();
-            event.dataTransfer.dropEffect = 'move';
-            console.log(`Drag over event: ${event.clientX}, ${event.clientY}`);
-        }, []);
-    
-        const onDrop = useCallback(
-            (event) => {
-                event.preventDefault();
-    
-                // check if the dropped element is valid
-                if (!type) {
-                    return;
-                }
-    
-                // project was renamed to screenToFlowPosition
-                // and you don't need to subtract the reactFlowBounds.left/top anymore
-                // details: https://reactflow.dev/whats-new/2023-11-10
-                const position = screenToFlowPosition({
-                    x: event.clientX,
-                    y: event.clientY,
-                });
-                const newNode = {
-                    id: getId(),
-                    type,
-                    position,
-                    data: { label: `${type} node` },
-                };
-    
-                setNodes((nds) => nds.concat(newNode));
-                console.log(`Dropped node type: ${type}`);
-            },
-            [screenToFlowPosition, type],
-        );
-    
-        const onDragStart = (event, nodeType) => {
-            setType(nodeType);
-            event.dataTransfer.setData('text/plain', nodeType);
-            event.dataTransfer.effectAllowed = 'move';
-            console.log(`Dragging node type: ${nodeType}`);
-        };
-    */
+
+            if (!type) {
+                return;
+            }
+
+            const position = screenToFlowPosition({
+                x: event.clientX,
+                y: event.clientY,
+            });
+
+            let nodeConfig = nodesCatalog[type];
+            if (!nodeConfig) {
+                return;
+            }
+            const newNode = {
+                id: getId(),
+                type: [mockFlowNodeType],
+                position,
+                data: { config: nodeConfig },
+            };
+
+            setNodes((nds) => nds.concat(newNode));
+            console.log(`Dropped node type: ${type}`);
+        },
+        [screenToFlowPosition, type],
+    );
+
+    const onDragStart = (event, nodeType) => {
+        setType(nodeType);
+        event.dataTransfer.setData('text/plain', nodeType);
+        event.dataTransfer.effectAllowed = 'move';
+    };
+
     return (
         <div className="dndflow">
             <div className="reactflow-wrapper" >
@@ -95,9 +96,9 @@ function AppInternal() {
                     edgeTypes={edgeTypes}
                     onEdgesChange={onEdgesChange}
                     onConnect={onConnect}
-                    //onDragOver={onDragOver}
-                    //onDrop={onDrop}
-                    //onDragStart={onDragStart}
+                    onDragOver={onDragOver}
+                    onDrop={onDrop}
+                    onDragStart={onDragStart}
                     deleteKeyCode={['Backspace', 'Delete']}
                     isValidConnection={(connection) => {
                         const sourceNode = nodes.find((node) => node.id === connection.source);

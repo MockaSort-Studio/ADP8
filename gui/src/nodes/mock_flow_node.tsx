@@ -2,11 +2,13 @@ import { memo } from 'react';
 import { Node, Handle, Position, NodeResizer, type NodeProps } from '@xyflow/react';
 import { MockFlowNodeConfig } from './mock_flow_node_config'
 
+export const mockFlowNodeType: string = "mock-flow";
+
 export type MockFlowNode = Node<
     {
         config: MockFlowNodeConfig;
     },
-    "mock-flow"
+    typeof mockFlowNodeType
 >;
 
 function getHandleBounds(n: number): [number, number] {
