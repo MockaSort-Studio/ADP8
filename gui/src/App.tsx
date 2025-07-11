@@ -28,8 +28,8 @@ function AppInternal() {
             const targetNode = nodes.find((node) => node.id === connection.target);
             const targetHandle = connection.targetHandle;
             const new_edges = updateEdgesIfnecessary(edges, targetNode, targetHandle);
-            setEdges(new_edges);
-            setEdges((edges) => addEdge(connection, edges));
+            setEdges((eds) => updateEdgesIfnecessary(eds, targetNode, targetHandle));
+            setEdges((eds) => addEdge(connection, eds));
         },
         [setEdges]
     );

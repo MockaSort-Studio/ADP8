@@ -40,7 +40,7 @@ function getNewEdges(edges: Edge[], edge: Edge | undefined): Edge[] {
     if (!edge) {
         return edges;
     }
-    return edges.filter(edge => edge.id !== edge.id);
+    return edges.filter(e => e.id !== edge.id);
 }
 
 export function updateEdgesIfnecessary(
