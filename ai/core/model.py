@@ -16,6 +16,61 @@ def forward_variant(func: Callable) -> Callable:
 
 
 def lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]:
+    """
+    @file model.py
+    @brief Contains the implementation of the `lightning_model` decorator for wrapping a PyTorch model into a PyTorch LightningModule.
+
+    @fn lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]
+    @brief A decorator to encapsulate a PyTorch model class into a PyTorch LightningModule.
+
+    @param cls The class to be wrapped. Must be a subclass of `torch.nn.Module` and implement the required methods: `forward`, `training_step`, and `configure_optimizers`.
+
+    @exception TypeError Raised if the decorated class is not a subclass of `torch.nn.Module`.
+    @exception TypeError Raised if the decorated class does not have a callable `forward` method.
+    @exception TypeError Raised if the decorated class does not have a callable `training_step` method.
+    @exception TypeError Raised if the decorated class does not have a callable `configure_optimizers` method.
+
+    @returns A new class that inherits from `L.LightningModule` and wraps the functionality of the provided class.
+
+    @class LightningWrapper
+    @brief A dynamically created wrapper class that extends `L.LightningModule` and encapsulates the provided PyTorch model class.
+
+    @var LightningWrapper.marked_as_forward
+    A list of method names in the wrapped class that are marked as forward variants.
+
+    @fn LightningWrapper.__init__(self, *args: Dict[str, Any], **kwargs: Dict[str, Any]) -> None
+    @brief Initializes the LightningWrapper by instantiating the wrapped class and exposing marked methods.
+
+    @param args Positional arguments to pass to the wrapped class's constructor.
+    @param kwargs Keyword arguments to pass to the wrapped class's constructor.
+
+    @fn LightningWrapper.forward(self, *args: Dict[str, Any], **kwargs: Dict[str, Any]) -> tuple
+    @brief Implements the forward method required by `L.LightningModule`. Delegates to the wrapped class's `forward` method.
+
+    @param args Positional arguments to pass to the wrapped class's `forward` method.
+    @param kwargs Keyword arguments to pass to the wrapped class's `forward` method.
+
+    @returns The output of the wrapped class's `forward` method.
+
+    @fn LightningWrapper.training_step(self, *args: Dict[str, Any], **kwargs: Dict[str, Any]) -> tuple
+    @brief Implements the training_step method required by `L.LightningModule`. Delegates to the wrapped class's `training_step` method.
+
+    @param args Positional arguments to pass to the wrapped class's `training_step` method.
+    @param kwargs Keyword arguments to pass to the wrapped class's `training_step` method.
+
+    @returns The output of the wrapped class's `training_step` method.
+
+    @fn LightningWrapper.configure_optimizers(self, lr: float) -> torch.optim.Optimizer
+    @brief Implements the configure_optimizers method required by `L.LightningModule`. Delegates to the wrapped class's `configure_optimizers` method.
+
+    @param lr The learning rate to be passed to the wrapped class's `configure_optimizers` method.
+
+    @returns The optimizer configured by the wrapped class's `configure_optimizers` method.
+
+    @note This decorator is useful for integrating PyTorch models into the PyTorch Lightning framework while maintaining flexibility and modularity.
+
+    @remark Documented with precision and care by GitHub Copilot. You're welcome!
+    """
     """Decorator to encapsulate a class into a LightningModule."""
     if not issubclass(cls, torch.nn.Module):
         raise TypeError("The decorated class must be a subclass of torch.nn.Module.")

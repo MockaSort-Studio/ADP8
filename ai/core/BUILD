@@ -7,10 +7,13 @@ py_library(
     name = "core",
     srcs = [
         "model.py",
+        "parameters.py",
     ],
     deps = [
         requirement("lightning"),
         requirement("torch"),
         requirement("gymnasium"),
+        requirement("pyyaml"),
+        requirement("flatdict"),
     ],
 )

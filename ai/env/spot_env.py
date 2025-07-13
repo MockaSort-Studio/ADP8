@@ -2,12 +2,11 @@ import gymnasium as gym
 import numpy as np
 from typing import override
 
-from ai.env.env import BaseGymnasiumEnv, environment_parameters
+from ai.env.env import BaseGymnasiumEnv
+from ai.core.parameters import declare_parameters
 
 
-@environment_parameters(
-    name="Spot", vel_x=0.0, vel_y=0.0, yaw_rate=0.0, target_height=0.5
-)
+@declare_parameters(name="Spot", vel_x=0.0, vel_y=0.0, yaw_rate=0.0, target_height=0.5)
 class SpotEnv(BaseGymnasiumEnv):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

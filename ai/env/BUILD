@@ -52,6 +52,6 @@ py_binary(
         requirement("moviepy"),
         requirement("pygame"),
         ":env_registrations",
-        "//ai/parameters:registry",
+        "//ai/core",
     ],
 )

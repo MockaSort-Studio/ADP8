@@ -3,8 +3,8 @@ import os
 import numpy as np
 from gymnasium import utils
 from gymnasium.envs.mujoco import MujocoEnv
-from ai.parameters.registry import ParameterRegistry
-from typing import Any, Callable, Dict, Optional, Type, Tuple
+from ai.core.parameters import ParameterRegistry
+from typing import Any, Dict, Optional, Tuple
 
 
 # REFERENCE CODE
@@ -82,16 +82,6 @@ def build_vectorized_envs() -> gym.vector.SyncVectorEnv:
     )
 
     return envs
-
-
-def environment_parameters(name, **parameters: Dict[str, Any]) -> Callable:
-    def decorator(cls: Type) -> Type:
-        # Register the environment and its parameters in the ParameterRegistry
-        ParameterRegistry.register("environment", parameters)
-
-        return cls
-
-    return decorator
 
 
 # ## BaseGymnasiumEnv

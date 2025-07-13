@@ -1,6 +1,5 @@
 import numpy as np
-import gymnasium as gym
-from ai.parameters.registry import ParameterRegistry
+from ai.core.parameters import ParameterRegistry
 
 from ai.env.env import (
     build_vectorized_envs,

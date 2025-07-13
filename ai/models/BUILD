@@ -14,6 +14,5 @@ py_library(
         requirement("gymnasium"),
         "//ai/core",
         "//ai/loss:ppo_loss",
-        "//ai/support:callbacks",
     ],
 )
