@@ -8,6 +8,7 @@ py_library(
     srcs = [
         "model.py",
         "parameters.py",
+        "training.py",
     ],
     deps = [
         requirement("lightning"),

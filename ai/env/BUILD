@@ -11,7 +11,7 @@ py_library(
     deps = [
         requirement("gymnasium"),
         requirement("numpy"),
-        "//ai/parameters:registry",
+        "//ai/core",
     ],
 )
 

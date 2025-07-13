@@ -68,7 +68,6 @@ class SpotEnv(BaseGymnasiumEnv):
             ),
             axis=0,
         )
-        print(self.data.sensor("Body_Vel").data)
         obs = np.concatenate(
             (
                 self.data.sensor("Body_Vel").data,

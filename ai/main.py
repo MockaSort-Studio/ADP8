@@ -11,7 +11,7 @@ from lightning.fabric import Fabric
 from lightning.fabric.loggers import TensorBoardLogger
 from typing import Any, Tuple
 import lightning as L
-from ai.train.trainer import BaseTrainer
+from ai.core.training import BaseTrainer
 
 from ai.utils.module_loader import import_symbol_from_file
 

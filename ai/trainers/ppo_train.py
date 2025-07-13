@@ -7,7 +7,7 @@ import torchmetrics
 from ai.utils.utils import linear_annealing
 from lightning.fabric import Fabric
 import lightning as L
-from ai.train.trainer import trainer, TrainingCache
+from ai.core.training import trainer, TrainingCache
 from typing import Any, Dict
 from torch import Tensor
 from torch.utils.data import BatchSampler, DistributedSampler, RandomSampler
