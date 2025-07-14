@@ -38,7 +38,11 @@ function generateIOHandles(io_data, idx, type, n_handles) {
     );
 }
 
+export const initialNodeWidth = 300;
+export const initialNodeHeight = 150;
+
 export function MockFlowNode({
+    id,
     data,
     selected
 }: NodeProps<MockFlowNode>) {
@@ -53,17 +57,44 @@ export function MockFlowNode({
         generateIOHandles(output, idx, "source", config.output.length)
     );
 
+    const wrapper_id = `${id}_wrapper`;
+
     return (
-        <>
+        <div className="mock-node" id={wrapper_id} >
             <NodeResizer
                 color="#ff0071"
                 isVisible={selected}
                 minWidth={100}
+
                 minHeight={30}
+                onResize={(event, params) => {
+                    const wrapper = document.getElementById(wrapper_id);
+                    if (wrapper) {
+                        wrapper.style.width = `${params.width}px`;
+                        wrapper.style.height = `${params.height}px`;
+                    }
+                }}
             />
-            {inputHandles}
-            <div style={{ padding: 10 }}>{data.config.name}</div>
-            {outputHandles}
-        </>
+            <div className="mock-node-header">
+                {data.config.name}
+            </div>
+
+            <div className="mock-node-body">
+                <div className="mock-node-left">
+                    {inputHandles}
+                </div>
+
+                <div className="mock-node-center">
+                    {/* Add your parameter divs here */}
+                    <div className="parameter">Param 1</div>
+                    <div className="parameter">Param 2</div>
+                    {/* More parameter divs as needed */}
+                </div>
+
+                <div className="mock-node-right">
+                    {outputHandles}
+                </div>
+            </div>
+        </div>
     );
 }

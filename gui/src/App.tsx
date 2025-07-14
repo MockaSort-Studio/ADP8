@@ -22,12 +22,14 @@ import "@xyflow/react/dist/style.css";
 import { initialNodes, nodeTypes, type AppNode } from "./nodes";
 import { initialEdges, edgeTypes } from "./edges";
 import { nodesCatalog } from "./nodes/nodes_catalog";
-import { mockFlowNodeType } from "./nodes/mock_flow_node"
+import { mockFlowNodeType, initialNodeWidth, initialNodeHeight } from "./nodes/mock_flow_node"
 
 let id = 0;
 const getId = () => `dndnode_${id++}`;
 
 function AppInternal() {
+    document.documentElement.style.setProperty('--mock-node-width', `${initialNodeWidth}px`);
+    document.documentElement.style.setProperty('--mock-node-height', `${initialNodeHeight}px`);
     const [nodes, setNodes, onNodesChange] = useNodesState<AppNode>(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [type, setType] = useDnD();

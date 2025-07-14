@@ -36,17 +36,21 @@
 
 /* Customizing Default Theming */
 
+:root {
+    --mock-node-width: 250px;
+    --mock-node-height: 100px;
+}
+
 .react-flow__node {
     box-shadow: var(--xy-node-boxshadow-default);
     border-radius: var(--xy-node-border-radius-default);
-    background-color: var(--xy-node-background-color-default);
+    background-color: transparent;
     display: flex;
-    width: 250px;
-    height: 100px;
+    width: var(--mock-node-width, 250px);
+    height: var(--mock-node-height, 100px);
     justify-content: center;
     align-items: center;
     text-align: center;
-    padding: 10px;
     font-size: 12px;
     flex-direction: column;
     border: var(--xy-node-border-default);
@@ -300,4 +304,59 @@
     margin-top: 10px;
     margin-bottom: 3px;
     display: inline-block;
+}
+
+.mock-node {
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    background-color: #fdfdfd;
+    font-family: sans-serif;
+    width: var(--mock-node-width, 250px);
+    height: var(--mock-node-height, 100px);
+}
+
+.mock-node-header {
+    background-color: #eaeaea;
+    height: 20px%;
+    padding: 5px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+}
+
+.mock-node-body {
+    display: flex;
+    justify-content: space-between;
+
+    height: calc(80% - 10px);
+    gap: 8px;
+}
+
+.mock-node-left,
+.mock-node-right {
+    position: relative;
+    /* Make children position relative to this */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 50px;
+}
+
+.mock-node-center {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+}
+
+.parameter {
+    width: 100%;
+    padding: 4px;
+    background-color: #f0f8ff;
+    border: 1px solid #a0a0a0;
+    border-radius: 4px;
+    text-align: center;
 }

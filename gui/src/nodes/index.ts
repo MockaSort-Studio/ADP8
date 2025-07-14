@@ -41,7 +41,7 @@ export const initialNodes: AppNode[] = [
     {
         id: "f",
         type: mockFlowNodeType,
-        position: { x: +200, y: -100 },
+        position: { x: +300, y: -100 },
         data: { config: randomMockFlowConfig2 },
     },
 ];
