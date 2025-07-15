@@ -13,6 +13,7 @@ py_binary(
         "//ai/models:agent",
         "//ai/parameters:examples",
         "//ai/trainers",
+        "//simulation:model_mujoco",
     ],
     deps = [
         requirement("lightning"),
@@ -22,6 +23,8 @@ py_binary(
         #gym deps
         requirement("moviepy"),
         requirement("pygame"),
+        "//ai/core",
+        "//ai/env:env_registrations",
         "//ai/utils",
         "//ai/utils:module_loader",
     ],

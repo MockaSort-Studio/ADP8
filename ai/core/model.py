@@ -2,6 +2,17 @@ import torch
 
 import lightning as L
 from typing import Any, Callable, Dict, List, Type
+from ai.core.parameters import ParameterRegistry
+
+_COMMON_PARAMETERS: Dict[str, Any] = {"model_path": ""}
+
+
+def register_common_model_parameters() -> None:
+    """
+    Register default parameters for the model.
+    This function can be called to ensure that the default parameters are set.
+    """
+    ParameterRegistry.register("model", _COMMON_PARAMETERS)
 
 
 # Fabric has a special way to handle forward functions (i.e. forward pass on the model)
@@ -86,6 +97,21 @@ def lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]:
         raise TypeError(
             "The decorated class must have a callable 'configure_optimizers' method."
         )
+    # Ensure the class has an __init__ method
+    if not hasattr(cls, "__init__"):
+        raise TypeError("The decorated class must have an __init__ method.")
+
+    # Save the original __init__ method
+    original_init = cls.__init__
+
+    # Define the new __init__ method
+    def model_init_wrapper(self, *args: Dict[str, Any], **kwargs: Dict[str, Any]):
+        self.hyperparameters = ParameterRegistry.get_parameters("model")
+
+        original_init(self, *args, **kwargs)
+
+    # Replace the class's __init__ method with the new one
+    cls.__init__ = model_init_wrapper
 
     class LightningWrapper(L.LightningModule):
         marked_as_forward: List[str] = []
@@ -94,6 +120,7 @@ def lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]:
             super().__init__()
             print(*args, **kwargs)  # Debugging: print the arguments
             self.model = cls(*args, **kwargs)  # Instantiate the wrapped class
+            # self.parameters = ParameterRegistry.get_parameters("model")
 
             # Dynamically expose marked methods
             for name in dir(self.model):
@@ -114,7 +141,7 @@ def lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]:
             # Call the wrapped class's training step
             return self.model.training_step(*args, **kwargs)
 
-        def configure_optimizers(self, lr: float) -> torch.optim.Optimizer:
-            return self.model.configure_optimizers(lr)
+        def configure_optimizers(self) -> torch.optim.Optimizer:
+            return self.model.configure_optimizers()
 
     return LightningWrapper

@@ -5,18 +5,29 @@ from datetime import datetime
 import gymnasium as gym
 import torch
 
-from ai.utils.utils import parse_parameters
-from ai.env.env import make_env
+from ai.utils.utils import parse_arguments
+from ai.env.env import build_vectorized_envs
+from ai.env.env_registrations import import_envs_collection
 from lightning.fabric import Fabric
 from lightning.fabric.loggers import TensorBoardLogger
-from typing import Any, Tuple
+from typing import Any, Tuple, Type
 import lightning as L
-from ai.core.training import BaseTrainer
+from ai.core.parameters import ParameterRegistry, declare_parameters
+from ai.core.model import register_common_model_parameters
+from ai.core.training import register_common_trainer_parameters
 
 from ai.utils.module_loader import import_symbol_from_file
 
 
-def setup_fabric(parameters: Any, logger: TensorBoardLogger) -> Fabric:
+def setup_fabric() -> Fabric:
+    parameters = ParameterRegistry.get_parameters("engine")
+    run_name = f"{parameters.exp_name}_{parameters.seed}_{int(time.time())}"
+    logger = TensorBoardLogger(
+        root_dir=os.path.join(
+            "logs", "fabric_logs", datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
+        ),
+        name=run_name,
+    )
     # Initialize Fabric
     fabric = Fabric(
         accelerator=parameters.accelerator,
@@ -28,7 +39,7 @@ def setup_fabric(parameters: Any, logger: TensorBoardLogger) -> Fabric:
     fabric.seed_everything(parameters.seed)
     torch.backends.cudnn.deterministic = parameters.torch_deterministic
 
-    # Log hyperparameters
+    # Log hyperparameters TO BE FIXED
     fabric.logger.experiment.add_text(
         "hyperparameters",
         "|param|value|\n|-|-|\n{}".format(
@@ -38,80 +49,53 @@ def setup_fabric(parameters: Any, logger: TensorBoardLogger) -> Fabric:
     return fabric
 
 
-def setup_environment(parameters: Any, fabric: Fabric) -> gym.vector.SyncVectorEnv:
-    rank = fabric.global_rank
-    logger = fabric.logger
-    # Environment setup
-    envs = gym.vector.SyncVectorEnv(
-        [
-            make_env(
-                parameters.env_id,
-                parameters.seed + rank * parameters.num_envs + i,
-                rank,
-                parameters.capture_video,
-                parameters.env_specs,
-                logger.log_dir,
-                "train",
-            )
-            for i in range(parameters.num_envs)
-        ]
-    )
-    return envs
-
-
 def setup_agent_and_optimizer(
-    parameters: Any, envs: gym.vector.SyncVectorEnv, fabric: Fabric
+    envs: gym.vector.SyncVectorEnv, fabric: Fabric
 ) -> Tuple[L.LightningModule, torch.optim.Optimizer]:
-    ppo_loss_sym = import_symbol_from_file(parameters.loss)
-    agent_sym = import_symbol_from_file(parameters.model)
+    model_path = ParameterRegistry.get_parameter_value("model", "model_path")
+    agent_sym = import_symbol_from_file(model_path)
 
-    ppo_loss = ppo_loss_sym(
-        vf_coef=parameters.vf_coef,
-        ent_coef=parameters.ent_coef,
-        clip_coef=parameters.clip_coef,
-        clip_vloss=parameters.clip_vloss,
-        normalize_advantages=parameters.normalize_advantages,
-    )
-    agent = agent_sym(
-        envs,
-        ppo_loss,
-        parameters.activation_function,
-        parameters.ortho_init,
-    )
+    agent = agent_sym(envs)
 
-    optimizer = agent.configure_optimizers(parameters.learning_rate)
+    optimizer = agent.configure_optimizers()
     agent, optimizer = fabric.setup(agent, optimizer)
     for method in agent.marked_as_forward:
         agent.mark_forward_method(method)
     return agent, optimizer
 
 
-def build_trainer(parameters: Any, logger: TensorBoardLogger) -> BaseTrainer:
-    fabric = setup_fabric(parameters, logger)
-    envs = setup_environment(parameters, fabric)
-    agent, optimizer = setup_agent_and_optimizer(parameters, envs, fabric)
-    trainer = import_symbol_from_file(parameters.trainer)
+def build_trainer() -> Type:
+    fabric = setup_fabric()
+    envs = build_vectorized_envs()  # Use the vectorized environment setup
+    agent, optimizer = setup_agent_and_optimizer(envs, fabric)
+    trainer_path = ParameterRegistry.get_parameter_value("training", "trainer_path")
+    trainer = import_symbol_from_file(trainer_path)
     return trainer(
         fabric=fabric,
         envs=envs,
         agent=agent,
         optimizer=optimizer,
-        parameters=parameters,
     )
 
 
-def main(parameters: Any):
-    run_name = f"{parameters.env_id}_{parameters.exp_name}_{parameters.seed}_{int(time.time())}"
-    logger = TensorBoardLogger(
-        root_dir=os.path.join(
-            "logs", "fabric_logs", datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
-        ),
-        name=run_name,
-    )
-    training_controller = build_trainer(parameters, logger)
+@declare_parameters(
+    parameter_set_name="engine",
+    accelerator="auto",
+    exp_name="default",
+    devices=1,
+    strategy="auto",
+    player_on_gpu=False,
+    torch_deterministic=True,
+    seed=42,
+)
+def main():
+    training_controller = build_trainer()
     training_controller.train()
 
 
 if __name__ == "__main__":
-    parameters = parse_parameters()
-    main(parameters)
+    import_envs_collection()
+    register_common_model_parameters()
+    register_common_trainer_parameters()
+    parse_arguments()
+    main()

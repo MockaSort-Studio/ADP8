@@ -3,12 +3,21 @@ import argparse
 import gymnasium as gym
 import torch
 from lightning.fabric import Fabric
-from typing import Any, Callable, Type
+from typing import Any, Callable, Dict, Type
 from dataclasses import dataclass
 import lightning as L
 from ai.utils.utils import test
+from ai.core.parameters import ParameterRegistry
 
-from abc import ABC, abstractmethod
+_COMMON_PARAMETERS: Dict[str, Any] = {"trainer_path": ""}
+
+
+def register_common_trainer_parameters() -> None:
+    """
+    Register default parameters for the trainer.
+    This function can be called to ensure that the default parameters are set.
+    """
+    ParameterRegistry.register("training", _COMMON_PARAMETERS)
 
 
 @dataclass
@@ -28,70 +37,37 @@ def initialize_training_cache(
 ) -> TrainingCache:
     return TrainingCache(
         observations=torch.zeros(
-            (parameters.num_steps, parameters.num_envs)
-            + envs.single_observation_space.shape,
+            (parameters.num_steps, envs.num_envs) + envs.single_observation_space.shape,
             device=device,
         ),
         actions=torch.zeros(
-            (parameters.num_steps, parameters.num_envs)
-            + envs.single_action_space.shape,
+            (parameters.num_steps, envs.num_envs) + envs.single_action_space.shape,
             device=device,
         ),
-        logprobs=torch.zeros(
-            (parameters.num_steps, parameters.num_envs), device=device
-        ),
-        rewards=torch.zeros((parameters.num_steps, parameters.num_envs), device=device),
-        terminateds=torch.zeros(
-            (parameters.num_steps, parameters.num_envs), device=device
-        ),
-        values=torch.zeros((parameters.num_steps, parameters.num_envs), device=device),
+        logprobs=torch.zeros((parameters.num_steps, envs.num_envs), device=device),
+        rewards=torch.zeros((parameters.num_steps, envs.num_envs), device=device),
+        terminateds=torch.zeros((parameters.num_steps, envs.num_envs), device=device),
+        values=torch.zeros((parameters.num_steps, envs.num_envs), device=device),
     )
 
 
-# add comparison model in/out shape and env action/observation space
-class BaseTrainer(ABC):
-    _fabric: Fabric
-    _envs: gym.vector.SyncVectorEnv
-    _agent: L.LightningModule
-    _optimizer: torch.optim.Optimizer
-    _parameters: Any
-    _name: str
-
-    @abstractmethod
-    def train_impl(self, training_cache: TrainingCache) -> None:
-        pass
-
-    def train(self):
-        training_cache = initialize_training_cache(
-            self._parameters, self._envs, self._fabric.device
-        )
-        self.train_impl(training_cache)
-        self._envs.close()
-        if self._fabric.is_global_zero:
-            test(
-                self._agent.module,
-                self._fabric.device,
-                self._fabric.logger.experiment,
-                self._parameters,
-            )
-
-
-def trainer() -> Callable[[Callable], Type[BaseTrainer]]:
-    def decorator(training_loop_func: Callable) -> Type[BaseTrainer]:
-        class SpecializedTrainer(BaseTrainer):
+# Trainer to be revisited
+# to be revisited the test handling
+def trainer(test_func: Callable) -> Callable[[Callable], Type]:
+    def decorator(training_loop_func: Callable) -> Type:
+        class Trainer:
             def __init__(
                 self,
                 fabric: Fabric,
                 envs: gym.vector.SyncVectorEnv,
                 agent: L.LightningModule,
                 optimizer: torch.optim.Optimizer,
-                parameters: Any,
             ):
                 self._fabric = fabric
                 self._envs = envs
                 self._agent = agent
                 self._optimizer = optimizer
-                self._parameters = parameters
+                self._parameters = ParameterRegistry.get_parameters("training")
                 self._name = training_loop_func.__name__
 
             @property
@@ -108,6 +84,20 @@ def trainer() -> Callable[[Callable], Type[BaseTrainer]]:
                     self._fabric,
                 )
 
-        return SpecializedTrainer
+            def train(self):
+                training_cache = initialize_training_cache(
+                    self._parameters, self._envs, self._fabric.device
+                )
+                print(training_cache.actions.shape)
+                self.train_impl(training_cache)
+                self._envs.close()
+                self.test()
+
+            # to be revised
+            def test(self):
+                if self._fabric.is_global_zero:
+                    test_func(self._agent, self._envs, self._parameters, self._fabric)
+
+        return Trainer
 
     return decorator

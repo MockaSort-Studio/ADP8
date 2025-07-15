@@ -1,4 +1,3 @@
-import argparse
 import time
 
 import gymnasium as gym
@@ -11,6 +10,7 @@ from ai.core.training import trainer, TrainingCache
 from typing import Any, Dict
 from torch import Tensor
 from torch.utils.data import BatchSampler, DistributedSampler, RandomSampler
+from ai.core.parameters import declare_parameters
 
 
 @torch.no_grad()
@@ -78,7 +78,49 @@ def train(
         # agent.on_train_epoch_end(global_step)
 
 
-@trainer()
+@torch.no_grad()
+def test(
+    agent: L.LightningModule,
+    env: gym.vector.SyncVectorEnv,
+    parameters: Any,
+    fabric: Fabric,
+):
+    step = 0
+    terminated = False
+    cumulative_rew = 0
+    device = fabric.device
+    next_obs = torch.tensor(env.reset(seed=parameters.seed)[0], device=device)
+    while not terminated:
+        # Act greedly through the environment
+        action = agent.get_greedy_action(next_obs)
+
+        # Single environment step
+        next_obs, reward, terminated, truncated, _ = env.step(action.cpu().numpy())
+        terminated = torch.logical_or(
+            torch.tensor(terminated), torch.tensor(truncated)
+        ).any()
+        cumulative_rew += reward
+        next_obs = torch.tensor(next_obs, device=device)
+        step += 1
+    # logger.add_scalar("Test/cumulative_reward", cumulative_rew, 0)
+    # env.close()
+
+
+@declare_parameters(
+    parameter_set_name="training",
+    total_timesteps=1_000_000,
+    num_steps=128,
+    anneal_lr=False,
+    learning_rate=3e-4,
+    gamma=0.99,
+    gae_lambda=0.95,
+    share_data=True,
+    update_epochs=4,
+    max_grad_norm=0.5,
+    per_rank_batch_size=64,
+    seed=42,  # to be handled differently since it's a common parameter
+)
+@trainer(test_func=test)
 def ppo_train(
     parameters: Any,
     local_training_cache: TrainingCache,
@@ -94,7 +136,7 @@ def ppo_train(
     global_step = 0
     start_time = time.time()
     num_episodes = parameters.total_timesteps // int(
-        parameters.num_envs * parameters.num_steps * world_size
+        envs.num_envs * parameters.num_steps * world_size
     )
 
     # Player metrics
@@ -103,7 +145,7 @@ def ppo_train(
 
     # Get the first environment observation and start the optimization
     next_obs = torch.tensor(envs.reset(seed=parameters.seed)[0], device=device)
-    next_terminated = torch.zeros(parameters.num_envs, device=device)
+    next_terminated = torch.zeros(envs.num_envs, device=device)
     for episode in range(1, num_episodes + 1):
         # Learning rate annealing
         if parameters.anneal_lr:
@@ -111,14 +153,19 @@ def ppo_train(
         fabric.log("Info/learning_rate", optimizer.param_groups[0]["lr"], global_step)
 
         for step in range(0, parameters.num_steps):
-            global_step += parameters.num_envs * world_size
+            global_step += envs.num_envs * world_size
             local_training_cache.observations[step] = next_obs
             local_training_cache.terminateds[step] = next_terminated
 
             # Sample an action given the observation received by the environment
             with torch.no_grad():
                 action, logprob, _, value = agent.forward(next_obs)
+                print(action.shape)
                 local_training_cache.values[step] = value.flatten()
+            print("logprob shape:", logprob.shape)
+            print("action shape:", action.shape)
+            print("step ", step)
+            print("logprobs[step] shape:", local_training_cache.logprobs[step].shape)
             local_training_cache.actions[step] = action
             local_training_cache.logprobs[step] = logprob
 
