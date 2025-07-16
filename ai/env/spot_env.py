@@ -24,7 +24,7 @@ class SpotEnv(BaseGymnasiumEnv):
 
     @override
     def is_done(self, obs: np.ndarray) -> bool:
-        return bool(not np.isfinite(obs).all() or (obs[2] < 0))
+        return bool(not np.isfinite(obs).all())
 
     @override
     def is_truncated(self) -> bool:

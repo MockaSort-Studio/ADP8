@@ -13,8 +13,8 @@ ParameterRegistry.set_parameter_value(
 ParameterRegistry.set_parameter_value("environment", "render_mode", "human")
 ParameterRegistry.set_parameter_value("environment", "env_name", "Spot")
 ParameterRegistry.set_parameter_value("environment", "num_envs", 1)
-env = build_env()
-# env = build_vectorized_envs()
+# env = build_env()
+env = build_vectorized_envs()
 
 # Example of running the environment for a few steps
 obs, info = env.reset()
@@ -24,12 +24,12 @@ while True:
     # action = np.random.uniform(
     #     low=-10.0, high=10.0, size=12
     # )  # Ensure proper range for random actions
-    # action = np.random.uniform(
-    #     low=-0.0, high=0.0, size=(env.num_envs, 12)
-    # )  # Generate actions for all environments
-    action = np.array(
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.float32
-    )  # Example action
+    action = np.random.uniform(
+        low=-0.0, high=0.0, size=(env.num_envs, 12)
+    )  # Generate actions for all environments
+    # action = np.array(
+    #     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=np.float32
+    # )  # Example action
     obs, reward, terminated, truncated, info = env.step(action)
     print(action)
     print(obs)

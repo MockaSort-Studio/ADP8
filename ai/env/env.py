@@ -93,7 +93,6 @@ def build_vectorized_envs() -> gym.vector.SyncVectorEnv:
             )
         ]
     )
-
     return envs
 
 
