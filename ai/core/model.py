@@ -83,6 +83,7 @@ def lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]:
     @remark Documented with precision and care by GitHub Copilot. You're welcome!
     """
     """Decorator to encapsulate a class into a LightningModule."""
+    # TODO check functions signature
     if not issubclass(cls, torch.nn.Module):
         raise TypeError("The decorated class must be a subclass of torch.nn.Module.")
     if not hasattr(cls, "forward") or not callable(getattr(cls, "forward")):
@@ -118,7 +119,6 @@ def lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]:
 
         def __init__(self, *args: Dict[str, Any], **kwargs: Dict[str, Any]) -> None:
             super().__init__()
-            print(*args, **kwargs)  # Debugging: print the arguments
             self.model = cls(*args, **kwargs)  # Instantiate the wrapped class
             # self.parameters = ParameterRegistry.get_parameters("model")
 
@@ -131,13 +131,15 @@ def lightning_model(cls: Type[torch.nn.Module]) -> Type[L.LightningModule]:
                     setattr(self, name, attr)
 
         # return values to be revisited
-        def forward(self, *args: Dict[str, Any], **kwargs: Dict[str, Any]) -> tuple:
+        def forward(
+            self, *args: Dict[str, Any], **kwargs: Dict[str, Any]
+        ) -> Dict[str, Any]:
             # Forward method must respect the base interface
             return self.model.forward(*args, **kwargs)
 
         def training_step(
             self, *args: Dict[str, Any], **kwargs: Dict[str, Any]
-        ) -> tuple:
+        ) -> Dict[str, Any]:
             # Call the wrapped class's training step
             return self.model.training_step(*args, **kwargs)
 

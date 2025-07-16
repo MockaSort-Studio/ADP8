@@ -10,7 +10,7 @@ import lightning as L
 from ai.core.model import forward_variant, lightning_model
 from ai.core.parameters import declare_parameters
 from ai.utils.module_loader import import_symbol_from_file
-from typing import Tuple
+from typing import Dict, Tuple
 
 
 def layer_init(
@@ -89,47 +89,51 @@ class PPOAgent(torch.nn.Module):
             ),
         )
 
-    def get_action(
-        self, x: Tensor, action: Tensor = None
-    ) -> tuple[Tensor, Tensor, Tensor]:
+    def get_action(self, x: Tensor, action: Tensor = None) -> Dict[str, Tensor]:
         act = self.actor(x)
-        print(act.shape)
         std = torch.nn.Parameter(torch.ones(act.shape[-1]))
         distribution = Normal(act, act * 0.0 + std)
         if action is None:
             action = distribution.sample()
-            print(action)
-        return action, distribution.log_prob(action).sum(dim=-1), distribution.entropy()
+        return {
+            "action": action,
+            "logprobs": distribution.log_prob(action).sum(dim=-1),
+            "entropy": distribution.entropy(),
+        }
 
     @forward_variant
-    def get_greedy_action(self, x: Tensor) -> Tensor:
+    def get_greedy_action(self, x: Tensor) -> Dict[str, Tensor]:
         logits = self.actor(x)
         probs = F.softmax(logits, dim=-1)
-        return torch.argmax(probs, dim=-1)
+        return {"action": torch.argmax(probs, dim=-1)}
 
     @forward_variant
-    def get_value(self, x: Tensor) -> Tensor:
-        return self.critic(x)
+    def get_value(self, x: Tensor) -> Dict[str, Tensor]:
+        return {"value": self.critic(x)}
 
     def get_action_and_value(
         self, x: Tensor, action: Tensor = None
-    ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
-        action, log_prob, entropy = self.get_action(x, action)
+    ) -> Dict[str, Tensor]:
+        results = self.get_action(x, action)
         value = self.get_value(x)
-        return action, log_prob, entropy, value
+        results.update({"value": value["value"]})
+        return results
 
-    def forward(
-        self, x: Tensor, action: Tensor = None
-    ) -> tuple[Tensor, Tensor, Tensor, Tensor]:
+    def forward(self, x: Tensor, action: Tensor = None) -> Dict[str, Tensor]:
         return self.get_action_and_value(x, action)
 
-    def training_step(self, batch: dict[str, Tensor]) -> Tuple[Tensor, Tensor, Tensor]:
+    def training_step(self, batch: dict[str, Tensor]) -> Dict[str, Tensor]:
         # Get actions and values given the current observations
-        _, newlogprob, entropy, newvalue = self(batch["obs"], batch["actions"].long())
-        logratio = newlogprob - batch["logprobs"]
+        results = self(batch["observations"], batch["actions"].long())
+
+        logratio = results["logprobs"] - batch["logprobs"]
         ratio = logratio.exp()
-        # Policy loss
-        return self.loss.compute_losses(batch, entropy, newvalue, ratio)
+        combined_loss = self.loss.compute_losses(
+            batch, results["entropy"], results["value"], ratio
+        )
+        return {
+            "loss": combined_loss,
+        }
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
         return torch.optim.Adam(

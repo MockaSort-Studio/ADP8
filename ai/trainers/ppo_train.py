@@ -6,11 +6,45 @@ import torchmetrics
 from ai.utils.utils import linear_annealing
 from lightning.fabric import Fabric
 import lightning as L
-from ai.core.training import trainer, TrainingCache
+from ai.core.training import trainer
+from dataclasses import dataclass, asdict
 from typing import Any, Dict
 from torch import Tensor
 from torch.utils.data import BatchSampler, DistributedSampler, RandomSampler
 from ai.core.parameters import declare_parameters
+
+
+@dataclass
+class TrainingCache:
+    observations: torch.Tensor
+    actions: torch.Tensor
+    logprobs: torch.Tensor
+    rewards: torch.Tensor
+    terminateds: torch.Tensor
+    values: torch.Tensor
+    returns: torch.Tensor = None
+    advantages: torch.Tensor = None
+
+
+def initialize_training_cache(
+    parameters: Any,
+    envs: gym.vector.SyncVectorEnv,
+    device: torch.device,
+) -> TrainingCache:
+    return TrainingCache(
+        observations=torch.zeros(
+            (parameters.num_steps, envs.num_envs) + envs.single_observation_space.shape,
+            device=device,
+        ),
+        actions=torch.zeros(
+            (parameters.num_steps, envs.num_envs) + envs.single_action_space.shape,
+            device=device,
+        ),
+        logprobs=torch.zeros((parameters.num_steps, envs.num_envs), device=device),
+        rewards=torch.zeros((parameters.num_steps, envs.num_envs), device=device),
+        terminateds=torch.zeros((parameters.num_steps, envs.num_envs), device=device),
+        values=torch.zeros((parameters.num_steps, envs.num_envs), device=device),
+    )
 
 
 @torch.no_grad()
@@ -50,7 +84,7 @@ def train(
     global_step: int,
     parameters: Any,
 ):
-    indexes = list(range(data["obs"].shape[0]))
+    indexes = list(range(data["observations"].shape[0]))
     if parameters.share_data:
         sampler = DistributedSampler(
             indexes,
@@ -69,9 +103,9 @@ def train(
         if parameters.share_data:
             sampler.sampler.set_epoch(epoch)
         for batch_idxes in sampler:
-            loss = agent.training_step({k: v[batch_idxes] for k, v in data.items()})
+            results = agent.training_step({k: v[batch_idxes] for k, v in data.items()})
             optimizer.zero_grad(set_to_none=True)
-            fabric.backward(loss)
+            fabric.backward(results["loss"])
             fabric.clip_gradients(agent, optimizer, max_norm=parameters.max_grad_norm)
             optimizer.step()
         # lets fix log and loss later
@@ -120,10 +154,9 @@ def test(
     per_rank_batch_size=64,
     seed=42,  # to be handled differently since it's a common parameter
 )
-@trainer(test_func=test)
+@trainer()
 def ppo_train(
     parameters: Any,
-    local_training_cache: TrainingCache,
     envs: gym.vector.SyncVectorEnv,
     agent: L.LightningModule,
     optimizer: torch.optim.Optimizer,
@@ -138,7 +171,7 @@ def ppo_train(
     num_episodes = parameters.total_timesteps // int(
         envs.num_envs * parameters.num_steps * world_size
     )
-
+    local_data = initialize_training_cache(parameters, envs, device)
     # Player metrics
     rew_avg = torchmetrics.MeanMetric().to(device)
     ep_len_avg = torchmetrics.MeanMetric().to(device)
@@ -154,29 +187,24 @@ def ppo_train(
 
         for step in range(0, parameters.num_steps):
             global_step += envs.num_envs * world_size
-            local_training_cache.observations[step] = next_obs
-            local_training_cache.terminateds[step] = next_terminated
+            local_data.observations[step] = next_obs
+            local_data.terminateds[step] = next_terminated
 
             # Sample an action given the observation received by the environment
             with torch.no_grad():
-                action, logprob, _, value = agent.forward(next_obs)
-                print(action.shape)
-                local_training_cache.values[step] = value.flatten()
-            print("logprob shape:", logprob.shape)
-            print("action shape:", action.shape)
-            print("step ", step)
-            print("logprobs[step] shape:", local_training_cache.logprobs[step].shape)
-            local_training_cache.actions[step] = action
-            local_training_cache.logprobs[step] = logprob
+                results = agent.forward(next_obs)
+                local_data.values[step] = results["value"].flatten()
+            local_data.actions[step] = results["action"]
+            local_data.logprobs[step] = results["logprobs"]
 
             # Single environment step
             next_obs, reward, terminated, truncated, info = envs.step(
-                action.cpu().numpy()
+                results["action"].cpu().numpy()
             )
             terminated = torch.logical_or(
                 torch.tensor(terminated), torch.tensor(truncated)
             )
-            local_training_cache.rewards[step] = torch.tensor(
+            local_data.rewards[step] = torch.tensor(
                 reward, device=device, dtype=torch.float32
             ).view(-1)
             next_obs, next_terminated = torch.tensor(
@@ -204,47 +232,46 @@ def ppo_train(
 
         # Estimate returns with GAE (https://arxiv.org/abs/1506.02438)
         returns, advantages = estimate_returns_and_advantages(
-            local_training_cache.rewards,
-            local_training_cache.values,
-            local_training_cache.terminateds,
+            local_data.rewards,
+            local_data.values,
+            local_data.terminateds,
             next_terminated,
-            agent.get_value(next_obs),
+            agent.get_value(next_obs)["value"],
             parameters.num_steps,
             parameters.gamma,
             parameters.gae_lambda,
         )
 
         # Flatten the batch
-        local_data = {
-            "obs": local_training_cache.observations.reshape(
-                (-1,) + envs.single_observation_space.shape
-            ),
-            "logprobs": local_training_cache.logprobs.reshape(-1),
-            "actions": local_training_cache.actions.reshape(
-                (-1,) + envs.single_action_space.shape
-            ),
-            "advantages": advantages.reshape(-1),
-            "returns": returns.reshape(-1),
-            "values": local_training_cache.values.reshape(-1),
-        }
+        local_data.observations = local_data.observations.reshape(
+            (-1,) + envs.single_observation_space.shape
+        )
+        local_data.logprobs = local_data.logprobs.reshape(-1)
+        local_data.actions = local_data.actions.reshape(
+            (-1,) + envs.single_action_space.shape
+        )
+        local_data.values = local_data.values.reshape(-1)
+        local_data.advantages = advantages.reshape(-1)
+        local_data.returns = returns.reshape(-1)
 
-        if parameters.share_data:
-            # Gather all the tensors from all the world and reshape them
-            gathered_data = fabric.all_gather(local_data)
-            for k, v in gathered_data.items():
-                if k == "obs":
-                    gathered_data[k] = v.reshape(
-                        (-1,) + envs.single_observation_space.shape
-                    )
-                elif k == "actions":
-                    gathered_data[k] = v.reshape((-1,) + envs.single_action_space.shape)
-                else:
-                    gathered_data[k] = v.reshape(-1)
-        else:
-            gathered_data = local_data
+        # Distributed data is to be revised
+        # if parameters.share_data:
+        #     # Gather all the tensors from all the world and reshape them
+        #     gathered_data = fabric.all_gather(local_data)
+        #     for k, v in gathered_data.items():
+        #         if k == "obs":
+        #             gathered_data[k] = v.reshape(
+        #                 (-1,) + envs.single_observation_space.shape
+        #             )
+        #         elif k == "actions":
+        #             gathered_data[k] = v.reshape((-1,) + envs.single_action_space.shape)
+        #         else:
+        #             gathered_data[k] = v.reshape(-1)
+        # else:
+        #     gathered_data = local_data
 
         # Train the agent
-        train(fabric, agent, optimizer, gathered_data, global_step, parameters)
+        train(fabric, agent, optimizer, asdict(local_data), global_step, parameters)
         fabric.log(
             "Time/step_per_second",
             int(global_step / (time.time() - start_time)),

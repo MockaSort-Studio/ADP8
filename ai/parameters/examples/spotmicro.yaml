@@ -21,13 +21,13 @@ environment:
     env_name: Spot-v0
     xml_file: ./simulation/robot_model/spot_mini.xml
     render_mode: rgb_array
-    num_envs: 2
+    num_envs: 1
     capture_video: false
     seed: 42
     render_mode: human
 training:
     trainer_path: ai.trainers.ppo_train.ppo_train
-    total_timesteps: 65536
+    total_timesteps: 100
     learning_rate: 0.001
     anneal_lr: false
     gamma: 0.99
