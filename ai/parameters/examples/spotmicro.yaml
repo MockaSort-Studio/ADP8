@@ -27,6 +27,9 @@ environment:
     render_mode: human
 training:
     trainer_path: ai.trainers.ppo_train.ppo_train
+    optimizer_path: torch.optim.Adam
+    learning_rate: 1
+    epsilon: 0.01
     total_timesteps: 100
     learning_rate: 0.001
     anneal_lr: false

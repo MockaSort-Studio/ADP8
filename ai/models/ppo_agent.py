@@ -4,13 +4,12 @@ import gymnasium as gym
 import torch
 import torch.nn.functional as F
 from torch import Tensor
-from torch.distributions import Categorical, Normal
+from torch.distributions import Normal
 
-import lightning as L
 from ai.core.model import forward_variant, lightning_model
 from ai.core.parameters import declare_parameters
 from ai.utils.module_loader import import_symbol_from_file
-from typing import Dict, Tuple
+from typing import Dict
 
 
 def layer_init(

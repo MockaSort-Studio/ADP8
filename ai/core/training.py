@@ -6,10 +6,15 @@ from lightning.fabric import Fabric
 from typing import Any, Callable, Dict, Type
 from dataclasses import dataclass
 import lightning as L
-from ai.utils.utils import test
+from ai.utils.module_loader import import_symbol_from_file
 from ai.core.parameters import ParameterRegistry
 
-_COMMON_PARAMETERS: Dict[str, Any] = {"trainer_path": ""}
+_COMMON_PARAMETERS: Dict[str, Any] = {
+    "trainer_path": "",
+    "optimizer_path": "torch.optim.Adam",
+    "learning_rate": 0.001,
+    "epsilon": 1e-8,
+}
 
 
 def register_common_trainer_parameters() -> None:
@@ -42,6 +47,18 @@ def trainer() -> Callable[[Callable], Type]:
             @property
             def name(self) -> str:
                 return self._name
+
+            # TODO to be used after centralization of engine
+            def configure_optimizer(self) -> torch.optim.Optimizer:
+
+                optimizer_type = import_symbol_from_file(
+                    self._parameters.optimizer_path
+                )
+                return optimizer_type(
+                    self._agent.parameters(),
+                    lr=self._parameters.learning_rate,
+                    eps=self._parameters.epsilon,
+                )
 
             def train(self) -> None:
                 training_loop_func(
