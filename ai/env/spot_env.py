@@ -7,29 +7,19 @@ from ai.core.parameters import declare_parameters
 
 
 class Reward:
-    def __init__(
-        self,
-        target_height: float = 0.5,
-        target_vel_x: float = 0.0,
-        target_vel_y: float = 0.0,
-        target_yaw_rate: float = 0.0,
-    ):
-        self.target_height = target_height
-        self.target_vel_x = target_vel_x
-        self.target_vel_y = target_vel_y
-        self.target_yaw_rate = target_yaw_rate
-
     def _general_reward_fn(self, target: np.ndarray, current: np.ndarray) -> float:
         """
         Computes a general reward based on the difference between target and current values.
         """
         diff = np.sum(np.square(target - current))
-        print(f"Target: {target}, Current: {current}, Difference: {diff}")
         reward = np.exp(-diff)
         return reward
 
     def _action_rate_penalty(self, previous: np.ndarray, current: np.ndarray) -> float:
         return float(np.sum(np.square(current - previous)))
+
+    def _height_penalty(self, target: np.ndarray, current: np.ndarray) -> float:
+        return float(np.square(current - target))
 
     def _pose_similarity_reward(
         self, default_qpos: np.ndarray, qpos: np.ndarray
@@ -38,6 +28,7 @@ class Reward:
 
     # TODO: figure out how to get current robot height and apply height penalty
     def compute(self, inputs: Dict[str, np.ndarray]) -> float:
+        print(f"Prev Act {inputs["previous_action"]} Current {inputs['action']}")
         linear_vel_reward = self._general_reward_fn(
             inputs["commands"][:2], inputs["tracked_linear"][:2]
         )
@@ -52,6 +43,8 @@ class Reward:
         print(f"Action penalty: {action_penalty}")
         vel_z_penalty = float(np.square(inputs["tracked_linear"][2]))
         print(f"Vertical velocity penalty: {vel_z_penalty}")
+        height_penalty = self._height_penalty(inputs["z_target"], inputs["z_current"])
+        print(f"height penalty: {height_penalty}")
         roll_and_pitch_stability_penalty = float(
             np.square(inputs["roll"] + inputs["pitch"])
         )
@@ -66,27 +59,27 @@ class Reward:
             - action_penalty
             - vel_z_penalty
             - roll_and_pitch_stability_penalty
+            - height_penalty
         )
         print(f"Total reward: {reward}")
         return reward
 
 
+# TODO set proper defaults
 @declare_parameters(
     parameter_set_name="environment",
-    vel_x=0.0,
+    vel_x=0.5,
     vel_y=0.0,
     yaw_rate=0.0,
     target_height=0.5,
+    z_min=0.3,
+    roll_min=0.52,  # ~30 deg
+    pitch_min=0.52,  # ~30 deg
 )
 class SpotEnv(BaseGymnasiumEnv):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._reward = Reward(
-            target_height=self.parameters.target_height,
-            target_vel_x=self.parameters.vel_x,
-            target_vel_y=self.parameters.vel_y,
-            target_yaw_rate=self.parameters.yaw_rate,
-        )
+        self._reward = Reward()
         self.previous_action = np.zeros(12, dtype=np.float32)
         self.default_qpos = self._get_joint_configuration()
 
@@ -128,6 +121,9 @@ class SpotEnv(BaseGymnasiumEnv):
             "pitch": pitch,
             "qpos": qpos,
             "default_qpos": self.default_qpos,
+            # find better way to measure z pos
+            "z_target": self.parameters.target_height,
+            "z_current": self.data.site("imu").xpos[2],
         }
 
     @override
@@ -138,12 +134,22 @@ class SpotEnv(BaseGymnasiumEnv):
     def step_pre(self, action: np.ndarray) -> None:
         action = self.default_qpos + action
 
+    # TODO add z check
     @override
     def is_done(self, obs: np.ndarray) -> bool:
-        return bool(not np.isfinite(obs).all())
+        roll = np.abs(obs[6])
+        pitch = np.abs(obs[7])
+
+        return (
+            roll > self.parameters.roll_min
+            or pitch > self.parameters.pitch_min
+            or self.data.site("imu").xpos[2] < self.parameters.z_min
+            or bool(not np.isfinite(obs).all())
+        )
 
     @override
     def is_truncated(self) -> bool:
+        print(self.step_number, self.episode_len)
         return self.step_number > self.episode_len
 
     @override
@@ -180,6 +186,7 @@ class SpotEnv(BaseGymnasiumEnv):
             ),
             axis=0,
         )
+
         obs = np.concatenate(
             (
                 self.data.sensor("Body_Vel").data,

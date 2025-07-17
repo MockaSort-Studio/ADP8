@@ -140,9 +140,10 @@ def test(
     # env.close()
 
 
+# TODO metrics have been commented properly fix them
 @declare_parameters(
     parameter_set_name="training",
-    total_timesteps=1_000_000,
+    total_timesteps=200,
     num_steps=128,
     anneal_lr=False,
     learning_rate=3e-4,
@@ -173,8 +174,8 @@ def ppo_train(
     )
     local_data = initialize_training_cache(parameters, envs, device)
     # Player metrics
-    rew_avg = torchmetrics.MeanMetric().to(device)
-    ep_len_avg = torchmetrics.MeanMetric().to(device)
+    # rew_avg = torchmetrics.MeanMetric().to(device)
+    # ep_len_avg = torchmetrics.MeanMetric().to(device)
 
     # Get the first environment observation and start the optimization
     next_obs = torch.tensor(envs.reset(seed=parameters.seed)[0], device=device)
@@ -211,24 +212,24 @@ def ppo_train(
                 next_obs, device=device
             ), terminated.to(device)
 
-            if "final_info" in info:
-                for i, agent_final_info in enumerate(info["final_info"]):
-                    if agent_final_info is not None and "episode" in agent_final_info:
-                        fabric.print(
-                            f"Rank-0: global_step={global_step}, reward_env_{i}={agent_final_info['episode']['r'][0]}"
-                        )
-                        rew_avg(agent_final_info["episode"]["r"][0])
-                        ep_len_avg(agent_final_info["episode"]["l"][0])
+            # if "final_info" in info:
+            #     for i, agent_final_info in enumerate(info["final_info"]):
+            #         if agent_final_info is not None and "episode" in agent_final_info:
+            #             fabric.print(
+            #                 f"Rank-0: global_step={global_step}, reward_env_{i}={agent_final_info['episode']['r'][0]}"
+            #             )
+            #             rew_avg(agent_final_info["episode"]["r"][0])
+            #             ep_len_avg(agent_final_info["episode"]["l"][0])
 
         # Sync the metrics
-        rew_avg_reduced = rew_avg.compute()
-        if not rew_avg_reduced.isnan():
-            fabric.log("Rewards/rew_avg", rew_avg_reduced, global_step)
-        ep_len_avg_reduced = ep_len_avg.compute()
-        if not ep_len_avg_reduced.isnan():
-            fabric.log("Game/ep_len_avg", ep_len_avg_reduced, global_step)
-        rew_avg.reset()
-        ep_len_avg.reset()
+        # rew_avg_reduced = rew_avg.compute()
+        # if not rew_avg_reduced.isnan():
+        #     fabric.log("Rewards/rew_avg", rew_avg_reduced, global_step)
+        # ep_len_avg_reduced = ep_len_avg.compute()
+        # if not ep_len_avg_reduced.isnan():
+        #     fabric.log("Game/ep_len_avg", ep_len_avg_reduced, global_step)
+        # rew_avg.reset()
+        # ep_len_avg.reset()
 
         # Estimate returns with GAE (https://arxiv.org/abs/1506.02438)
         returns, advantages = estimate_returns_and_advantages(
