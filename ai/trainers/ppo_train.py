@@ -143,7 +143,7 @@ def test(
 # TODO metrics have been commented properly fix them
 @declare_parameters(
     parameter_set_name="training",
-    total_timesteps=200,
+    total_timesteps=2000,
     num_steps=128,
     anneal_lr=False,
     learning_rate=3e-4,
@@ -172,15 +172,16 @@ def ppo_train(
     num_episodes = parameters.total_timesteps // int(
         envs.num_envs * parameters.num_steps * world_size
     )
-    local_data = initialize_training_cache(parameters, envs, device)
-    # Player metrics
-    # rew_avg = torchmetrics.MeanMetric().to(device)
-    # ep_len_avg = torchmetrics.MeanMetric().to(device)
-
-    # Get the first environment observation and start the optimization
-    next_obs = torch.tensor(envs.reset(seed=parameters.seed)[0], device=device)
-    next_terminated = torch.zeros(envs.num_envs, device=device)
     for episode in range(1, num_episodes + 1):
+        local_data = initialize_training_cache(parameters, envs, device)
+        # Player metrics
+        # rew_avg = torchmetrics.MeanMetric().to(device)
+        # ep_len_avg = torchmetrics.MeanMetric().to(device)
+
+        # Get the first environment observation and start the optimization
+        next_obs = torch.tensor(envs.reset(seed=parameters.seed)[0], device=device)
+        next_terminated = torch.zeros(envs.num_envs, device=device)
+
         # Learning rate annealing
         if parameters.anneal_lr:
             linear_annealing(optimizer, episode, num_episodes, parameters.learning_rate)
@@ -254,6 +255,8 @@ def ppo_train(
         local_data.values = local_data.values.reshape(-1)
         local_data.advantages = advantages.reshape(-1)
         local_data.returns = returns.reshape(-1)
+        local_data.terminateds = local_data.terminateds.reshape(-1)
+        local_data.rewards = local_data.rewards.reshape(-1)
 
         # Distributed data is to be revised
         # if parameters.share_data:

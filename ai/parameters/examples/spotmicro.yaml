@@ -21,7 +21,7 @@ environment:
     env_name: Spot-v0
     xml_file: ./simulation/robot_model/spot_mini.xml
     render_mode: rgb_array
-    num_envs: 1
+    num_envs: 2
     capture_video: false
     seed: 42
     render_mode: human
