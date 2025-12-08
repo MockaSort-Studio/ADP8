@@ -1,0 +1,6 @@
+# CODEOWNERS
+# Assign repository-wide ownership to the listed GitHub users.
+# Replace the placeholders with actual GitHub usernames (e.g. @org/username).
+
+*
+@mksetaro @fpetracci 
