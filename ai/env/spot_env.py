@@ -1,41 +1,90 @@
 import gymnasium as gym
 import numpy as np
-from typing import override
+from typing import Dict, override
 
-from ai.env.env import BaseGymnasiumEnv, environment_parameters
+from ai.env.env import BaseGymnasiumEnv
+from ai.core.parameters import declare_parameters
 
 
-@environment_parameters(
-    name="Spot", vel_x=0.0, vel_y=0.0, yaw_rate=0.0, target_height=0.5
+class Reward:
+    def _general_reward_fn(self, target: np.ndarray, current: np.ndarray) -> float:
+        """
+        Computes a general reward based on the difference between target and current values.
+        """
+        diff = np.sum(np.square(target - current))
+        reward = np.exp(-diff)
+        return reward
+
+    def _action_rate_penalty(self, previous: np.ndarray, current: np.ndarray) -> float:
+        return float(np.sum(np.square(current - previous)))
+
+    def _height_penalty(self, target: np.ndarray, current: np.ndarray) -> float:
+        return float(np.square(current - target))
+
+    def _pose_similarity_reward(
+        self, default_qpos: np.ndarray, qpos: np.ndarray
+    ) -> float:
+        return float(np.sum(np.abs(qpos - default_qpos)))
+
+    # TODO: figure out how to get current robot height and apply height penalty
+    def compute(self, inputs: Dict[str, np.ndarray]) -> float:
+        print(f"Prev Act {inputs["previous_action"]} Current {inputs['action']}")
+        linear_vel_reward = self._general_reward_fn(
+            inputs["commands"][:2], inputs["tracked_linear"][:2]
+        )
+        print(f"Linear velocity reward: {linear_vel_reward}")
+        angular_vel_reward = self._general_reward_fn(
+            inputs["commands"][2], inputs["tracked_yaw_rate"]
+        )
+        print(f"Angular velocity reward: {angular_vel_reward}")
+        action_penalty = self._action_rate_penalty(
+            inputs["previous_action"], inputs["action"]
+        )
+        print(f"Action penalty: {action_penalty}")
+        vel_z_penalty = float(np.square(inputs["tracked_linear"][2]))
+        print(f"Vertical velocity penalty: {vel_z_penalty}")
+        height_penalty = self._height_penalty(inputs["z_target"], inputs["z_current"])
+        print(f"height penalty: {height_penalty}")
+        roll_and_pitch_stability_penalty = float(
+            np.square(inputs["roll"] + inputs["pitch"])
+        )
+        print(f"Roll and pitch stability penalty: {roll_and_pitch_stability_penalty}")
+        pose_similarity_reward = self._pose_similarity_reward(
+            inputs["default_qpos"], inputs["qpos"]
+        )
+        reward = (
+            linear_vel_reward
+            + angular_vel_reward
+            + pose_similarity_reward
+            - action_penalty
+            - vel_z_penalty
+            - roll_and_pitch_stability_penalty
+            - height_penalty
+        )
+        print(f"Total reward: {reward}")
+        return reward
+
+
+# TODO set proper defaults
+@declare_parameters(
+    parameter_set_name="environment",
+    vel_x=0.5,
+    vel_y=0.0,
+    yaw_rate=0.0,
+    target_height=0.5,
+    z_min=0.3,
+    roll_min=0.52,  # ~30 deg
+    pitch_min=0.52,  # ~30 deg
 )
 class SpotEnv(BaseGymnasiumEnv):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._reward = Reward()
         self.previous_action = np.zeros(12, dtype=np.float32)
+        self.default_qpos = self._get_joint_configuration()
 
-    @override
-    def init_observation_space(self) -> gym.spaces.Space:
-        return gym.spaces.Box(low=-np.inf, high=np.inf, shape=(48,), dtype=np.float32)
-
-    @override
-    def is_done(self, obs: np.ndarray) -> bool:
-        return bool(not np.isfinite(obs).all() or (obs[2] < 0))
-
-    @override
-    def is_truncated(self) -> bool:
-        return self.step_number > self.episode_len
-
-    @override
-    def step_post(self, action: np.ndarray) -> None:
-        self.previous_action = action
-
-    @override
-    def get_obs_impl(self):
-        w, x, y, z = self.data.sensor("Body_Quat").data
-        roll = np.arctan2(2 * (w * x + y * z), 1 - 2 * (x**2 + y**2))
-        pitch = np.arcsin(2 * (w * y - z * x))
-
-        joint_pos = np.concatenate(
+    def _get_joint_configuration(self) -> np.ndarray:
+        qpos = np.concatenate(
             (
                 self.data.sensor("fl.hx_pos").data,
                 self.data.sensor("fl.hy_pos").data,
@@ -52,6 +101,74 @@ class SpotEnv(BaseGymnasiumEnv):
             ),
             axis=0,
         )
+        return qpos
+
+    def _unpack_observations(self, obs: np.ndarray) -> Dict[str, np.ndarray]:
+        commands = obs[-4:]
+        tracked_linear = obs[:3]
+        previous_action = obs[-16:-4]
+        tracked_yaw_rate = np.array([obs[5]])
+        roll = np.array([obs[6]])
+        pitch = np.array([obs[7]])
+        qpos = obs[8:20]
+
+        return {
+            "commands": commands,
+            "tracked_linear": tracked_linear,
+            "previous_action": previous_action,
+            "tracked_yaw_rate": tracked_yaw_rate,
+            "roll": roll,
+            "pitch": pitch,
+            "qpos": qpos,
+            "default_qpos": self.default_qpos,
+            # find better way to measure z pos
+            "z_target": self.parameters.target_height,
+            "z_current": self.data.site("imu").xpos[2],
+        }
+
+    @override
+    def init_observation_space(self) -> gym.spaces.Space:
+        return gym.spaces.Box(low=-np.inf, high=np.inf, shape=(48,), dtype=np.float32)
+
+    @override
+    def step_pre(self, action: np.ndarray) -> None:
+        action = self.default_qpos + action
+
+    # TODO add z check
+    @override
+    def is_done(self, obs: np.ndarray) -> bool:
+        roll = np.abs(obs[6])
+        pitch = np.abs(obs[7])
+
+        return (
+            roll > self.parameters.roll_min
+            or pitch > self.parameters.pitch_min
+            or self.data.site("imu").xpos[2] < self.parameters.z_min
+            or bool(not np.isfinite(obs).all())
+        )
+
+    @override
+    def is_truncated(self) -> bool:
+        print(self.step_number, self.episode_len)
+        return self.step_number > self.episode_len
+
+    @override
+    def step_post(self, action: np.ndarray) -> None:
+        self.previous_action = action
+
+    @override
+    def reward(self, obs: np.ndarray, action: np.ndarray) -> float:
+        unpacked_obs = self._unpack_observations(obs)
+        unpacked_obs["action"] = action
+        return self._reward.compute(inputs=unpacked_obs)
+
+    @override
+    def get_obs_impl(self):
+        w, x, y, z = self.data.sensor("Body_Quat").data
+        roll = np.arctan2(2 * (w * x + y * z), 1 - 2 * (x**2 + y**2))
+        pitch = np.arcsin(2 * (w * y - z * x))
+
+        joint_pos = self._get_joint_configuration()
         joint_vel = np.concatenate(
             (
                 self.data.sensor("fl.hx_vel").data,
@@ -69,7 +186,7 @@ class SpotEnv(BaseGymnasiumEnv):
             ),
             axis=0,
         )
-        print(self.data.sensor("Body_Vel").data)
+
         obs = np.concatenate(
             (
                 self.data.sensor("Body_Vel").data,
