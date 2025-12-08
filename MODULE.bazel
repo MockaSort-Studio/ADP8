@@ -60,7 +60,7 @@ use_repo(
     "ros2cli",
     ### ALL AVAILABLE ###
     # "cyclonedds",
-    # "foxglove_bridge",
+    "foxglove_bridge",
     # "iceoryx",
     # "osrf_pycommon",
     # "ros2",
