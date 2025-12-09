@@ -73,7 +73,9 @@ class CarControlNode : public rclcpp::Node
             RCLCPP_INFO(this->get_logger(), "Control enabled after 10 seconds.");
         }
 
-        carcmd_ = point_follower(state_, target_);
+        // carcmd_ = point_follower(state_, target_);
+        // carcmd_ = pure_pursuit(state_, target_, carcmd_.d);
+        carcmd_ = stanley(state_, target_, carcmd_.d);
 
         // --- Publish command ---
         car_msgs::msg::CarControl msg;
