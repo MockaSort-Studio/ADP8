@@ -22,6 +22,7 @@ ros2_cpp_binary(
     srcs = ["car_state.cpp"],
     visibility = ["//visibility:public"],
     deps = [
+        "//applications:common_utils",
         "//messages:cpp_car_msgs",
         "@ros2_common_interfaces//:cpp_std_msgs",
         "@ros2_rclcpp//:rclcpp",

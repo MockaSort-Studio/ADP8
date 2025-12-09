@@ -7,7 +7,7 @@ load(
 
 ros2_interface_library(
     name = "car_msgs",
-    srcs = ["car_msgs/msg/CarState.msg"],  # glob(["car_msgs/msg/*.msg"]),
+    srcs = glob(["car_msgs/msg/*.msg"]),
     visibility = ["//visibility:public"],
     deps = [
         "@ros2_common_interfaces//:std_msgs",
