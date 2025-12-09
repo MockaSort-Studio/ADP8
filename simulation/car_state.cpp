@@ -20,15 +20,6 @@ class CarStatePublisher : public rclcpp::Node
         this->declare_parameter("callback_period_ms", T_CARSTATE_PUB);
         callback_period_ms_ = this->get_parameter("callback_period_ms").as_int();
 
-        // this->declare_parameter("v", 5.0);               // longitudinal speed (m/s)
-        // this->declare_parameter("steering_angle", 0.2);  // radianss
-        // v_ = this->get_parameter("v").as_double();
-        // state_.d = this->get_parameter("steering_angle").as_double();
-
-        // init commands
-        v_cmd_ = 0.2;
-        d_cmd_ = 0.0;
-
         // Publisher
         car_state_publisher_ =
             this->create_publisher<car_msgs::msg::CarState>("car_state", T_CARSTATE_PUB);
@@ -79,8 +70,8 @@ class CarStatePublisher : public rclcpp::Node
 
     CarState state_;  // internal state
 
-    double v_cmd_;  // vel command
-    double d_cmd_;  // steering wheel command
+    double v_cmd_ = 0.0;  // vel command
+    double d_cmd_ = 0.0;  // steering wheel command
 
     int callback_period_ms_;
 };
