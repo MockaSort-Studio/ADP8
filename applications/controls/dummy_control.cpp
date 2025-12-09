@@ -31,6 +31,8 @@ class CarControl : public rclcpp::Node
         timer_ = this->create_wall_timer(
             std::chrono::milliseconds(callback_period_ms_),
             std::bind(&CarControl::control_callback, this));
+
+        start_time_ = this->now();
     }
 
   private:
@@ -44,10 +46,49 @@ class CarControl : public rclcpp::Node
 
     void control_callback()
     {
-        car_msgs::msg::CarControl msg;
-        msg.v = 0.2;
-        msg.d = 0.0;
+        if (!control_enabled_)
+        {
+            if ((this->now() - start_time_).seconds() < 10.0)
+            {
+                // do nothing for 10 seconds
+                return;
+            }
+            control_enabled_ = true;
+            RCLCPP_INFO(this->get_logger(), "Control enabled after 10 seconds.");
+        }
 
+        //
+        double dist = std::sqrt(
+            (x_r - state_.x) * (x_r - state_.x) + (y_r - state_.y) * (y_r - state_.y));
+
+        double x_f = state_.x + L_WHEELBASE * std::cos(state_.yaw);
+        double y_f = state_.y + L_WHEELBASE * std::sin(state_.yaw);
+        double desired_heading = std::atan2(y_r - y_f, x_r - x_f);
+
+        double heading_error = desired_heading - state_.yaw;
+        while (heading_error > M_PI)
+            heading_error -= 2.0 * M_PI;
+        while (heading_error < -M_PI)
+            heading_error += 2.0 * M_PI;
+
+        d_ = 1.2 * heading_error;  // "P control" for the beggar
+        double d_max = 0.5;
+        d_ = std::clamp(d_, -d_max, d_max);
+
+        v_ = 0.6 * dist;  // proportional speed
+        double v_max = 5.0;
+        v_ = std::clamp(v_, 0.0, v_max);
+
+        // Stop when close
+        if (dist < 0.05)
+        {
+            v_ = 0.0;
+        }
+
+        // --- Publish command ---
+        car_msgs::msg::CarControl msg;
+        msg.v = v_;
+        msg.d = d_;
         car_control_publisher_->publish(msg);
     }
 
@@ -55,10 +96,21 @@ class CarControl : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<car_msgs::msg::CarControl>::SharedPtr car_control_publisher_;
     rclcpp::Subscription<car_msgs::msg::CarState>::SharedPtr car_state_sub_;
+    rclcpp::Time start_time_;
 
     CarState state_;  // internal state
 
     int callback_period_ms_;
+
+    // control variables
+    double v_;
+    double d_;
+    bool control_enabled_ = false;
+
+    // ref
+    double x_r = 5.0;
+    double y_r = 5.0;
+    double yaw_r = 0.0;
 };
 
 int main(int argc, char* argv[])
