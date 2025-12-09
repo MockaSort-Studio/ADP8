@@ -2,12 +2,12 @@ load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
 ros2_cpp_binary(
-    name = "control_node",
-    srcs = ["control_node.cpp"],
+    name = "planning_node",
+    srcs = ["planning_node.cpp"],
     visibility = ["//visibility:public"],
     deps = [
-        # controls
-        "//applications/controls:point_follower",
+        # planning
+        "//applications/planning:dummy_point_planner",
         # ros2 interfaces
         "//applications:common_utils",
         "//messages:cpp_car_msgs",
@@ -18,9 +18,9 @@ ros2_cpp_binary(
 )
 
 cc_library(
-    name = "point_follower",
-    srcs = ["point_follower.cpp"],
-    hdrs = ["point_follower.hpp"],
+    name = "dummy_point_planner",
+    srcs = ["dummy_point_planner.cpp"],
+    hdrs = ["dummy_point_planner.hpp"],
     deps = [
         "//applications:common_utils",
     ],
