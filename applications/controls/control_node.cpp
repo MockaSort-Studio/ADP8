@@ -6,9 +6,12 @@
 #include "applications/controls/point_follower.hpp"
 #include "car_msgs/msg/car_control.hpp"
 #include "car_msgs/msg/car_state.hpp"
+#include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#define T_CARCONTROL_PUB 10  // ms
+#define T_CARCONTROL_PUB 10       // ms
+#define T_CARSTATE_SUB 10         // ms
+#define T_PLANNINGTARGET_SUB 100  // ms
 
 class CarControlNode : public rclcpp::Node
 {
@@ -18,17 +21,21 @@ class CarControlNode : public rclcpp::Node
         // declare parameters
         this->declare_parameter("callback_period_ms", T_CARCONTROL_PUB);
         callback_period_ms_ = this->get_parameter("callback_period_ms").as_int();
-        target_.x = 5.0;
-        target_.y = 3.0;
 
         // Publisher
         car_control_publisher_ = this->create_publisher<car_msgs::msg::CarControl>(
             "car_control", T_CARCONTROL_PUB);
 
+        // subscribers
         car_state_sub_ = this->create_subscription<car_msgs::msg::CarState>(
             "car_state",
-            T_CARCONTROL_PUB,
+            T_CARSTATE_SUB,
             std::bind(&CarControlNode::car_state_callback, this, std::placeholders::_1));
+        planning_target_sub_ = this->create_subscription<geometry_msgs::msg::Point>(
+            "planning_target",
+            T_PLANNINGTARGET_SUB,
+            std::bind(
+                &CarControlNode::planning_target_callback, this, std::placeholders::_1));
 
         // control loop
         timer_ = this->create_wall_timer(
@@ -45,6 +52,12 @@ class CarControlNode : public rclcpp::Node
         state_.y = msg->y;
         state_.yaw = msg->yaw;
         state_.d = msg->d;
+    }
+
+    void planning_target_callback(const geometry_msgs::msg::Point msg)
+    {
+        target_.x = msg.x;
+        target_.y = msg.y;
     }
 
     void control_callback()
@@ -73,6 +86,7 @@ class CarControlNode : public rclcpp::Node
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Publisher<car_msgs::msg::CarControl>::SharedPtr car_control_publisher_;
     rclcpp::Subscription<car_msgs::msg::CarState>::SharedPtr car_state_sub_;
+    rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr planning_target_sub_;
     rclcpp::Time start_time_;
     int callback_period_ms_;
 
