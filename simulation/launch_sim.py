@@ -14,6 +14,11 @@ def generate_launch_description():
             launch_ros.actions.Node(
                 executable="simulation/car_state", output="screen", name="car_state"
             ),
+            launch_ros.actions.Node(
+                executable="applications/controls/dummy_control",
+                output="screen",
+                name="car_control",
+            ),
             ## foxglove_bridge node
             launch_ros.actions.Node(
                 executable=third_party.foxglove_bridge.node_path.NODE_PATH,
