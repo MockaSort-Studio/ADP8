@@ -42,7 +42,7 @@ ros2_launch(
     launch_file = "launch_sim.py",
     nodes = [
         # application nodes
-        "//applications/controls:dummy_control",
+        "//applications/controls:control_node",
         # sim nodes
         "//simulation:car_state",
         "@com_github_mvukov_rules_ros2//third_party/foxglove_bridge:foxglove_bridge_node",

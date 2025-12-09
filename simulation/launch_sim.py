@@ -15,7 +15,7 @@ def generate_launch_description():
                 executable="simulation/car_state", output="screen", name="car_state"
             ),
             launch_ros.actions.Node(
-                executable="applications/controls/dummy_control",
+                executable="applications/controls/control_node",
                 output="screen",
                 name="car_control",
             ),
