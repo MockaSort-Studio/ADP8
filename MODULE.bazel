@@ -3,7 +3,7 @@ this makes bazel linter happy
 """
 
 module(
-    name = "ADP8",
+    name = "adp8",
 )
 
 ######################
@@ -15,7 +15,7 @@ bazel_dep(name = "rules_python", version = "1.7.0")
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     is_default = True,
-    python_version = "3.13.0",
+    python_version = "3.12.0",
 )
 
 ######################
@@ -33,9 +33,9 @@ git_override(
 
 bazel_dep(name = "googletest", version = "1.17.0")
 bazel_dep(name = "toolchains_llvm", version = "1.4.0")
-bazel_dep(name = "rules_cc", version = "0.1.2")
+bazel_dep(name = "rules_cc", version = "0.1.5")
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "boost.core", version = "1.83.0")
+bazel_dep(name = "boost.core", version = "1.83.0.bcr.1")
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
@@ -121,7 +121,8 @@ use_repo(
 #### bazel tools ####
 #####################
 
-bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+
 bazel_dep(name = "bazel_env.bzl", version = "0.4.0", dev_dependency = True)
 
 #### buildifier ####
