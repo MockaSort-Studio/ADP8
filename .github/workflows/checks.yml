@@ -1,5 +1,10 @@
 name: build-and-test
 
+permissions:
+  checks: write
+  contents: read
+  pull-requests: read
+
 on:
   issue_comment:
     types: [created]
@@ -8,14 +13,76 @@ jobs:
   build-and-test:
     if: github.event.issue.pull_request && contains(github.event.comment.body, ':pig_nose:')
     runs-on: ubuntu-latest
-    container:
-      image: bearpawangelo/adp8-devcontainer:latest
     steps:
+      - name: Create check run (in progress)
+        uses: actions/github-script@v7
+        id: check-run
+        with:
+          script: |
+            // For issue_comment events the payload.issue.pull_request object does not include head.sha.
+            // Resolve the PR number from the issue and fetch the PR to get the head SHA.
+            const prNumber = context.payload.issue && context.payload.issue.number;
+            if (!prNumber) {
+              core.setFailed('No PR number found on event payload; cannot create check run.');
+            }
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            const headSha = pr.data && pr.data.head && pr.data.head.sha;
+            if (!headSha) {
+              core.setFailed('Unable to determine PR head SHA');
+            }
+            const response = await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'build-and-test',
+              head_sha: headSha,
+              status: 'in_progress',
+              started_at: new Date().toISOString()
+            });
+            core.setOutput('check_run_id', String(response.data.id));
+
+      - uses: xt0rted/pull-request-comment-branch@v3
+        id: comment-branch
+
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.issue.pull_request.head.ref }}
 
-      - name: Build project
-        run: bazel build //...
+      - name: Build all
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: bearpawangelo/adp8-devcontainer
+          cacheFrom: bearpawangelo/adp8-devcontainer
+          runCmd: bazel build //...
 
-      - name: Run tests
-        run: bazel test //...
+      - name: Test all
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: bearpawangelo/adp8-devcontainer
+          cacheFrom: bearpawangelo/adp8-devcontainer
+          runCmd: bazel test //...
+
+      - name: Report check status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const checkRunIdStr = '${{ steps.check-run.outputs.check_run_id }}';
+            const checkRunId = parseInt(checkRunIdStr || '', 10);
+            const state = '${{ job.status }}';
+            if (!checkRunId) {
+              core.info('No check_run_id available — skipping check update');
+            } else {
+              await github.rest.checks.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                check_run_id: checkRunId,
+                status: 'completed',
+                conclusion: state === 'success' ? 'success' : 'failure',
+                completed_at: new Date().toISOString()
+              });
+            }
