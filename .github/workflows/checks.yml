@@ -1,6 +1,8 @@
 name: build-and-test
 
 on:
+  pull_request:
+    branches: [main]
   issue_comment:
     types: [created]
 
@@ -23,4 +25,5 @@ jobs:
         uses: devcontainers/ci@v0.3
         with:
           imageName: bearpawangelo/adp8-devcontainer
+          cacheFrom: bearpawangelo/adp8-devcontainer
           runCmd: bazel test //...
