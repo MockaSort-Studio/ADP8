@@ -1,0 +1,21 @@
+name: build-and-test
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  build-and-test:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, ':pig_nose:')
+    runs-on: ubuntu-latest
+    container:
+      image: bearpawangelo/adp8-devcontainer:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build project
+        run: bazel build //...
+
+      - name: Run tests
+        run: bazel test //...
