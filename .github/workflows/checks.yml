@@ -8,14 +8,22 @@ jobs:
   build-and-test:
     if: github.event.issue.pull_request && contains(github.event.comment.body, ':pig_nose:')
     runs-on: ubuntu-latest
-    container:
-      image: bearpawangelo/adp8-devcontainer:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Build project
-        run: bazel build //...
+      - name: Build all
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: bearpawangelo/adp8-devcontainer
+          cacheFrom: bearpawangelo/adp8-devcontainer
+          runCmd: bazel build //...
 
-      - name: Run tests
-        run: bazel test //...
+      - name: Test all
+        uses: devcontainers/ci@v0.3
+        with:
+          imageName: bearpawangelo/adp8-devcontainer
+          cacheFrom: bearpawangelo/adp8-devcontainer
+          runCmd: bazel test //...
