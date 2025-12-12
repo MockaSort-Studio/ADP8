@@ -7,6 +7,7 @@
 #include "car_msgs/msg/car_control.hpp"
 #include "core/tasks_manager.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "sim_param.hpp"
 #include "simulation/sim_param.hpp"
 #include "simulation/state_update.hpp"
 #include "support/lookup_table.hpp"
@@ -14,10 +15,11 @@
 class CarStateNode : public sert::core::TaskInterface
 {
   public:
-    CarStateNode(const std::string& name, rclcpp::NodeOptions options, int cy)
-        : TaskInterface(name, options)
+    CarStateNode(const std::string& name, rclcpp::NodeOptions options)
+        : TaskInterface(
+              name, options.append_parameter_override("cycle_time_ms", T_CARSTATE_PUB))
     {
-        RegisterPublisher<car_msgs::msg::CarState>("car_state", T_CARSTATE_PUB);
+        RegisterPublisher<car_msgs::msg::CarState>("car_state", QS_CARSTATE_PUB);
         RegisterSubscriber<car_msgs::msg::CarControl>(
             "car_control",
             [this](car_msgs::msg::CarControl::UniquePtr msg)
