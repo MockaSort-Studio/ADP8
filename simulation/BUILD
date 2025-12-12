@@ -23,7 +23,10 @@ ros2_cpp_binary(
     visibility = ["//visibility:public"],
     deps = [
         "//applications:common_utils",
+        "//core:tasks",
         "//messages:cpp_car_msgs",
+        "//simulation:sim_param",
+        "//simulation:state_update",
         "@ros2_common_interfaces//:cpp_std_msgs",
         "@ros2_rclcpp//:rclcpp",
     ],
@@ -50,5 +53,21 @@ ros2_launch(
     ],
     deps = [
         "@com_github_mvukov_rules_ros2//third_party/foxglove_bridge:utils",
+    ],
+)
+
+cc_library(
+    name = "sim_param",
+    hdrs = ["sim_param.hpp"],
+)
+
+cc_library(
+    name = "state_update",
+    srcs = ["state_update.cpp"],
+    hdrs = ["state_update.hpp"],
+    deps = [
+        "//applications:common_utils",
+        "//messages:cpp_car_msgs",
+        "//simulation:sim_param",
     ],
 )
