@@ -3,7 +3,7 @@ this makes bazel linter happy
 """
 
 module(
-    name = "ADP8",
+    name = "adp8",
 )
 
 ######################
@@ -117,31 +117,6 @@ use_repo(
     # "rules_ros2_config_clang",
 )
 
-#####################
-#### bazel tools ####
-#####################
-
-bazel_dep(name = "bazel_skylib", version = "1.7.1")
-bazel_dep(name = "bazel_env.bzl", version = "0.4.0", dev_dependency = True)
-
-#### buildifier ####
-bazel_dep(
-    name = "buildifier_prebuilt",
-    version = "8.2.0.2",
-    dev_dependency = True,
-)
-
-bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
-
-#### python linter ####
-pip_tools = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
-pip_tools.parse(
-    hub_name = "pip_tools",
-    python_version = "3.12",
-    requirements_lock = "//tools:requirements.txt",
-)
-use_repo(pip_tools, "pip_tools")
-
 ### ai lightning requirements ###
 
 pip_requirements = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
@@ -151,3 +126,5 @@ pip_requirements.parse(
     requirements_lock = "//ai/requirements:requirements.txt",
 )
 use_repo(pip_requirements, "pip_requirements")
+
+include("//:tools.MODULE.bazel")

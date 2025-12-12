@@ -1,0 +1,36 @@
+"""
+this makes bazel linter happy
+"""
+#####################
+#### bazel tools ####
+#####################
+
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+
+bazel_dep(name = "bazel_env.bzl", version = "0.4.0", dev_dependency = True)
+
+#### buildifier ####
+bazel_dep(
+    name = "buildifier_prebuilt",
+    version = "8.2.0.2",
+    dev_dependency = True,
+)
+
+bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
+
+#### python linter ####
+pip_tools = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip_tools.parse(
+    hub_name = "pip_tools",
+    python_version = "3.12",
+    requirements_lock = "//tools:requirements.txt",
+)
+use_repo(pip_tools, "pip_tools")
+
+#### Bazel-diff ####
+bazel_dep(name = "rules_proto", version = "7.1.0")
+
+# bazel_dep(name = "rules_java", version = "8.11.0")
+bazel_dep(name = "rules_jvm_external", version = "6.7")
+
+bazel_dep(name = "bazel-diff", version = "12.0.0", dev_dependency = True)
