@@ -34,13 +34,18 @@ jobs:
             if (!headSha) {
               core.setFailed('Unable to determine PR head SHA');
             }
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             const response = await github.rest.checks.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'build-and-test',
               head_sha: headSha,
               status: 'in_progress',
-              started_at: new Date().toISOString()
+              started_at: new Date().toISOString(),
+              output: {
+                title: 'Build and Test in Progress',
+                summary: `Workflow started. [View progress](${runUrl})`
+              }
             });
             core.setOutput('check_run_id', String(response.data.id));
 
@@ -50,7 +55,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.issue.pull_request.head.ref }}
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
 
       - name: Build all
         uses: devcontainers/ci@v0.3
@@ -77,12 +82,17 @@ jobs:
             if (!checkRunId) {
               core.info('No check_run_id available — skipping check update');
             } else {
+              const summary = `**Status**: ${state}\n\n[View full logs and steps in Actions](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
               await github.rest.checks.update({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 check_run_id: checkRunId,
                 status: 'completed',
                 conclusion: state === 'success' ? 'success' : 'failure',
-                completed_at: new Date().toISOString()
+                completed_at: new Date().toISOString(),
+                output: {
+                  title: 'Build and Test Results',
+                  summary: summary
+                }
               });
             }
