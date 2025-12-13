@@ -9,7 +9,9 @@ ros2_cpp_binary(
         # controls
         "//applications/controls:point_follower",
         # ros2 interfaces
+        "//core:tasks",
         "//applications:common_utils",
+        "//applications:applications_param",
         "//messages:cpp_car_msgs",
         "@ros2_common_interfaces//:cpp_std_msgs",
         "@ros2_common_interfaces//:cpp_geometry_msgs",

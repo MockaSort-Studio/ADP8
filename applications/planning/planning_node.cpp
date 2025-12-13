@@ -2,12 +2,11 @@
 #include <cmath>
 #include <memory>
 
+#include "applications/applications_param.hpp"
 #include "applications/common_utils.hpp"
 #include "applications/planning/dummy_point_planner.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
-
-#define T_PLANNING_PUB 100  // ms
 
 class PlanningNode : public rclcpp::Node
 {

@@ -5,3 +5,9 @@ cc_library(
     srcs = ["common_utils.hpp"],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "applications_param",
+    srcs = ["applications_param.hpp"],
+    visibility = ["//visibility:public"],
+)
