@@ -82,13 +82,13 @@ class CarControlNode : public sert::core::TaskInterface
     rclcpp::Time start_time_;
 };
 
-using CarStateConfig = sert::support::LookupTable<
+using CarControlNodeConfig = sert::support::LookupTable<
     sert::support::TableItem<CarControlNode, sert::support::UnusedValue>>;
 
 int main(int argc, char* argv[])
 {
     rclcpp::init(argc, argv);
-    auto task_manager = sert::core::BuildTasksManager<CarStateConfig>();
+    auto task_manager = sert::core::BuildTasksManager<CarControlNodeConfig>();
     task_manager->Execute();
     rclcpp::shutdown();
     return 0;
