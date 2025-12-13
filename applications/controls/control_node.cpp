@@ -2,65 +2,48 @@
 #include <cmath>
 #include <memory>
 
+#include "applications/applications_param.hpp"
 #include "applications/common_utils.hpp"
 #include "applications/controls/point_follower.hpp"
 #include "car_msgs/msg/car_control.hpp"
 #include "car_msgs/msg/car_state.hpp"
+#include "core/tasks_manager.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "support/lookup_table.hpp"
 
-#define T_CARCONTROL_PUB 10       // ms
-#define T_CARSTATE_SUB 10         // ms
-#define T_PLANNINGTARGET_SUB 100  // ms
-
-class CarControlNode : public rclcpp::Node
+class CarControlNode : public sert::core::TaskInterface
 {
   public:
-    CarControlNode() : Node("car_control_publisher")
+    CarControlNode(const std::string& name, rclcpp::NodeOptions options)
+        : TaskInterface(
+              name, options.append_parameter_override("cycle_time_ms", T_CARCONTROL_PUB))
     {
-        // declare parameters
-        this->declare_parameter("callback_period_ms", T_CARCONTROL_PUB);
-        callback_period_ms_ = this->get_parameter("callback_period_ms").as_int();
+        RegisterPublisher<car_msgs::msg::CarControl>("car_control", QS_CARCONTROL_PUB);
 
-        // Publisher
-        car_control_publisher_ = this->create_publisher<car_msgs::msg::CarControl>(
-            "car_control", T_CARCONTROL_PUB);
-
-        // subscribers
-        car_state_sub_ = this->create_subscription<car_msgs::msg::CarState>(
+        RegisterSubscriber<car_msgs::msg::CarState>(
             "car_state",
-            T_CARSTATE_SUB,
-            std::bind(&CarControlNode::car_state_callback, this, std::placeholders::_1));
-        planning_target_sub_ = this->create_subscription<geometry_msgs::msg::Point>(
-            "planning_target",
-            T_PLANNINGTARGET_SUB,
-            std::bind(
-                &CarControlNode::planning_target_callback, this, std::placeholders::_1));
+            [this](car_msgs::msg::CarState::UniquePtr msg)
+            {
+                state_.x = msg->x;
+                state_.y = msg->y;
+                state_.yaw = msg->yaw;
+                state_.d = msg->d;
+            });
 
-        // control loop
-        timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(callback_period_ms_),
-            std::bind(&CarControlNode::control_callback, this));
+        RegisterSubscriber<geometry_msgs::msg::Point>(
+            "planning_target",
+            [this](geometry_msgs::msg::Point::UniquePtr msg)
+            {
+                target_.x = msg->x;
+                target_.y = msg->y;
+            });
 
         start_time_ = this->now();
     }
 
-  private:
-    void car_state_callback(const car_msgs::msg::CarState::SharedPtr msg)
-    {
-        state_.x = msg->x;
-        state_.y = msg->y;
-        state_.yaw = msg->yaw;
-        state_.d = msg->d;
-    }
-
-    void planning_target_callback(const geometry_msgs::msg::Point msg)
-    {
-        target_.x = msg.x;
-        target_.y = msg.y;
-    }
-
-    void control_callback()
+  protected:
+    void ExecuteStep() override
     {
         if (!control_enabled_)
         {
@@ -73,38 +56,40 @@ class CarControlNode : public rclcpp::Node
             RCLCPP_INFO(this->get_logger(), "Control enabled after 10 seconds.");
         }
 
+        //
         // carcmd_ = point_follower(state_, target_);
         // carcmd_ = pure_pursuit(state_, target_, carcmd_.d);
         carcmd_ = stanley(state_, target_, carcmd_.d);
 
         // --- Publish command ---
-        car_msgs::msg::CarControl msg;
-        msg.v = carcmd_.v;
-        msg.d = carcmd_.d;
-        car_control_publisher_->publish(msg);
+        cmd_msg_.v = carcmd_.v;
+        cmd_msg_.d = carcmd_.d;
+        auto publisher = GetPublisher<decltype(cmd_msg_)>("car_control");
+        publisher->publish(cmd_msg_);
     }
 
-    // ROS2 interfaces
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<car_msgs::msg::CarControl>::SharedPtr car_control_publisher_;
-    rclcpp::Subscription<car_msgs::msg::CarState>::SharedPtr car_state_sub_;
-    rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr planning_target_sub_;
-    rclcpp::Time start_time_;
-    int callback_period_ms_;
+  private:
+    //
+    car_msgs::msg::CarControl cmd_msg_;
 
-    // control variables
-    CarState state_;  // internal state
+    //
+    CarState state_;
     CarControl carcmd_;
-    bool control_enabled_ = false;
-
-    // ref
     Point target_;
+
+    //
+    bool control_enabled_ = false;
+    rclcpp::Time start_time_;
 };
+
+using CarStateConfig = sert::support::LookupTable<
+    sert::support::TableItem<CarControlNode, sert::support::UnusedValue>>;
 
 int main(int argc, char* argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<CarControlNode>());
+    auto task_manager = sert::core::BuildTasksManager<CarStateConfig>();
+    task_manager->Execute();
     rclcpp::shutdown();
     return 0;
 }
