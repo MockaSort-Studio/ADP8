@@ -2,5 +2,6 @@
 #define APPLICATIONS_PLANNING_DUMMY_POINT_PLANNER
 
 Point point_target();
+Point figure8_traj(double t);
 
 #endif  // APPLICATIONS_PLANNING_DUMMY_POINT_PLANNER

@@ -16,12 +16,17 @@ class PlanningNode : public sert::core::TaskInterface
               name, options.append_parameter_override("cycle_time_ms", T_PLANNING_PUB))
     {
         RegisterPublisher<geometry_msgs::msg::Point>("planning_target", QS_PLANNING_PUB);
+
+        start_time_ = this->now().seconds();
     }
 
   protected:
     void ExecuteStep() override
     {
-        target_ = point_target();
+        double t = this->now().seconds() - start_time_;
+
+        // target_ = point_target();
+        target_ = figure8_traj(t);
 
         // --- Publish target ---
         point_msg_.x = target_.x;
@@ -34,6 +39,7 @@ class PlanningNode : public sert::core::TaskInterface
   private:
     // ros2 interfaces
     geometry_msgs::msg::Point point_msg_;
+    double start_time_;
 
     // ref
     Point target_;
