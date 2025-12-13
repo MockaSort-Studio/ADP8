@@ -25,7 +25,7 @@ class TaskInterface : public rclcpp::Node
             cycle_time_ms,
             [this]() -> void
             {
-                RCLCPP_INFO(get_logger(), "Executing TaskInterface step");
+                RCLCPP_DEBUG(get_logger(), "Executing TaskInterface step");
                 ExecuteStep();
             });
     }

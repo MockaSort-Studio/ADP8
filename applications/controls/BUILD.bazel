@@ -1,0 +1,29 @@
+load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+ros2_cpp_binary(
+    name = "control_node",
+    srcs = ["control_node.cpp"],
+    visibility = ["//visibility:public"],
+    deps = [
+        # controls
+        "//applications/controls:point_follower",
+        # ros2 interfaces
+        "//core:tasks",
+        "//applications:common_utils",
+        "//applications:applications_param",
+        "//messages:cpp_car_msgs",
+        "@ros2_common_interfaces//:cpp_std_msgs",
+        "@ros2_common_interfaces//:cpp_geometry_msgs",
+        "@ros2_rclcpp//:rclcpp",
+    ],
+)
+
+cc_library(
+    name = "point_follower",
+    srcs = ["point_follower.cpp"],
+    hdrs = ["point_follower.hpp"],
+    deps = [
+        "//applications:common_utils",
+    ],
+)
