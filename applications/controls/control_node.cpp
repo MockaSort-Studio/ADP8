@@ -1,6 +1,4 @@
-#include <chrono>
 #include <cmath>
-#include <memory>
 
 #include "applications/applications_param.hpp"
 #include "applications/common_utils.hpp"

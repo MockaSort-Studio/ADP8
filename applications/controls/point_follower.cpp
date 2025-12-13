@@ -3,6 +3,9 @@
 
 #include "applications/common_utils.hpp"
 
+#define V_MAX 10.0
+#define D_MAX M_PI / 4
+
 CarControl point_follower(const CarState& state, const Point& target)
 {
     CarControl control;
@@ -11,8 +14,6 @@ CarControl point_follower(const CarState& state, const Point& target)
         (target.x - state.x) * (target.x - state.x) +
         (target.y - state.y) * (target.y - state.y));
 
-    // double x_f = state.x + L_WHEELBASE * std::cos(state.yaw);
-    // double y_f = state.y + L_WHEELBASE * std::sin(state.yaw);
     double desired_heading = std::atan2(target.y - state.y, target.x - state.x);
 
     double heading_error = desired_heading - state.yaw;
@@ -22,12 +23,10 @@ CarControl point_follower(const CarState& state, const Point& target)
         heading_error += 2.0 * M_PI;
 
     control.d = 1.2 * heading_error;  // "P control" for the beggar
-    double d_max = M_PI / 4;
-    control.d = std::clamp(control.d, -d_max, d_max);
+    control.d = std::clamp(control.d, -D_MAX, D_MAX);
 
     control.v = 0.6 * dist;  // proportional speed
-    double v_max = 5.0;
-    control.v = std::clamp(control.v, 0.0, v_max);
+    control.v = std::clamp(control.v, 0.0, V_MAX);
 
     // Stop when close
     if (dist < 0.05)
@@ -75,7 +74,7 @@ CarControl pure_pursuit(const CarState& state, const Point& target, double curre
     control.d = std::atan2(2.0 * L_WHEELBASE * std::sin(alpha), Ld);
 
     // Speed control
-    control.v = std::clamp(1.5 * dist, 0.0, 4.0);
+    control.v = std::clamp(1.5 * dist, 0.0, V_MAX);
 
     if (dist < 0.05)
         control.v = 0.0;
@@ -84,7 +83,6 @@ CarControl pure_pursuit(const CarState& state, const Point& target, double curre
 }
 
 // stanley
-
 double compute_lateral_error(const CarState& state, const Point& target)
 {
     double dx = target.x - state.x;
@@ -122,7 +120,7 @@ CarControl stanley(const CarState& state, const Point& target, double current_sp
     double k = 1.0;
     double eps = 0.1;
 
-    // Avoid zero speed → wobbling
+    // Avoid zero speed (wobbling)
     double v_for_control = std::max(current_speed, 0.3);
 
     double correction = std::atan2(k * e, v_for_control);
@@ -130,11 +128,10 @@ CarControl stanley(const CarState& state, const Point& target, double current_sp
     control.d = heading_error + correction;
 
     // Clamp steering
-    double d_max = M_PI / 4;
-    control.d = std::clamp(control.d, -d_max, d_max);
+    control.d = std::clamp(control.d, -D_MAX, D_MAX);
 
     // Simple proportional speed control
-    control.v = std::clamp(1.2 * dist, 0.0, 4.0);
+    control.v = std::clamp(1.2 * dist, 0.0, V_MAX);
 
     // Stop when very close
     if (dist < 0.05)
