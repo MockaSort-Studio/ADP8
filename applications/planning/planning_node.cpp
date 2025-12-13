@@ -1,58 +1,52 @@
-#include <chrono>
 #include <cmath>
-#include <memory>
 
 #include "applications/applications_param.hpp"
 #include "applications/common_utils.hpp"
 #include "applications/planning/dummy_point_planner.hpp"
+#include "core/tasks_manager.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "support/lookup_table.hpp"
 
-class PlanningNode : public rclcpp::Node
+class PlanningNode : public sert::core::TaskInterface
 {
   public:
-    PlanningNode() : Node("planning_publisher")
+    PlanningNode(const std::string& name, rclcpp::NodeOptions options)
+        : TaskInterface(
+              name, options.append_parameter_override("cycle_time_ms", T_PLANNING_PUB))
     {
-        // declare parameters
-        this->declare_parameter("callback_period_ms", T_PLANNING_PUB);
-        callback_period_ms_ = this->get_parameter("callback_period_ms").as_int();
-
-        // Publisher
-        planning_publisher_ = this->create_publisher<geometry_msgs::msg::Point>(
-            "planning_target", T_PLANNING_PUB);
-
-        // planning loop
-        timer_ = this->create_wall_timer(
-            std::chrono::milliseconds(callback_period_ms_),
-            std::bind(&PlanningNode::planning_callback, this));
+        RegisterPublisher<geometry_msgs::msg::Point>("planning_target", QS_PLANNING_PUB);
     }
 
-  private:
-    void planning_callback()
+  protected:
+    void ExecuteStep() override
     {
         target_ = point_target();
 
-        // --- Publish command ---
-        geometry_msgs::msg::Point msg;
-        msg.x = target_.x;
-        msg.y = target_.y;
-        msg.z = 0.0;
-        planning_publisher_->publish(msg);
+        // --- Publish target ---
+        point_msg_.x = target_.x;
+        point_msg_.y = target_.y;
+        point_msg_.z = 0.0;
+        auto publisher = GetPublisher<decltype(point_msg_)>("planning_target");
+        publisher->publish(point_msg_);
     }
 
-    // ROS2 interfaces
-    rclcpp::TimerBase::SharedPtr timer_;
-    rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr planning_publisher_;
-    int callback_period_ms_;
+  private:
+    // ros2 interfaces
+    geometry_msgs::msg::Point point_msg_;
 
     // ref
     Point target_;
 };
 
+using PlanningNodeConfig = sert::support::LookupTable<
+    sert::support::TableItem<PlanningNode, sert::support::UnusedValue>>;
+
 int main(int argc, char* argv[])
 {
     rclcpp::init(argc, argv);
-    rclcpp::spin(std::make_shared<PlanningNode>());
+    auto task_manager = sert::core::BuildTasksManager<PlanningNodeConfig>();
+    task_manager->Execute();
     rclcpp::shutdown();
     return 0;
 }

@@ -9,6 +9,7 @@ ros2_cpp_binary(
         # planning
         "//applications/planning:dummy_point_planner",
         # ros2 interfaces
+        "//core:tasks",
         "//applications:common_utils",
         "//applications:applications_param",
         "//messages:cpp_car_msgs",
