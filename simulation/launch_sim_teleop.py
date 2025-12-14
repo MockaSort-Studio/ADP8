@@ -26,10 +26,11 @@ def generate_launch_description():
                 output="screen",
                 name="actuation_interface",
             ),
-            ## TODO teleop node that publish car_cmd
-            # launch tele op node\
-            # launch_ros...
-            ## foxglove_bridge node
+            launch_ros.actions.Node(
+                executable="applications/teleop/teleop_node",
+                output="screen",
+                name="teleop",
+            ),
             launch_ros.actions.Node(
                 executable=third_party.foxglove_bridge.node_path.NODE_PATH,
                 output="screen",

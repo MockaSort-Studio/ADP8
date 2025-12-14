@@ -44,6 +44,7 @@ ros2_launch(
         # application nodes
         "//applications/command_interfaces:actuation_interface_node",
         "//applications/egomotion:state_estimation_node",
+        "//applications/teleop:teleop_node",
         # sim nodes
         "//simulation:car_simulation",
         "@com_github_mvukov_rules_ros2//third_party/foxglove_bridge:foxglove_bridge_node",
