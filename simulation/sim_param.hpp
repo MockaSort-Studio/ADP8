@@ -1,9 +1,8 @@
 #ifndef SIMULATION_SIM_PARAM
 #define SIMULATION_SIM_PARAM
 
-#define T_CARSTATE_PUB 10  // ms
-#define QS_CARSTATE_PUB 5  // queue size
-#define T_CARCMD_SUB 10    // ms
-#define T_CARPOSE_PUB 200  // ms
+#define T_SIMULATION_PUB 10  // ms
+#define QS_SIMULATION_PUB 5  // queue size
+#define DT 0.01              // s, simulation delta
 
 #endif  // SIMULATION_SIM_PARAM

@@ -1,0 +1,28 @@
+load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+ros2_cpp_binary(
+    name = "actuation_interface_node",
+    srcs = ["actuation_interface_node.cpp"],
+    visibility = ["//visibility:public"],
+    deps = [
+        # application
+        "//applications:common_utils",
+        "//applications:applications_param",
+        ":map_control2actuators",
+        # ros2 interfaces
+        "//core:tasks",
+        "//messages:cpp_car_msgs",
+        "@ros2_rclcpp//:rclcpp",
+    ],
+)
+
+cc_library(
+    name = "map_control2actuators",
+    srcs = ["map_control2actuators.cpp"],
+    hdrs = ["map_control2actuators.hpp"],
+    deps = [
+        "//applications:common_utils",
+        "//messages:cpp_car_msgs",
+    ],
+)

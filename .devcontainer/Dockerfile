@@ -14,3 +14,5 @@ RUN git lfs install
 RUN mkdir /home/vscode/scripts
 COPY scripts/bootstrap.sh /home/vscode/scripts
 RUN chmod +x /home/vscode/scripts/bootstrap.sh
+# for teleops
+RUN groupadd -g 104 input && usermod -aG input vscode
