@@ -8,3 +8,8 @@ In a terminal launch:
 ```
 bazel run //simulation:launch_sim
 ```
+
+For Teleop launch 
+```
+bazel run //simulation:launch_sim_teleop
+```
