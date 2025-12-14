@@ -1,10 +1,10 @@
-
 //
-#include <cmath>
-#include <cstdio>
+#include <cerrno>
+#include <cstring>
+#include <unordered_set>
 
-// #include <sys/select.h>
-#include <termios.h>
+#include <fcntl.h>
+#include <linux/input.h>
 #include <unistd.h>
 
 #include "applications/applications_param.hpp"
@@ -23,107 +23,104 @@ class TeleOpNode : public sert::core::TaskInterface
     {
         RegisterPublisher<car_msgs::msg::CarControl>("car_cmd", QS_CARCONTROL_PUB);
 
-        setupTerminal();
+        // CHANGE THIS to your keyboard device
+        input_fd_ = open("/dev/input/event6", O_RDONLY | O_NONBLOCK);
 
-        RCLCPP_INFO(this->get_logger(), "TELEOP STARTED!");
-        printHelp();
+        if (input_fd_ < 0)
+        {
+            RCLCPP_ERROR(
+                this->get_logger(),
+                "Failed to open /dev/input/event6: %s",
+                strerror(errno));
+            throw std::runtime_error("Failed to open keyboard device");
+        }
+
+        RCLCPP_INFO(this->get_logger(), "Teleop (evdev) started");
     }
 
-    ~TeleOpNode() { restoreTerminal(); }
+    ~TeleOpNode()
+    {
+        if (input_fd_ >= 0)
+            close(input_fd_);
+    }
 
   protected:
     void ExecuteStep() override
     {
-        if (keyAvailable())
-        {
-            int key = readKey();
-            handleKey(key);
-        }
-        // implementation
-        // cmd_msg_ = read_keys(something)
-
-        // dummy implementation
-        // cmd_msg_.v = 2;
-        // cmd_msg_.d = 0.2;
-
-        GetPublisher<car_msgs::msg::CarControl>("car_cmd")->publish(cmd_msg_);
+        readKeyboardEvents();
+        publishCommand();
     }
 
   private:
-    void setupTerminal()
+    void readKeyboardEvents()
     {
-        tcgetattr(STDIN_FILENO, &orig_term_);
-        termios raw = orig_term_;
-        raw.c_lflag &= ~(ICANON | ECHO);
-        tcsetattr(STDIN_FILENO, TCSANOW, &raw);
-    }
-
-    void restoreTerminal() { tcsetattr(STDIN_FILENO, TCSANOW, &orig_term_); }
-
-    bool keyAvailable()
-    {
-        timeval tv {0, 0};
-        fd_set fds;
-        FD_ZERO(&fds);
-        FD_SET(STDIN_FILENO, &fds);
-        select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv);
-        return FD_ISSET(STDIN_FILENO, &fds);
-    }
-
-    int readKey() { return getchar(); }
-
-    void handleKey(int key)
-    {
-        switch (key)
+        input_event ev;
+        while (read(input_fd_, &ev, sizeof(ev)) == sizeof(ev))
         {
-            case 'w':
-                cmd_msg_.v = V_MAX;
-                break;
+            if (ev.type != EV_KEY)
+                continue;
 
-            case 's':
-                cmd_msg_.v = 0.0f;
-                break;
+            bool pressed = (ev.value == 1);
+            bool released = (ev.value == 0);
 
-            case 'a':
-                cmd_msg_.d = D_MAX;
-                break;
+            switch (ev.code)
+            {
+                case KEY_W:
+                    if (pressed)
+                        cmd_.v = V_MAX;
+                    if (released)
+                        cmd_.v = 0.0f;
+                    break;
 
-            case 'd':
-                cmd_msg_.d = -D_MAX;
-                break;
+                case KEY_S:
+                    if (pressed)
+                        cmd_.v = -V_MAX;
+                    if (released)
+                        cmd_.v = 0.0f;
+                    break;
 
-            case 'c':  // center steering
-                cmd_msg_.d = 0.0f;
-                break;
+                case KEY_A:
+                    if (pressed)
+                        cmd_.d = D_MAX;
+                    if (released)
+                        cmd_.d = 0.0f;
+                    break;
 
-            case 'x':  // emergency stop
-                cmd_msg_.v = 0.0f;
-                cmd_msg_.d = 0.0f;
-                break;
+                case KEY_D:
+                    if (pressed)
+                        cmd_.d = -D_MAX;
+                    if (released)
+                        cmd_.d = 0.0f;
+                    break;
 
-            case 'q':
-                RCLCPP_INFO(this->get_logger(), "Teleop exiting.");
-                rclcpp::shutdown();
-                break;
+                case KEY_SPACE:
+                    if (pressed)
+                    {
+                        cmd_.v = 0.0f;
+                        cmd_.d = 0.0f;
+                    }
+                    break;
 
-            default:
-                break;
+                case KEY_Q:
+                    if (pressed)
+                    {
+                        RCLCPP_INFO(this->get_logger(), "Teleop exiting.");
+                        rclcpp::shutdown();
+                    }
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 
-    void printHelp()
+    void publishCommand()
     {
-        printf("\nTeleop controls:\n");
-        printf("  w/s : increase/decrease speed\n");
-        printf("  a/d : steer left/right\n");
-        printf("  c   : center steering\n");
-        printf("  x : emergency stop\n");
-        printf("  q   : quit\n\n");
+        GetPublisher<car_msgs::msg::CarControl>("car_cmd")->publish(cmd_);
     }
-
-    // ros2 interfaces
-    car_msgs::msg::CarControl cmd_msg_;
-    termios orig_term_;
+    int input_fd_ {-1};
+    car_msgs::msg::CarControl cmd_;
 };
 
 using TeleOpNodeConfig = sert::support::LookupTable<
