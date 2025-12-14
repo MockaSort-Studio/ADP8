@@ -22,20 +22,13 @@ def generate_launch_description():
                 name="state_estimation",
             ),
             launch_ros.actions.Node(
-                executable="applications/controls/control_node",
-                output="screen",
-                name="car_control",
-            ),
-            launch_ros.actions.Node(
                 executable="applications/command_interfaces/actuation_interface_node",
                 output="screen",
                 name="actuation_interface",
             ),
-            launch_ros.actions.Node(
-                executable="applications/planning/planning_node",
-                output="screen",
-                name="car_planning",
-            ),
+            ## TODO teleop node that publish car_cmd
+            # launch tele op node\
+            # launch_ros...
             ## foxglove_bridge node
             launch_ros.actions.Node(
                 executable=third_party.foxglove_bridge.node_path.NODE_PATH,

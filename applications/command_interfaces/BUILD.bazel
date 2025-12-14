@@ -1,0 +1,15 @@
+load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
+
+ros2_cpp_binary(
+    name = "actuation_interface_node",
+    srcs = ["actuation_interface_node.cpp"],
+    visibility = ["//visibility:public"],
+    deps = [
+        # ros2 interfaces
+        "//core:tasks",
+        "//applications:common_utils",
+        "//applications:applications_param",
+        "//messages:cpp_car_msgs",
+        "@ros2_rclcpp//:rclcpp",
+    ],
+)
