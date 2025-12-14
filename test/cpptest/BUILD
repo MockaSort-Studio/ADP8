@@ -6,3 +6,8 @@ cc_binary(
     name = "hello",
     srcs = ["hello.cpp"],
 )
+
+cc_binary(
+    name = "kbd_read",
+    srcs = ["kbd_read.cpp"],
+)
