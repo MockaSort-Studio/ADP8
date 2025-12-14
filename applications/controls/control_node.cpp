@@ -62,7 +62,7 @@ class CarControlNode : public sert::core::TaskInterface
                 return;
             }
             control_enabled_ = true;
-            RCLCPP_INFO(this->get_logger(), "CarControlNode: control enabled.");
+            RCLCPP_INFO(this->get_logger(), "CarControlNode: control enabled!");
         }
 
         // carcmd_ = point_follower(state_, target_);

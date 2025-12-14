@@ -3,6 +3,7 @@
 
 // applications
 #include "applications/applications_param.hpp"
+#include "applications/command_interfaces/map_control2actuators.hpp"
 #include "applications/common_utils.hpp"
 // messages
 #include "car_msgs/msg/actuator_commands.hpp"
@@ -41,7 +42,7 @@ class ActuationInterfaceNode : public sert::core::TaskInterface
             return;
         }
 
-        mapControlToActuators();
+        act_cmd_msg_ = mapControlToActuators(ctrl_msg_);
         publishActuators();
     }
 
@@ -50,21 +51,6 @@ class ActuationInterfaceNode : public sert::core::TaskInterface
     car_msgs::msg::ActuatorCommands act_cmd_msg_;
 
     bool ctrl_received_ = false;
-
-    // TODO: move mapControlToActuators() outside this class.
-    // Also create another function to handle the different kind of RC car
-    void mapControlToActuators()
-    {
-        // velocity
-        float v = std::clamp(ctrl_msg_.v, -V_MAX, V_MAX);
-
-        act_cmd_msg_.dc_direction = (v >= 0.0f) ? 1.0f : -1.0f;
-        act_cmd_msg_.dc_pwm = std::abs(v) / V_MAX;
-
-        // steering
-        act_cmd_msg_.servo_angle = std::clamp(ctrl_msg_.d, -D_MAX, D_MAX);
-        act_cmd_msg_.servo_speed = SERVO_SPEED;
-    }
 
     void publishActuators()
     {
