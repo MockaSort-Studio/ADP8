@@ -1,19 +1,12 @@
 
 // state estimation node
-/*
-Sub
-    imu_raw
-    steering_angle_measured
-Pub
-    state_est
-
-*/
 
 #include <cmath>
 
 // application
 #include "applications/applications_param.hpp"
 #include "applications/common_utils.hpp"
+#include "applications/egomotion/state_estimation.hpp"
 // messages
 #include "car_msgs/msg/car_state.hpp"
 #include "car_msgs/msg/imu_raw.hpp"
@@ -41,8 +34,7 @@ class StateEstimationNode : public sert::core::TaskInterface
 
         RegisterSubscriber<car_msgs::msg::SteeringAngleMes>(
             "steering_angle_measured",
-            [this](car_msgs::msg::SteeringAngleMes::UniquePtr msg)
-            { steering_angle_ = msg->d; });
+            [this](car_msgs::msg::SteeringAngleMes::UniquePtr msg) { d_msg_ = *msg; });
 
         RegisterPublisher<car_msgs::msg::CarState>("state_est", QS_STATEESTIMATION_PUB);
 
@@ -57,7 +49,7 @@ class StateEstimationNode : public sert::core::TaskInterface
             return;
         }
 
-        predict();
+        car_state_msg_ = state_update(imu_msg_, car_state_msg_, d_msg_, dt);
         publishState();
     }
 
@@ -65,49 +57,26 @@ class StateEstimationNode : public sert::core::TaskInterface
     static constexpr float dt = T_STATEESTIMATION_PUB * 1e-3f;
 
     // state
-    float x_;
-    float y_;
-    float yaw_;
-    float v_;
-
-    float steering_angle_;
-
+    car_msgs::msg::CarState car_state_msg_;
     car_msgs::msg::IMURaw imu_msg_;
+    car_msgs::msg::SteeringAngleMes d_msg_;
+
+    // flags
     bool imu_received_ = false;
-
-    // TODO: move predict() outside from the node class
-    // TODO: add KF to remove noise
-    void predict()
-    {
-        float yaw_rate = imu_msg_.gyro_z;
-        float acc_long = imu_msg_.acc_x;
-
-        yaw_ += yaw_rate * dt;
-        yaw_ = std::atan2(std::sin(yaw_), std::cos(yaw_));
-        v_ += acc_long * dt;
-        x_ += v_ * std::cos(yaw_) * dt;
-        y_ += v_ * std::sin(yaw_) * dt;
-    }
 
     // node methods can be left here
     void publishState()
     {
-        car_msgs::msg::CarState msg;
-        msg.x = x_;
-        msg.y = y_;
-        msg.yaw = yaw_;
-        msg.d = steering_angle_;
-
-        GetPublisher<car_msgs::msg::CarState>("state_est")->publish(msg);
+        GetPublisher<car_msgs::msg::CarState>("state_est")->publish(car_state_msg_);
     }
 
     void resetState()
     {
-        x_ = 0.0f;
-        y_ = 0.0f;
-        yaw_ = 0.0f;
-        v_ = 0.0f;
-        steering_angle_ = 0.0f;
+        car_state_msg_.x = 0.0f;
+        car_state_msg_.y = 0.0f;
+        car_state_msg_.yaw = 0.0f;
+        car_state_msg_.v = 0.0f;
+        car_state_msg_.d = 0.0f;
     }
 };
 
