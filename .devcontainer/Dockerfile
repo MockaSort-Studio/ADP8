@@ -7,8 +7,7 @@ RUN sudo apt-get install --no-install-recommends --assume-yes \
     direnv \
     libosmesa6-dev \
     x11-apps \
-    git-lfs \
-    openjdk-11-jdk
+    git-lfs 
 
 # Install git-lfs
 RUN git lfs install

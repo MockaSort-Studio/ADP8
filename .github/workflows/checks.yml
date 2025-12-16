@@ -61,7 +61,7 @@ jobs:
           ref: main
 
       - name: Compute main branch bazel hashes
-        run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/main_hashes.json && ls $HOME
+        run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/main_hashes.json
 
       - name: Get PR branch ref
         uses: xt0rted/pull-request-comment-branch@v3
@@ -73,14 +73,15 @@ jobs:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
 
       - name: Compute PR head bazel hashes
-        run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/pr_hashes.json && ls $HOME
+        run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/pr_hashes.json
       
       - name: Compute Impacted Targets
-        run: bazel-diff get-impacted-targets -sh=$HOME/main_hashes.json -fh=$HOME/pr_hashes.json -tt=Rule -o=$HOME/impacted_targets.txt && cat $HOME/impacted_targets.txt
+        run: bazel-diff get-impacted-targets -sh=$HOME/main_hashes.json -fh=$HOME/pr_hashes.json -tt=Rule -o=$HOME/impacted_targets.txt
       
       - name: Build and test
-        run: bash ./build_and_test.sh
-      
+        shell: bash
+        run: .github/workflows/build_and_test.sh
+              
       - name: Report check status
         if: always()
         uses: actions/github-script@v7

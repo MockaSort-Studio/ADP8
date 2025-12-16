@@ -14,23 +14,23 @@
         "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache,target=/home/vscode/.cache,type=bind"
     ],
     "containerEnv": {
-        "DISPLAY": "${localEnv:DISPLAY}",
-        "JAVA_HOME": "/usr/lib/jvm/java-11-openjdk-amd64"
+        "DISPLAY": "${localEnv:DISPLAY}"
     },
-    "runArgs": [
-        "--network=host",
-    ],
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-vscode.cpptools",
-                "llvm-vs-code-extensions.vscode-clangd",
-                "BazelBuild.vscode-bazel",
-                "akiramiyakoda.cppincludeguard",
-                "ms-python.black-formatter",
-            ]
-        }
-    },
-    "postCreateCommand": "/home/vscode/scripts/bootstrap.sh ${containerWorkspaceFolder}",
-    "postStartCommand": "sudo chown -R vscode /workspaces && direnv allow .envrc",
+},
+"runArgs": [
+    "--network=host",
+],
+"customizations": {
+    "vscode": {
+        "extensions": [
+            "ms-vscode.cpptools",
+            "llvm-vs-code-extensions.vscode-clangd",
+            "BazelBuild.vscode-bazel",
+            "akiramiyakoda.cppincludeguard",
+            "ms-python.black-formatter",
+        ]
+    }
+},
+"postCreateCommand": "/home/vscode/scripts/bootstrap.sh ${containerWorkspaceFolder}",
+"postStartCommand": "sudo chown -R vscode /workspaces && direnv allow .envrc",
 }
