@@ -48,6 +48,12 @@ jobs:
               }
             });
             core.setOutput('check_run_id', String(response.data.id));
+            
+      - name: Setup Bazel-diff
+        run: |
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install bazel-diff
+          echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
       - name: Checkout main for baseline
         uses: actions/checkout@v4
@@ -55,7 +61,7 @@ jobs:
           ref: main
 
       - name: Compute main branch bazel hashes
-        run: export JAVA_HOME=$JAVA_HOME_11_X64 && bazel run --noenable_workspace @bazel-diff//cli:bazel-diff -- generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/main_hashes.json && ls $HOME
+        run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/main_hashes.json && ls $HOME
 
       - name: Get PR branch ref
         uses: xt0rted/pull-request-comment-branch@v3
@@ -67,13 +73,13 @@ jobs:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
 
       - name: Compute PR head bazel hashes
-        run: export JAVA_HOME=$JAVA_HOME_11_X64 && bazel run --noenable_workspace @bazel-diff//cli:bazel-diff -- generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/pr_hashes.json && ls $HOME
+        run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/pr_hashes.json && ls $HOME
       
       - name: Compute Impacted Targets
-        run: export JAVA_HOME=$JAVA_HOME_11_X64 && bazel run --noenable_workspace @bazel-diff//cli:bazel-diff -- get-impacted-targets -sh=$HOME/main_hashes.json -fh=$HOME/pr_hashes.json -tt=Rule -o=$HOME/impacted_targets.txt && cat $HOME/impacted_targets.txt
+        run: bazel-diff get-impacted-targets -sh=$HOME/main_hashes.json -fh=$HOME/pr_hashes.json -tt=Rule -o=$HOME/impacted_targets.txt && cat $HOME/impacted_targets.txt
       
       - name: Build and test
-        run: .github/workflows/build-and-test.sh
+        run: bash ./build_and_test.sh
       
       - name: Report check status
         if: always()
