@@ -58,7 +58,7 @@ jobs:
         run: export JAVA_HOME=$JAVA_HOME_11_X64 && bazel run --noenable_workspace @bazel-diff//cli:bazel-diff -- generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/main_hashes.json && ls $HOME
 
       - name: Get PR branch ref
-      - uses: xt0rted/pull-request-comment-branch@v3
+        uses: xt0rted/pull-request-comment-branch@v3
         id: comment-branch
 
       - name: Checkout code
