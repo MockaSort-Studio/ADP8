@@ -1,12 +1,4 @@
-load("@com_github_mvukov_rules_ros2//ros2:bag.bzl", "ros2_bag")
 load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
-load("@com_github_mvukov_rules_ros2//ros2:launch.bzl", "ros2_launch")
-load("@com_github_mvukov_rules_ros2//ros2:test.bzl", "ros2_test")
-load("@com_github_mvukov_rules_ros2//ros2:topic.bzl", "ros2_topic")
-load("@rules_python//python:defs.bzl", "py_binary")
-
-# NOTE: ros2 rules throw warnings with the current llvm versi&on.
-# for the time being run these executables with --copt "-Wno-thread-safety-attributes" --copt "-Wno-deprecated-declarations" --copt "-Wno-unused-lambda-capture"
 
 ros2_cpp_binary(
     name = "task_manager_example",
@@ -18,47 +10,3 @@ ros2_cpp_binary(
     ],
 )
 
-ros2_launch(
-    name = "task_manager_example_launch",
-    launch_file = "task_manager_example_launch.py",
-    nodes = [
-        ":task_manager_example",
-    ],
-)
-
-py_binary(
-    name = "py_talker",
-    srcs = ["py_talker.py"],
-    deps = [
-        "@ros2_common_interfaces//:py_std_msgs",
-        "@ros2_rclpy//:rclpy",
-    ],
-)
-
-ros2_test(
-    name = "tests",
-    size = "small",
-    launch_file = "tests.py",
-    nodes = [
-        ":task_manager_example",
-    ],
-    deps = [
-        "@ros2_common_interfaces//:py_std_msgs",
-    ],
-)
-
-ros2_topic(
-    name = "topic",
-    deps = [
-        "@ros2_common_interfaces//:py_std_msgs",
-    ],
-)
-
-ros2_bag(
-    name = "bag",
-    idl_deps = [
-        "@ros2_common_interfaces//:std_msgs",
-        "@ros2_rcl_interfaces//:rcl_interfaces",
-        "@ros2_rosbag2//:rosbag2_interfaces",
-    ],
-)
