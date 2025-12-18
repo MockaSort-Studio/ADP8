@@ -43,14 +43,14 @@ done
 if [ ${#non_test_targets[@]} -gt 0 ]; then
   echo "=== Building non-test targets ==="
   printf ' - %s\n' "${non_test_targets[@]}"
-  printf '%s\n' "${non_test_targets[@]}" | xargs -r bazel build --keep_going || true
+  printf '%s\n' "${non_test_targets[@]}" | xargs -r bazel build --config=ci --keep_going || true
 fi
 
 # Run test targets
 if [ ${#test_targets[@]} -gt 0 ]; then
   echo "=== Running test targets ==="
   printf ' - %s\n' "${test_targets[@]}"
-  printf '%s\n' "${test_targets[@]}" | xargs -r bazel test --keep_going --test_output=errors
+  printf '%s\n' "${test_targets[@]}" | xargs -r bazel test --config=ci --keep_going --test_output=errors
 else
   echo "No test targets to run."
 fi
