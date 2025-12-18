@@ -1,0 +1,31 @@
+name: 'Setup Environment'
+description: 'Configure build environment and caches'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Homebrew Cache
+      uses: actions/cache@v4
+      with:
+        path: /home/linuxbrew/.linuxbrew
+        key: brew-${{ runner.os }}-ADP8-CI
+        restore-keys: |
+          brew-${{ runner.os }}-
+
+    - name: Homebrew Install
+      shell: bash
+      run: |
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        brew install bazel-diff llvm@18
+        echo "$(brew --prefix)/bin" >> $GITHUB_PATH
+
+    - name: Bazel Cache
+      uses: bazel-contrib/setup-bazel@0.16.0
+      with:
+        bazelisk-cache: true
+        disk-cache: true
+        repository-cache: true
+        bazelrc: |
+          build:ci --repository_cache=~/.cache/bazel-repo
+          build:ci --disk_cache=~/.cache/bazel-disk
+          build:ci --color=yes

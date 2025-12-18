@@ -19,6 +19,8 @@ wget -O starpls.tar.gz https://github.com/withered-magic/starpls/releases/downlo
 tar -xf starpls.tar.gz && rm -rf starpls.tar.gz
 chmod +x starpls
 
-chmod +x $WS_DIR/.devcontainer/scripts/clangd.sh
-echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
-echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
+
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+brew update
+
+brew bundle --global install

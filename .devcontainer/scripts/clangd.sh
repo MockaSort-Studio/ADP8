@@ -1,3 +1,3 @@
 #!/usr/bin/bash
 
-bazel run @llvm_toolchain_llvm//:bin/clangd -- "$@"
+/home/linuxbrew/.linuxbrew/opt/llvm@18/bin/clangd  "$@"

@@ -1,0 +1,106 @@
+name: build-and-test
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: read
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  build-and-test:
+    if: github.event.issue.pull_request && contains(github.event.comment.body, ':pig_nose:')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create check run (in progress)
+        uses: actions/github-script@v7
+        id: check-run
+        with:
+          script: |
+            // For issue_comment events the payload.issue.pull_request object does not include head.sha.
+            // Resolve the PR number from the issue and fetch the PR to get the head SHA.
+            const prNumber = context.payload.issue && context.payload.issue.number;
+            if (!prNumber) {
+              core.setFailed('No PR number found on event payload; cannot create check run.');
+            }
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            const headSha = pr.data && pr.data.head && pr.data.head.sha;
+            if (!headSha) {
+              core.setFailed('Unable to determine PR head SHA');
+            }
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const response = await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'build-and-test',
+              head_sha: headSha,
+              status: 'in_progress',
+              started_at: new Date().toISOString(),
+              output: {
+                title: 'Build and Test in Progress',
+                summary: `Workflow started. [View progress](${runUrl})`
+              }
+            });
+            core.setOutput('check_run_id', String(response.data.id));
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+      
+      - name: Setup Environment
+        uses: ./.github/actions/setup_environment
+
+      - name: Compute main branch bazel hashes
+        run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/main_hashes.json
+
+      - name: Get PR branch ref
+        uses: xt0rted/pull-request-comment-branch@v3
+        id: comment-branch
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+
+      - name: Compute PR head bazel hashes
+        run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/pr_hashes.json
+      
+      - name: Compute Impacted Targets
+        run: bazel-diff get-impacted-targets -sh=$HOME/main_hashes.json -fh=$HOME/pr_hashes.json -tt=Rule -o=$HOME/impacted_targets.txt
+      
+      - name: Build and test
+        shell: bash
+        run: .github/workflows/build_and_test.sh
+              
+      - name: Report check status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const checkRunIdStr = '${{ steps.check-run.outputs.check_run_id }}';
+            const checkRunId = parseInt(checkRunIdStr || '', 10);
+            const state = '${{ job.status }}';
+            if (!checkRunId) {
+              core.info('No check_run_id available — skipping check update');
+            } else {
+              const summary = `**Status**: ${state}\n\n[View full logs and steps in Actions](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+              await github.rest.checks.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                check_run_id: checkRunId,
+                status: 'completed',
+                conclusion: state === 'success' ? 'success' : 'failure',
+                completed_at: new Date().toISOString(),
+                output: {
+                  title: 'Build and Test Results',
+                  summary: summary
+                }
+              });
+            }
