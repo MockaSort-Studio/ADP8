@@ -48,11 +48,11 @@ jobs:
               }
             });
             core.setOutput('check_run_id', String(response.data.id));
-            
+      #TODO: Cache brew install
       - name: Setup Bazel-diff
         run: |
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install bazel-diff
+          brew install bazel-diff llvm@18
           echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
       - name: Checkout main for baseline
