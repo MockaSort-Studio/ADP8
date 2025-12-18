@@ -48,6 +48,14 @@ jobs:
               }
             });
             core.setOutput('check_run_id', String(response.data.id));
+
+      - name: Cache Homebrew
+        uses: actions/cache@v4
+        with:
+          path: /home/linuxbrew/.linuxbrew
+          key: brew-${{ runner.os }}-ADP8-CI
+          restore-keys: |
+            brew-${{ runner.os }}-
       #TODO: Cache brew install
       - name: Setup Environment
         run: |
