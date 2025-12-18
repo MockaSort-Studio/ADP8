@@ -49,36 +49,13 @@ jobs:
             });
             core.setOutput('check_run_id', String(response.data.id));
 
-      - name: Cache Homebrew
-        uses: actions/cache@v4
-        with:
-          path: /home/linuxbrew/.linuxbrew
-          key: brew-${{ runner.os }}-ADP8-CI
-          restore-keys: |
-            brew-${{ runner.os }}-
-      #TODO: Cache brew install
-      - name: Setup Environment
-        run: |
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install bazel-diff llvm@18
-          echo "$(brew --prefix)/bin" >> $GITHUB_PATH
-
-      - name: Mount Bazel Cache
-        uses: bazel-contrib/setup-bazel@0.16.0
-        with:
-          bazelisk-cache: true
-          disk-cache: true
-          repository-cache: true
-          bazelrc: |
-            build:ci --repository_cache=~/.cache/bazel-repo
-            build:ci --disk_cache=~/.cache/bazel-disk
-            build:ci --color=yes
-            build:ci --curses=yes
-
-      - name: Checkout main for baseline
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
           ref: main
+      
+      - name: Setup Environment
+        uses: ./.github/actions/setup_environment
 
       - name: Compute main branch bazel hashes
         run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/main_hashes.json
