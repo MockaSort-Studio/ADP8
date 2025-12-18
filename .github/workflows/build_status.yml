@@ -1,0 +1,20 @@
+name: Main Build Status
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-master:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Bazel Build
+        run: |
+          bazel build --config=ci //...
