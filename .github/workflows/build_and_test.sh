@@ -35,12 +35,13 @@ for t in "${targets[@]}"; do
 done
 
 # Bazel build
+# if build fails, exit immediately
 if [ ${#non_test_targets[@]} -gt 0 ]; then
   echo "=== Building non-test targets ==="
   printf ' - %s\n' "${non_test_targets[@]}"
   if ! printf '%s\n' "${non_test_targets[@]}" | xargs -r bazel build --config=ci --keep_going; then
     echo "❌ Build failed for some targets."
-    EXIT_STATUS=1
+    exit 1
   fi
 fi
 
