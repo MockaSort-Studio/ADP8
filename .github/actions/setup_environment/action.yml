@@ -29,4 +29,3 @@ runs:
           build:ci --repository_cache=~/.cache/bazel-repo
           build:ci --disk_cache=~/.cache/bazel-disk
           build:ci --color=yes
-          build:ci --curses=yes
