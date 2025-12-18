@@ -39,3 +39,5 @@ ENV PATH="/home/linuxbrew/.linuxbrew/bin: \
 # Install git-lfs
 RUN git lfs install
 
+# for teleops
+RUN groupadd -g 104 input && usermod -aG input vscode
