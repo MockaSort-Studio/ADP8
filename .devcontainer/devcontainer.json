@@ -7,7 +7,8 @@
     },
     "features": {
         "ghcr.io/balazs23/devcontainers-features/bazel:1": {},
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {}
     },
     "initializeCommand": "mkdir -p ${localEnv:HOME}/.cache && chmod 777 ${localEnv:HOME}/.cache",
     "mounts": [
@@ -27,6 +28,7 @@
                 "BazelBuild.vscode-bazel",
                 "akiramiyakoda.cppincludeguard",
                 "ms-python.black-formatter",
+                "eamodio.gitlens"
             ]
         }
     },
