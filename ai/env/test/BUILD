@@ -11,9 +11,9 @@ py_test(
         "//simulation:model_mujoco",
     ],
     deps = [
+        "//ai/core",
         "//ai/env",
         "//ai/env:env_registrations",
-        "//ai/parameters:registry",
         tool_requirement("pytest"),
         loss_vegas_requirement("gymnasium"),
     ],

@@ -54,7 +54,6 @@ class PPOLoss:
         self.avg_pg_loss(pg_loss)
         self.avg_value_loss(v_loss)
         self.avg_ent_loss(ent_loss)
-
         # Overall loss
         return pg_loss + ent_loss + v_loss
 
