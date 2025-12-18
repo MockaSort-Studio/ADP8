@@ -16,21 +16,21 @@
     "containerEnv": {
         "DISPLAY": "${localEnv:DISPLAY}"
     },
-},
-"runArgs": [
-    "--network=host",
-],
-"customizations": {
-    "vscode": {
-        "extensions": [
-            "ms-vscode.cpptools",
-            "llvm-vs-code-extensions.vscode-clangd",
-            "BazelBuild.vscode-bazel",
-            "akiramiyakoda.cppincludeguard",
-            "ms-python.black-formatter",
-        ]
-    }
-},
-"postCreateCommand": "/home/vscode/scripts/bootstrap.sh ${containerWorkspaceFolder}",
-"postStartCommand": "sudo chown -R vscode /workspaces && direnv allow .envrc",
+    "runArgs": [
+        "--network=host",
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "llvm-vs-code-extensions.vscode-clangd",
+                "BazelBuild.vscode-bazel",
+                "akiramiyakoda.cppincludeguard",
+                "ms-python.black-formatter",
+            ]
+        }
+    },
+    "postCreateCommand": "/home/vscode/scripts/bootstrap.sh ${containerWorkspaceFolder}",
+    "updateContentCommand": "/home/vscode/scripts/bootstrap.sh ${containerWorkspaceFolder}",
+    "postStartCommand": "sudo chown -R vscode /workspaces && direnv allow .envrc",
 }
