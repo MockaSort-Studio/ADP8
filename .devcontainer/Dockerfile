@@ -7,6 +7,9 @@ COPY scripts/.Brewfile /home/vscode
 RUN chown -R vscode:vscode /home/vscode/
 RUN chmod +x /home/vscode/scripts/bootstrap.sh
 
+# for teleops
+RUN groupadd -g 104 input && usermod -aG input vscode
+
 WORKDIR /home/vscode
 USER vscode
 
@@ -38,6 +41,3 @@ ENV PATH="/home/linuxbrew/.linuxbrew/bin: \
 
 # Install git-lfs
 RUN git lfs install
-
-# for teleops
-RUN groupadd -g 104 input && usermod -aG input vscode
