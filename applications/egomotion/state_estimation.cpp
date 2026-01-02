@@ -1,6 +1,8 @@
 
 #include "applications/egomotion/state_estimation.hpp"
 
+#include <cmath>
+
 car_msgs::msg::CarState state_update(
     car_msgs::msg::IMURaw imu_msg,
     car_msgs::msg::CarState car_state_msg,
