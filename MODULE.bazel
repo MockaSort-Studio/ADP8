@@ -114,3 +114,4 @@ pip_requirements.parse(
 use_repo(pip_requirements, "pip_requirements")
 
 include("//:tools.MODULE.bazel")
+include("//:simulation.MODULE.bazel")
