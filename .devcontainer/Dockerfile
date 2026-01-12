@@ -19,13 +19,23 @@ RUN mkdir -p .ssh && chmod 700 .ssh
 RUN ssh-keyscan -t ecdsa github.com >> .ssh/known_hosts
 
 RUN sudo apt-get update
-RUN sudo apt-get install --no-install-recommends --assume-yes \
+RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume-yes \
+    libx11-6 \
     libx11-dev \
+    libxext6 \
+    libxrender1 \
+    libxrandr2 \
+    libxinerama1 \
+    libxcursor1 \
+    libxi6 \
     libgl1 \
-    libopenmpi-dev \
-    direnv \
+    libglx0 \
+    libgl1-mesa-dri \
+    mesa-utils \
     libosmesa6-dev \
     x11-apps \
+    libopenmpi-dev \
+    direnv \
     git-lfs \
     curl
 
