@@ -1,0 +1,13 @@
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@sim_py_req//:requirements.bzl", "requirement")
+
+py_binary(
+    name = "keyboard_device_manual_test",
+    srcs = [
+        "keyboard_device_manual_test.py",
+    ],
+    deps = [
+        requirement("evdev"),
+        "//simulation/src:keyboard_device",
+    ],
+)

@@ -460,6 +460,9 @@ etils[epath,epy]==1.13.0 \
     --hash=sha256:a5b60c71f95bcd2d43d4e9fb3dc3879120c1f60472bb5ce19f7a860b1d44f607 \
     --hash=sha256:d9cd4f40fbe77ad6613b7348a18132cc511237b6c076dbb89105c0b520a4c6bb
     # via mujoco
+evdev==1.9.2 \
+    --hash=sha256:5d3278892ce1f92a74d6bf888cc8525d9f68af85dbe336c95d1c87fb8f423069
+    # via -r simulation/py_req/requirements.in
 fast-simplification==0.1.13 \
     --hash=sha256:3c95bd92a4817eb96d994e792df38ead3457ea01d58a095d81d53cb0fb4e1578 \
     --hash=sha256:3ed45b1f07d718832aec76ae92c91ab8e84001d935055379ce0089b0cfb87870 \
@@ -1350,6 +1353,7 @@ numpy==2.2.6 \
     --hash=sha256:fe27749d33bb772c80dcd84ae7e8df2adc920ae8297400dabec45f0dedb3f6de \
     --hash=sha256:fee4236c876c4e8369388054d02d0e9bb84821feb1a64dd59e137e6511a551f8
     # via
+    #   -r simulation/py_req/requirements.in
     #   coacd
     #   contourpy
     #   fast-simplification

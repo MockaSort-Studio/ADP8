@@ -1,0 +1,13 @@
+load("@rules_python//python:defs.bzl", "py_library")
+load("@sim_py_req//:requirements.bzl", "requirement")
+
+py_library(
+    name = "keyboard_device",
+    srcs = [
+        "keyboard_device.py",
+    ],
+    visibility = ["//simulation:__subpackages__"],
+    deps = [
+        requirement("evdev"),
+    ],
+)
