@@ -1,0 +1,7 @@
+filegroup(
+    name = "rc_car_model",
+    srcs = [
+        "rc_car_model.xml",
+    ],
+    visibility = ["//simulation:__subpackages__"],
+)

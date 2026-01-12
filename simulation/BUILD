@@ -1,5 +1,7 @@
 load("@com_github_mvukov_rules_ros2//ros2:cc_defs.bzl", "ros2_cpp_binary")
 load("@com_github_mvukov_rules_ros2//ros2:launch.bzl", "ros2_launch")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@sim_py_req//:requirements.bzl", "requirement")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -81,4 +83,18 @@ ros2_launch(
 cc_library(
     name = "sim_param",
     hdrs = ["sim_param.hpp"],
+)
+
+py_binary(
+    name = "genesis_sim_node",
+    srcs = [
+        "genesis_sim_node.py",
+    ],
+    data = ["//simulation/rc_car_model"],
+    deps = [
+        requirement("genesis-world"),
+        requirement("torch"),
+        requirement("numpy"),
+        "//simulation/src:keyboard_device",
+    ],
 )
