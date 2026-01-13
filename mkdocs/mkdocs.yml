@@ -1,0 +1,13 @@
+site_name: ADP8
+site_url: https://github.com/MockaSort-Studio/ADP8/
+site_description: Yet Another Autonomy Stack
+site_author: MockaSort-Studio
+docs_dir: docs
+
+theme:
+  name: material 
+
+nav:
+  - Home: index.md
+  - Code of Conduct: CODE_OF_CONDUCT.md
+  - Contributing: CONTRIBUTING.md
