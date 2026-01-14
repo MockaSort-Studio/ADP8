@@ -8,7 +8,11 @@ Once you get here you're good to go, everything is installed in your devcontaine
 
 Add md files for each page, then edit [mkdocs.yml](../mkdocs.yml) accordingly.
 
-Writing documentation is important, it showcases your contribution to other people and make their life easier understanding it and you may even inspire them to build more things on top of that!
+For diagrams, drawio editor extension is enabled by devcontainer. Keep drawio files in the [diagrams](diagrams) folder.
+
+Unfortunately mkdocs and mkdocs-material do not support natively drawio, in order to avoid tedious devcontainer maintenance (mkdocs-drawio plugin not available with brew) export your current drawio revision as png into the [images](images) folder.
+
+***Writing documentation is important, it showcases your contribution to other people and makes their life easier understanding your work and you may even inspire them to build more things on top of that!***
 
 
 ## Cheat-sheet
