@@ -8,6 +8,9 @@ permissions:
 on:
   issue_comment:
     types: [created]
+    paths-ignore:
+      - 'docs/**'
+      - '.github/workflows/docs_deploy.yml'
 
 jobs:
   build-and-test:
