@@ -11,6 +11,7 @@ on:
     paths-ignore:
       - 'docs/**'
       - '.github/workflows/docs_deploy.yml'
+      - 'mkdocs.yml'
 
 jobs:
   build-and-test:
