@@ -48,9 +48,13 @@ jobs:
               }
             });
             core.setOutput('check_run_id', String(response.data.id));
-            
+
+      - uses: actions/checkout@v4
+      
       - name: Build and Test
         uses: ./.github/actions/build_and_test
+        with:
+          commit-ref: ${{ steps.comment-branch.outputs.head_ref }}
          
       - name: Report check status
         if: always()
