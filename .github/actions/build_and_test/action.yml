@@ -18,6 +18,7 @@ runs:
       uses: ./.github/actions/setup_environment
 
     - name: Compute main branch bazel hashes
+      shell: bash
       run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/main_hashes.json
 
     - name: Get PR branch ref
@@ -30,9 +31,11 @@ runs:
         ref: ${{ inputs.commit-ref }}
 
     - name: Compute PR head bazel hashes
+      shell: bash
       run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/pr_hashes.json
     
     - name: Compute Impacted Targets
+      shell: bash
       run: bazel-diff get-impacted-targets -sh=$HOME/main_hashes.json -fh=$HOME/pr_hashes.json -tt=Rule -o=$HOME/impacted_targets.txt
     
     - name: Build and test
