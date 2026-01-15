@@ -1,0 +1,43 @@
+name: 'Build and Test'
+description: 'Build and test changes with respect to main branch'
+
+inputs:
+  commit-ref:  # id of input
+    description: 'Commit reference to build and test'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout main
+      uses: actions/checkout@v4
+      with:
+        ref: main
+    
+    - name: Setup Environment
+      uses: ./.github/actions/setup_environment
+
+    - name: Compute main branch bazel hashes
+      shell: bash
+      run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/main_hashes.json
+
+    - name: Get PR branch ref
+      uses: xt0rted/pull-request-comment-branch@v3
+      id: comment-branch
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.commit-ref }}
+
+    - name: Compute PR head bazel hashes
+      shell: bash
+      run: bazel-diff generate-hashes --excludeExternalTargets --includeTargetType --workspacePath=$PWD $HOME/pr_hashes.json
+    
+    - name: Compute Impacted Targets
+      shell: bash
+      run: bazel-diff get-impacted-targets -sh=$HOME/main_hashes.json -fh=$HOME/pr_hashes.json -tt=Rule -o=$HOME/impacted_targets.txt
+    
+    - name: Build and test
+      shell: bash
+      run: .github/workflows/build_and_test.sh

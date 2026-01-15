@@ -1,0 +1,27 @@
+#### Do not edit below unless you know what you are doing ####
+site_name: ADP8
+site_url: https://mockasort-studio.github.io/ADP8/
+site_description: Yet Another Autonomy Stack
+site_author: MockaSort-Studio
+docs_dir: docs
+
+theme:
+  name: material 
+  favicon: images/favicon.png
+  font:
+    text: Roboto
+    code: Roboto Mono
+  palette:
+    scheme: slate
+    primary: pink
+    accent: deep orange
+  features:
+    - toc.integrate
+    - navigation.tabs
+    - navigation.tabs.sticky
+################################################################
+
+nav:
+  - Home: index.md
+  - Code of Conduct: CODE_OF_CONDUCT.md
+  - Contributing: CONTRIBUTING.md

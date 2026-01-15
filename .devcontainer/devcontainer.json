@@ -30,7 +30,8 @@
                 "BazelBuild.vscode-bazel",
                 "akiramiyakoda.cppincludeguard",
                 "ms-python.black-formatter",
-                "eamodio.gitlens"
+                "eamodio.gitlens",
+                "hediet.vscode-drawio"
             ]
         }
     },
