@@ -1,5 +1,5 @@
 import genesis as gs
-import numpy
+import numpy as np
 import threading
 from evdev import InputDevice, categorize, ecodes
 import os
@@ -27,20 +27,32 @@ def build_scene():
     entities["cube"] = scene.add_entity(
         material=gs.materials.Rigid(rho=300),
         morph=gs.morphs.Box(
-            pos=(0.5, 0.0, 0.07),
-            size=(0.04, 0.04, 0.04),
+            pos=(0.0, 0.0, 0.0),
+            size=(0.05, 0.05, 0.05),
         ),
         surface=gs.surfaces.Default(color=(0.5, 1, 0.5)),
     )
 
     entities["rc_car"] = scene.add_entity(
-        material=gs.materials.Rigid(gravity_compensation=1),
-        morph=gs.morphs.MJCF(
-            file="simulation/rc_car_model/rc_car_model.xml",
-            pos=(0, 0, 0),
-            euler=(0, 0, 0),
-        ),
+        gs.morphs.URDF(
+            file="simulation/rc_car_model/roscar.urdf",
+            pos=(1, 1, 0.2),
+        )
     )
+
+    # 'back_right_wheel_link'
+    # steer_joint
+    # entities["imu"] = scene.add_sensor(
+    #     gs.sensors.IMU(
+    #         link=entities["rc_car"].get_link("base_link"),
+    #     )
+    # )
+
+    # entities["cam"] = scene.add_camera(
+    #     res=(640, 480),
+    #     pos=(0, 0, 4),
+    #     lookat=(0, 0, 0.5),
+    # )
 
     # build
     scene.build()
@@ -50,15 +62,13 @@ def build_scene():
 def run_sim(scene, entities, clients):
 
     rc_car = entities["rc_car"]
-    rc_car_mjcf = rc_car.morph  # this is the MJCF morph
+    rear_wheel_joints_idx = [
+        rc_car.get_joint(name).dofs_idx_local[0]
+        for name in ["back_left_wheel_joint", "back_right_wheel_joint"]
+    ]
+    steering_joint_idx = rc_car.get_joint("steer_joint").dofs_idx_local[0]
 
-    # rc_car_jnt_names = [
-    #     "rl_wheel",
-    #     "rr_wheel",
-    # ]
-    # dofs_idx = [rc_car.get_joint(name).dof_idx_local for name in rc_car_jnt_names]
-
-    rear_torque = 0.2  # dummy value to check genesis physics
+    # rear_torque = 0.2  # dummy value to check genesis physics
 
     # keyoard controls
     kb_device = clients["keyboard"]
@@ -73,10 +83,27 @@ def run_sim(scene, entities, clients):
             print("Exiting...")
             stop = True
 
-        # if "KEY_W" in pressed_keys:
-        #     rc_car_mjcf.set_joint_torque("rl_wheel", rear_torque)
-        #     rc_car_mjcf.set_joint_torque("rr_wheel", rear_torque)
+        # if "KEY_P" in pressed_keys:
+        #     imu_data = entities["imu"].get_data()
+        #     print(f"accel: {imu_data.linear_acceleration}")
+        #     print(f"accel: {imu_data.angular_velocity}")
 
+        if "KEY_LEFT" in pressed_keys:
+            rc_car.control_dofs_force(np.array([5]), steering_joint_idx)
+        if "KEY_RIGHT" in pressed_keys:
+            rc_car.control_dofs_force(np.array([-5]), steering_joint_idx)
+
+        if "KEY_UP" in pressed_keys:
+            rc_car.control_dofs_force(np.array([1, 1]), rear_wheel_joints_idx)
+        else:
+            rc_car.control_dofs_force(np.array([0, 0]), rear_wheel_joints_idx)
+
+        if "KEY_DOWN" in pressed_keys:
+            rc_car.control_dofs_force(np.array([-1, -1]), rear_wheel_joints_idx)
+        else:
+            rc_car.control_dofs_force(np.array([0, 0]), rear_wheel_joints_idx)
+
+        # step
         scene.step()
 
 

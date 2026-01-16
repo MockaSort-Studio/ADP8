@@ -28,6 +28,7 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume
     libxinerama1 \
     libxcursor1 \
     libxi6 \
+    libegl1 \
     libgl1 \
     libglx0 \
     libgl1-mesa-dri \

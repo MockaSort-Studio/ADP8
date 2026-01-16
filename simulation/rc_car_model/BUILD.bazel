@@ -2,6 +2,7 @@ filegroup(
     name = "rc_car_model",
     srcs = [
         "rc_car_model.xml",
+        "roscar.urdf",
     ],
     visibility = ["//simulation:__subpackages__"],
 )
