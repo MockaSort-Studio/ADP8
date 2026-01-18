@@ -11,3 +11,25 @@ py_library(
         requirement("evdev"),
     ],
 )
+
+py_library(
+    name = "base_entity",
+    srcs = [
+        "base_entity.py",
+    ],
+    visibility = ["//simulation:__subpackages__"],
+)
+
+py_library(
+    name = "simulation_runner",
+    srcs = [
+        "simulation_runner.py",
+    ],
+    visibility = ["//simulation:__subpackages__"],
+    deps = [
+        ":base_entity",
+        requirement("genesis-world"),
+        requirement("torch"),
+        # requirement("numpy"),
+    ],
+)

@@ -1,8 +1,6 @@
 # Simulation
 
-## Simulation with Genesis
-
-### Enable X11 on host
+## Enable X11 on host
 In a terminal on host machine enable the container to connect to X11 by launching:
 ```
 xhost +local:
@@ -13,16 +11,13 @@ xhost -local:
 ```
 
 
-## How to launch Foxglove
-
-Launch foxglove and connect to `ws://localhost:8765`.
+## How to launch Sim
 
 In a terminal launch:
 ```
 bazel run //simulation:launch_sim
 ```
 
-For Teleop launch 
-```
-bazel run //simulation:launch_sim_teleop
-```
+### Foxglove bridge
+
+Launch foxglove and connect to `ws://localhost:8765`.

@@ -1,4 +1,4 @@
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_test")
 load("@sim_py_req//:requirements.bzl", "requirement")
 
 py_binary(
@@ -9,5 +9,17 @@ py_binary(
     deps = [
         requirement("evdev"),
         "//simulation/src:keyboard_device",
+    ],
+)
+
+py_binary(
+    name = "simulation_runner_manual_test",
+    srcs = [
+        "simulation_runner_manual_test.py",
+    ],
+    data = ["//simulation/rc_car_model"],
+    deps = [
+        "//simulation/agents:rc_car_agent",
+        "//simulation/src:simulation_runner",
     ],
 )
