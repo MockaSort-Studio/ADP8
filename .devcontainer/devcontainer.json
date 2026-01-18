@@ -12,13 +12,15 @@
     },
     "initializeCommand": "mkdir -p ${localEnv:HOME}/.cache && chmod 777 ${localEnv:HOME}/.cache",
     "mounts": [
-        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache,target=/home/vscode/.cache,type=bind"
+        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache,target=/home/vscode/.cache,type=bind",
+        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind",
     ],
     "containerEnv": {
-        "DISPLAY": "${localEnv:DISPLAY}"
+        "DISPLAY": "${localEnv:DISPLAY}",
     },
     "runArgs": [
         "--network=host",
+        "--ipc=host",
     ],
     "customizations": {
         "vscode": {

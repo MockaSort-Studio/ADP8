@@ -21,16 +21,8 @@ class TaskInterface : public rclcpp::Node
         const auto cycle_time_ms =
             std::chrono::milliseconds(get_parameter(cycle_time_param_name).as_int());
         RCLCPP_INFO(get_logger(), "TaskInterface created with name: %s", name.c_str());
-        execution_timer_ = create_wall_timer(
-            cycle_time_ms,
-            [this]() -> void
-            {
-                RCLCPP_INFO(
-                    get_logger(),
-                    "Executing TaskInterface step - I am a change that triggers my CI "
-                    "test!");
-                ExecuteStep();
-            });
+        execution_timer_ =
+            create_wall_timer(cycle_time_ms, [this]() -> void { ExecuteStep(); });
     }
 
     template <typename MessageType>

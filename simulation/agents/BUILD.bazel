@@ -1,0 +1,15 @@
+load("@rules_python//python:defs.bzl", "py_library")
+load("@sim_py_req//:requirements.bzl", "requirement")
+
+py_library(
+    name = "rc_car_agent",
+    srcs = ["rc_car.py"],
+    data = ["//simulation/rc_car_model"],
+    visibility = ["//simulation:__subpackages__"],
+    deps = [
+        "//simulation/src:base_entity",
+        requirement("genesis-world"),
+        requirement("torch"),
+        requirement("numpy"),
+    ],
+)

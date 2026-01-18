@@ -9,7 +9,7 @@
 #include "car_msgs/msg/imu_raw.hpp"
 #include "car_msgs/msg/steering_angle_mes.hpp"
 //
-#include "simulation/sim_param.hpp"
+#include "simulation/cpp_sim/sim_param.hpp"
 //
 #include "core/tasks_manager.hpp"
 #include "rclcpp/rclcpp.hpp"
