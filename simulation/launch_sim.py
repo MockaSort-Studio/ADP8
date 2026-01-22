@@ -1,3 +1,28 @@
-# to do
+import launch
+import launch_ros.actions
 
-print("To do")
+import third_party.foxglove_bridge.node_path
+import third_party.foxglove_bridge.params
+
+
+def generate_launch_description():
+    """Launch the nodes."""
+    return launch.LaunchDescription(
+        [
+            # ROS_DISTRO is necessary for correct operation of the Foxglove Studio.
+            launch.actions.SetEnvironmentVariable(name="ROS_DISTRO", value="humble"),
+            launch_ros.actions.Node(
+                executable="simulation/simulation_node",
+                output="screen",
+                name="simulation_node",
+            ),
+            ## foxglove_bridge node
+            launch_ros.actions.Node(
+                executable=third_party.foxglove_bridge.node_path.NODE_PATH,
+                output="screen",
+                parameters=[
+                    third_party.foxglove_bridge.params.PARAMS_TO_DEFAULT_VALUES,
+                ],
+            ),
+        ]
+    )
