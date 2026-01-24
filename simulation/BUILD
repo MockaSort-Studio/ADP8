@@ -11,7 +11,6 @@ py_binary(
         requirement("numpy"),  # to avoid mismatch
         "//messages:py_car_msgs",
         "//simulation/agents:rc_car_agent",
-        "//simulation/src:motor_models",
         "//simulation/src:simulation_runner",
         "@ros2_rclpy//:rclpy",
     ],

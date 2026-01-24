@@ -5,7 +5,6 @@ from car_msgs.msg import IMURaw
 from car_msgs.msg import SteeringAngleMes
 from car_msgs.msg import ActuatorCommands
 
-from simulation.src.motor_models import DCMotor, ServoMotor
 from simulation.src.simulation_runner import SimulationRunner
 from simulation.agents.rc_car import RCCar
 
@@ -31,17 +30,6 @@ class SimulationNode(Node):
         rccar = RCCar()
         self.sim = SimulationRunner(agent=rccar, show_viewer=True, dt=timer_period)
 
-        # motors init
-        self.dc_motor = DCMotor(
-            torque_constant=0.05,
-            back_emf_constant=0.05,
-            resistance=0.6,
-            supply_voltage=7.4,
-        )
-        self.servo_motor = ServoMotor(
-            max_torque=0.2, position_gain=6.0, damping_gain=0.05
-        )
-
     def listener_callback(self, msg):
         self.act_commands_ = msg
 
@@ -63,23 +51,15 @@ class SimulationNode(Node):
         d_msg.d = noisy_obs_dict["d"][0]
         self.d_publisher_.publish(d_msg)
 
-        # motor modelling
-        obs_dict = self.sim.get_observations()
-        dc_torque = self.dc_motor.step(
-            dc_pwm=self.act_commands_.dc_pwm,
-            dc_direction=self.act_commands_.dc_direction,
-            angular_speed=obs_dict["steer_axle_w"][0],
+        # inputs: [dc_pwm, dc_direction, servo_angle, servo_speed]
+        self.sim.step(
+            inputs=[
+                self.act_commands_.dc_pwm,
+                self.act_commands_.dc_direction,
+                self.act_commands_.servo_angle,
+                self.act_commands_.servo_speed,
+            ]
         )
-
-        servo_torque = self.servo_motor.step(
-            servo_angle=self.act_commands_.servo_angle,
-            servo_speed=self.act_commands_.servo_speed,
-            current_angle=obs_dict["d"][0],
-            angular_speed=obs_dict["steer_axle_w"][0],
-        )
-
-        # step with inputs [steer_torque, rear_axle_torque]
-        self.sim.step(inputs=[servo_torque, dc_torque])
 
 
 def main(args=None):

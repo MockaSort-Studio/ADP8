@@ -8,6 +8,7 @@ py_library(
     visibility = ["//simulation:__subpackages__"],
     deps = [
         "//simulation/src:base_entity",
+        "//simulation/src:motor_models",
         requirement("genesis-world"),
         requirement("torch"),
         requirement("numpy"),
