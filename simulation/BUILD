@@ -1,5 +1,6 @@
 load("@com_github_mvukov_rules_ros2//ros2:launch.bzl", "ros2_launch")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("@sim_py_req//:requirements.bzl", "requirement")
 
 py_binary(
     name = "simulation_node",
@@ -7,7 +8,10 @@ py_binary(
         "simulation_node.py",
     ],
     deps = [
+        requirement("numpy"),  # to avoid mismatch
         "//messages:py_car_msgs",
+        "//simulation/agents:rc_car_agent",
+        "//simulation/src:simulation_runner",
         "@ros2_rclpy//:rclpy",
     ],
 )
