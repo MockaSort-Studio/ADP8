@@ -3,6 +3,7 @@ from rclpy.node import Node
 
 from car_msgs.msg import IMURaw
 from car_msgs.msg import SteeringAngleMes
+from car_msgs.msg import ActuatorCommands
 
 from simulation.src.motor_models import DCMotor, ServoMotor
 from simulation.src.simulation_runner import SimulationRunner
@@ -12,14 +13,21 @@ from simulation.agents.rc_car import RCCar
 class SimulationNode(Node):
 
     def __init__(self):
+        # ros2 stuff
         super().__init__("simulation_node")
         self.IMU_publisher_ = self.create_publisher(IMURaw, "imu_raw", 10)
         self.d_publisher_ = self.create_publisher(
             SteeringAngleMes, "steering_angle_measured", 10
         )
+        self.subscription = self.create_subscription(
+            ActuatorCommands, "actuator_cmd", self.listener_callback, 10
+        )
+        self.act_commands_ = ActuatorCommands()
 
         timer_period = 0.01  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
+
+        # genesis stuff
         rccar = RCCar()
         self.sim = SimulationRunner(agent=rccar, show_viewer=True, dt=timer_period)
 
@@ -33,6 +41,9 @@ class SimulationNode(Node):
         self.servo_motor = ServoMotor(
             max_torque=0.2, position_gain=6.0, damping_gain=0.05
         )
+
+    def listener_callback(self, msg):
+        self.act_commands_ = msg
 
     def timer_callback(self):
 
@@ -53,24 +64,16 @@ class SimulationNode(Node):
         self.d_publisher_.publish(d_msg)
 
         # motor modelling
-
-        # from actuators_msg
-        dc_pwm = 0.8
-        dc_direction = 1
-        servo_angle = 10 / 180 * 3.1416
-        servo_speed = 2.0
-        # TODO
-
         obs_dict = self.sim.get_observations()
         dc_torque = self.dc_motor.step(
-            dc_pwm=dc_pwm,
-            dc_direction=dc_direction,
+            dc_pwm=self.act_commands_.dc_pwm,
+            dc_direction=self.act_commands_.dc_direction,
             angular_speed=obs_dict["steer_axle_w"][0],
         )
 
         servo_torque = self.servo_motor.step(
-            servo_angle=servo_angle,
-            servo_speed=servo_speed,
+            servo_angle=self.act_commands_.servo_angle,
+            servo_speed=self.act_commands_.servo_speed,
             current_angle=obs_dict["d"][0],
             angular_speed=obs_dict["steer_axle_w"][0],
         )

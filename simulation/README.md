@@ -10,13 +10,13 @@ you can undo this later with a restart or with:
 xhost -local:
 ```
 
+## How to launch Sim Teleop
 
-## How to launch Sim
-
-In a terminal launch:
+In a terminal run:
 ```
-bazel run //simulation:launch_sim
+bazel run //simulation:launch_sim_teleop
 ```
+use arrows to steer or accelerate the simulated RC car
 
 ### Foxglove bridge
 
