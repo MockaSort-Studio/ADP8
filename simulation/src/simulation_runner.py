@@ -29,9 +29,13 @@ class SimulationRunner:
 
         # finally build scene
         self.scene.build()
+        print("Done building Genesis scene!")
 
     def get_observations(self):
         return self.agent.get_observation()
+
+    # def get_groundtruths(self):
+    #   return self.agent.get_groundtruth()
 
     def set_inputs(self, inputs: list):
         self.agent.step(inputs)

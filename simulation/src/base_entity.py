@@ -12,5 +12,8 @@ class BaseEntity(ABC):
     def get_observation(self):
         raise RuntimeError("get_observation must be implemented!")
 
+    def get_groundtruth(self):
+        raise RuntimeError("get_groundtruth must be implemented!")
+
     def step(self):
         raise RuntimeError("step must be implemented!")

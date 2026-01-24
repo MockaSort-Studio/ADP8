@@ -47,10 +47,15 @@ class RCCar(BaseEntity):
             "steering_joint"
         ).dofs_idx_local[0]
 
+    # def get_groundtruth(self):
+    #     # TODO: get pos and orientation as groudtruth
+    #     # maybe also get true_imu data ?
+    #     # true_imu = self.imu.read_ground_truth()
+    #     return []
+
     def get_observation(self):
 
         # IMU
-        # true_data = imu.read_ground_truth() # for GT
         imu_data = self.imu.read()
         acc = imu_data.lin_acc  # tensor([ax, ay, az])
         gyro = imu_data.ang_vel  # tensor([wx, wy, wz])
