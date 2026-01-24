@@ -31,11 +31,13 @@ class SimulationRunner:
         self.scene.build()
         print("Done building Genesis scene!")
 
-    def get_observations(self):
+    def get_observations(self) -> dict:
+        # this is for observations directly from simulaiton, without any noise added
         return self.agent.get_observation()
 
-    # def get_groundtruths(self):
-    #   return self.agent.get_groundtruth()
+    def get_noisy_observations(self):
+        # this is for observations with noise modelled inside the agent
+        return self.agent.get_noisy_observation()
 
     def set_inputs(self, inputs: list):
         self.agent.step(inputs)

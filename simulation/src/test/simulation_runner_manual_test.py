@@ -7,6 +7,6 @@ if __name__ == "__main__":
     sim = SimulationRunner(agent=rccar, show_viewer=False)
 
     for _ in range(100):
-        obs = sim.get_observations()
+        obs = sim.get_noisy_observations()
         print(f"imu data: {obs}")
         sim.step(inputs=[0, 0])

@@ -9,7 +9,7 @@ class RCCar(BaseEntity):
         self.urdf_path = "simulation/rc_car_model/rc_car.urdf"
         self.init_pos = init_pos
 
-    def add_to_scene(self, scene):
+    def add_to_scene(self, scene) -> None:
         self.rc_car_entity = scene.add_entity(
             gs.morphs.URDF(
                 file=self.urdf_path,
@@ -47,13 +47,26 @@ class RCCar(BaseEntity):
             "steering_joint"
         ).dofs_idx_local[0]
 
-    # def get_groundtruth(self):
-    #     # TODO: get pos and orientation as groudtruth
-    #     # maybe also get true_imu data ?
-    #     # true_imu = self.imu.read_ground_truth()
-    #     return []
+    def get_observation(self) -> dict:
+        # TODO: get pos and orientation as groudtruth
+        # maybe also get true_imu data ?
+        # true_imu = self.imu.read_ground_truth()
+        d = self.rc_car_entity.get_dofs_position(self.steering_idx).item()
+        steer_axle_w = self.rc_car_entity.get_dofs_velocity(self.steering_idx).item()
 
-    def get_observation(self):
+        # rear axle speed (theoretically left and right wheels should have the same speed if no slips or somethign weird)
+        rl_w = self.rc_car_entity.get_dofs_velocity(self.rear_wheel_idx[0]).item()
+        rr_w = self.rc_car_entity.get_dofs_velocity(self.rear_wheel_idx[1]).item()
+        rear_axle_w = (rl_w + rr_w) / 2
+        # TODO: improve simulation/rc_car_model/rc_car.urdf to have a single axle
+
+        return {
+            "steer_axle_w": [steer_axle_w],
+            "d": [d],
+            "rear_axle_w": [rear_axle_w],
+        }
+
+    def get_noisy_observation(self) -> dict:
 
         # IMU
         imu_data = self.imu.read()
@@ -64,23 +77,21 @@ class RCCar(BaseEntity):
         d = self.rc_car_entity.get_dofs_position(self.steering_idx).item()
         d = d + np.clip(np.random.normal(0.0, 0.01), -0.03, 0.03)  # add noise
 
-        # for reference:
-        #   [
-        #       accx, accy, accz,
-        #       wx, wy, wz,
-        #       d
-        #   ]
-        return [
-            acc[0].item(),
-            acc[1].item(),
-            acc[2].item(),
-            gyro[0].item(),
-            gyro[1].item(),
-            gyro[2].item(),
-            d,
-        ]
+        return {
+            "acc": [
+                acc[0].item(),
+                acc[1].item(),
+                acc[2].item(),
+            ],
+            "gyro": [
+                gyro[0].item(),
+                gyro[1].item(),
+                gyro[2].item(),
+            ],
+            "d": [d],
+        }
 
-    def step(self, inputs):
+    def step(self, inputs) -> None:
         # for reference: inputs = [steer_torque, rear_axle_torque]
         self.rc_car_entity.control_dofs_force(np.array([inputs[0]]), self.steering_idx)
         self.rc_car_entity.control_dofs_force(

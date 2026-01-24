@@ -13,6 +13,13 @@ py_library(
 )
 
 py_library(
+    name = "motor_models",
+    srcs = ["motor_models.py"],
+    visibility = ["//simulation:__subpackages__"],
+)
+
+# py_libraries for genesis
+py_library(
     name = "base_entity",
     srcs = [
         "base_entity.py",
@@ -30,6 +37,5 @@ py_library(
         ":base_entity",
         requirement("genesis-world"),
         requirement("torch"),
-        # requirement("numpy"),
     ],
 )

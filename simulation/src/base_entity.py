@@ -6,14 +6,14 @@ class BaseEntity(ABC):
         self.name = name
         self.gs_entity = None
 
-    def add_to_scene(self, scene):
+    def add_to_scene(self, scene) -> None:
         raise RuntimeError("add_to_scene must be implemented!")
 
-    def get_observation(self):
+    def get_observation(self) -> dict:
         raise RuntimeError("get_observation must be implemented!")
 
-    def get_groundtruth(self):
-        raise RuntimeError("get_groundtruth must be implemented!")
+    def get_noisy_observation(self) -> dict:
+        raise RuntimeError("get_noisy_observation must be implemented!")
 
-    def step(self):
+    def step(self) -> None:
         raise RuntimeError("step must be implemented!")
