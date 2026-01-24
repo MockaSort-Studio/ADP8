@@ -9,10 +9,11 @@ py_binary(
         "main.py",
     ],
     data = [
-        ":parameters",
         "//ai/loss:ppo_loss",
         "//ai/models:agent",
-        "//ai/training_algorithms",
+        "//ai/parameters:examples",
+        "//ai/trainers",
+        "//simulation:model_mujoco",
     ],
     deps = [
         requirement("lightning"),
@@ -22,6 +23,8 @@ py_binary(
         #gym deps
         requirement("moviepy"),
         requirement("pygame"),
+        "//ai/core",
+        "//ai/env:env_registrations",
         "//ai/utils",
         "//ai/utils:module_loader",
     ],

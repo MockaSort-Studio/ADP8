@@ -3,8 +3,8 @@ import os
 import numpy as np
 from gymnasium import utils
 from gymnasium.envs.mujoco import MujocoEnv
-from ai.parameters.registry import ParameterRegistry
-from typing import Any, Callable, Dict, Optional, Type, Tuple
+from ai.core.parameters import ParameterRegistry
+from typing import Any, Dict, Optional, Tuple
 
 
 # REFERENCE CODE
@@ -65,8 +65,21 @@ def build_env() -> gym.Env:
     Build a single environment
     """
     env_name = ParameterRegistry.get_parameter_value("environment", "env_name")
-    env = gym.make(id=env_name)
+    capture_video = ParameterRegistry.get_parameter_value(
+        "environment", "capture_video"
+    )
+    seed = ParameterRegistry.get_parameter_value("environment", "seed")
+    run_name = env_name + f"_{seed}_{int(os.getpid())}" if env_name else None
+    env = gym.make(id=env_name, render_mode="rgb_array")
     env = gym.wrappers.RecordEpisodeStatistics(env)
+    if capture_video:
+        env = gym.wrappers.RecordVideo(
+            env,
+            os.path.join(run_name, "videos"),
+            disable_logger=True,
+        )
+    env.action_space.seed(seed)
+    env.observation_space.seed(seed)
     return env
 
 
@@ -80,18 +93,7 @@ def build_vectorized_envs() -> gym.vector.SyncVectorEnv:
             )
         ]
     )
-
     return envs
-
-
-def environment_parameters(name, **parameters: Dict[str, Any]) -> Callable:
-    def decorator(cls: Type) -> Type:
-        # Register the environment and its parameters in the ParameterRegistry
-        ParameterRegistry.register("environment", parameters)
-
-        return cls
-
-    return decorator
 
 
 # ## BaseGymnasiumEnv
@@ -187,7 +189,7 @@ class BaseGymnasiumEnv(MujocoEnv, utils.EzPickle):
             render_mode=self.parameters.render_mode,
         )
 
-        self.action_space = gym.spaces.Discrete(self.model.nu)
+        self.action_space = self.init_action_space()
         self.observation_space = self.init_observation_space()
         self.observation_space.seed(self.parameters.seed)
         self.action_space.seed(self.parameters.seed)
@@ -222,6 +224,14 @@ class BaseGymnasiumEnv(MujocoEnv, utils.EzPickle):
 
     def _get_obs(self) -> np.ndarray:
         return self.get_obs_impl()
+
+    def init_action_space(self) -> gym.spaces.Space:
+        return gym.spaces.Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(self.model.nu,),
+            dtype=np.float32,
+        )
 
     def init_observation_space(self) -> gym.spaces.Space:
         raise NotImplementedError(

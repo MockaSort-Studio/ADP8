@@ -5,6 +5,7 @@ import yaml
 from typing import Any, Type, TYPE_CHECKING
 from torch.utils.tensorboard import SummaryWriter
 from ai.env.env import make_env
+from ai.core.parameters import ParameterRegistry
 
 if TYPE_CHECKING:
     from ai.models.agent import PPOLightningAgent
@@ -44,7 +45,7 @@ def parse_yaml(file_path: str) -> Any:
             raise ValueError(f"Error parsing YAML file: {exc}")
 
 
-def parse_parameters() -> Any:
+def parse_arguments() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -55,8 +56,7 @@ def parse_parameters() -> Any:
     )
 
     args = parser.parse_args()
-    parameters = parse_yaml(args.parameters)
-    return parameters
+    ParameterRegistry.load_parameters(args.parameters)
 
 
 def layer_init(
