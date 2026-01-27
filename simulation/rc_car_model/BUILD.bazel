@@ -1,0 +1,7 @@
+filegroup(
+    name = "rc_car_model",
+    srcs = [
+        "rc_car.urdf",
+    ],
+    visibility = ["//simulation:__subpackages__"],
+)

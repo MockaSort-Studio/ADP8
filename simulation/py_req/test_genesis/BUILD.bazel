@@ -1,0 +1,13 @@
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@sim_py_req//:requirements.bzl", "requirement")
+
+py_binary(
+    name = "test_genesis",
+    srcs = [
+        "test_genesis.py",
+    ],
+    deps = [
+        requirement("genesis-world"),
+        requirement("torch"),
+    ],
+)

@@ -1,15 +1,23 @@
 # Simulation
 
-## How to launch
-
-Launch foxglove and connect to `ws://localhost:8765`.
-
-In a terminal launch:
+## Enable X11 on host
+In a terminal on host machine enable the container to connect to X11 by launching:
 ```
-bazel run //simulation:launch_sim
+xhost +local:
+```
+you can undo this later with a restart or with:
+```
+xhost -local:
 ```
 
-For Teleop launch 
+## How to launch Sim Teleop
+
+In a terminal run:
 ```
 bazel run //simulation:launch_sim_teleop
 ```
+use arrows to steer or accelerate the simulated RC car
+
+### Foxglove bridge
+
+Launch foxglove and connect to `ws://localhost:8765`.

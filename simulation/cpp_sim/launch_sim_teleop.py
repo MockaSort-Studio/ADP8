@@ -12,9 +12,14 @@ def generate_launch_description():
             # ROS_DISTRO is necessary for correct operation of the Foxglove Studio.
             launch.actions.SetEnvironmentVariable(name="ROS_DISTRO", value="humble"),
             launch_ros.actions.Node(
-                executable="simulation/simulation_node",
+                executable="simulation/car_simulation",
                 output="screen",
-                name="simulation_node",
+                name="car_simulation",
+            ),
+            launch_ros.actions.Node(
+                executable="applications/egomotion/state_estimation_node",
+                output="screen",
+                name="state_estimation",
             ),
             launch_ros.actions.Node(
                 executable="applications/command_interfaces/actuation_interface_node",
@@ -26,7 +31,6 @@ def generate_launch_description():
                 output="screen",
                 name="teleop",
             ),
-            ## foxglove_bridge node
             launch_ros.actions.Node(
                 executable=third_party.foxglove_bridge.node_path.NODE_PATH,
                 output="screen",

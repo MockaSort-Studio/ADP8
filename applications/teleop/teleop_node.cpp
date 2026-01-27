@@ -65,28 +65,28 @@ class TeleOpNode : public sert::core::TaskInterface
 
             switch (ev.code)
             {
-                case KEY_W:
+                case KEY_UP:
                     if (pressed)
                         cmd_.v = V_MAX;
                     if (released)
                         cmd_.v = 0.0f;
                     break;
 
-                case KEY_S:
+                case KEY_DOWN:
                     if (pressed)
                         cmd_.v = -V_MAX;
                     if (released)
                         cmd_.v = 0.0f;
                     break;
 
-                case KEY_A:
+                case KEY_LEFT:
                     if (pressed)
                         cmd_.d = D_MAX;
                     if (released)
                         cmd_.d = 0.0f;
                     break;
 
-                case KEY_D:
+                case KEY_RIGHT:
                     if (pressed)
                         cmd_.d = -D_MAX;
                     if (released)

@@ -1,0 +1,41 @@
+load("@rules_python//python:defs.bzl", "py_library")
+load("@sim_py_req//:requirements.bzl", "requirement")
+
+py_library(
+    name = "keyboard_device",
+    srcs = [
+        "keyboard_device.py",
+    ],
+    visibility = ["//simulation:__subpackages__"],
+    deps = [
+        requirement("evdev"),
+    ],
+)
+
+py_library(
+    name = "motor_models",
+    srcs = ["motor_models.py"],
+    visibility = ["//simulation:__subpackages__"],
+)
+
+# py_libraries for genesis
+py_library(
+    name = "base_entity",
+    srcs = [
+        "base_entity.py",
+    ],
+    visibility = ["//simulation:__subpackages__"],
+)
+
+py_library(
+    name = "simulation_runner",
+    srcs = [
+        "simulation_runner.py",
+    ],
+    visibility = ["//simulation:__subpackages__"],
+    deps = [
+        ":base_entity",
+        requirement("genesis-world"),
+        requirement("torch"),
+    ],
+)
