@@ -1,5 +1,5 @@
 # cpp 17
-build --cxxopt=-std=c++17
+build --cxxopt=-std=c++17 --linkopt="-fuse-ld=ld"
 #clang toolchain
 build --action_env=CC=/home/linuxbrew/.linuxbrew/opt/llvm@18/bin/clang
 build --action_env=CXX=/home/linuxbrew/.linuxbrew/opt/llvm@18/bin/clang++

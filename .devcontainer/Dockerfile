@@ -38,7 +38,14 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume
     libopenmpi-dev \
     direnv \
     git-lfs \
-    curl
+    curl \
+    # for fastdds gen to be later moved directly in bazel workspace by pushing the compiled artifacts separately and pulling the binary
+    openjdk-17-jre 
+
+# Download and install fastdds-gen
+RUN NONINTERACTIVE=1 /bin/bash -c "git clone --recursive --branch v4.2.0 --single-branch https://github.com/eProsima/Fast-DDS-Gen.git fastddsgen" && \
+    cd fastddsgen && ./gradlew assemble
+
 
 RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && \
     echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc && sudo chown -R vscode:vscode /home/linuxbrew/.linuxbrew
