@@ -13,6 +13,12 @@ sh_binary(
     srcs = ["system_clang_format.sh"],
 )
 
+sh_binary(
+    name = "fastddsgen",
+    srcs = ["fastddsgen.sh"],
+    visibility = ["//visibility:public"],
+)
+
 format_multirun(
     name = "format",
     cc = ":system_clang_format",
