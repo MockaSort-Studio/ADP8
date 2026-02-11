@@ -1,34 +1,44 @@
+engine:
+    exp_name: dioporco
+    devices: 1
+    accelerator: cpu
+    strategy: ddp
+    cuda: false
+    player_on_gpu: false
+    torch_deterministic: true
+    seed: 42
+model:
+    model_path: ai.models.ppo_agent.PPOAgent
+    loss_path: ai.loss.ppo_loss.PPOLoss
+    activation_function: relu
+    ortho_init: false
+    normalize_advantages: false
+    clip_coef: 0.2
+    clip_vloss: false
+    ent_coef: 0.0
+    vf_coef: 1.0
 environment:
-  env_name: Spot-v0
-  xml_file: ./simulation/robot_model/spot_mini.xml
-  render_mode: rgb_array
-num_envs: 1
-seed: 42
-env_id: diolurido
-model: ai.models.agent.PPOLightningAgent
-loss: ai.loss.ppo_loss.PPOLoss
-trainer: ai.training_algorithms.ppo_train.ppo_train
-exp_name: default
-devices: 2
-accelerator: cpu
-strategy: ddp
-cuda: false
-player_on_gpu: false
-torch_deterministic: true
-share_data: false
-per_rank_batch_size: 64
-num_steps: 128
-total_timesteps: 65536
-learning_rate: 0.001
-anneal_lr: false
-gamma: 0.99
-gae_lambda: 0.95
-update_epochs: 10
-activation_function: relu
-ortho_init: false
-normalize_advantages: false
-clip_coef: 0.2
-clip_vloss: false
-ent_coef: 0.0
-vf_coef: 1.0
-max_grad_norm: 0.5
+    env_name: Spot-v0
+    xml_file: ./simulation/robot_model/spot_mini.xml
+    render_mode: rgb_array
+    num_envs: 2
+    capture_video: false
+    seed: 42
+    render_mode: human
+training:
+    trainer_path: ai.trainers.ppo_train.ppo_train
+    optimizer_path: torch.optim.Adam
+    learning_rate: 1
+    epsilon: 0.01
+    total_timesteps: 100
+    learning_rate: 0.001
+    anneal_lr: false
+    gamma: 0.99
+    gae_lambda: 0.95
+    update_epochs: 10
+    share_data: false
+    per_rank_batch_size: 64
+    num_steps: 128
+    seed: 42
+    max_grad_norm: 0.5
+

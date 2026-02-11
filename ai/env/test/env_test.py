@@ -3,7 +3,7 @@ import pytest
 import sys
 from ai.env.env import build_vectorized_envs
 from ai.env.env_registrations import import_envs_collection
-from ai.parameters.registry import ParameterRegistry
+from ai.core.parameters import ParameterRegistry
 from typing import Callable, Tuple
 
 

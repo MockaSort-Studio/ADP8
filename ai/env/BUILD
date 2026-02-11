@@ -11,7 +11,7 @@ py_library(
     deps = [
         requirement("gymnasium"),
         requirement("numpy"),
-        "//ai/parameters:registry",
+        "//ai/core",
     ],
 )
 
@@ -52,6 +52,6 @@ py_binary(
         requirement("moviepy"),
         requirement("pygame"),
         ":env_registrations",
-        "//ai/parameters:registry",
+        "//ai/core",
     ],
 )

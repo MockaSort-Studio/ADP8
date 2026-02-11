@@ -6,12 +6,13 @@ package(default_visibility = ["//visibility:public"])
 py_library(
     name = "agent",
     srcs = [
-        "agent.py",
+        "ppo_agent.py",
     ],
     deps = [
         requirement("lightning"),
         requirement("torch"),
         requirement("gymnasium"),
+        "//ai/core",
         "//ai/loss:ppo_loss",
     ],
 )

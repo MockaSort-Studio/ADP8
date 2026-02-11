@@ -4,16 +4,17 @@ load("@rules_python//python:defs.bzl", "py_library")
 package(default_visibility = ["//visibility:public"])
 
 py_library(
-    name = "training_algorithms",
+    name = "core",
     srcs = [
-        "ppo_train.py",
+        "model.py",
+        "parameters.py",
+        "training.py",
     ],
     deps = [
         requirement("lightning"),
         requirement("torch"),
-        requirement("torchmetrics"),
         requirement("gymnasium"),
-        "//ai/train",
-        "//ai/utils",
+        requirement("pyyaml"),
+        requirement("flatdict"),
     ],
 )
