@@ -117,4 +117,4 @@ include("//:tools.MODULE.bazel")
 
 include("//:simulation.MODULE.bazel")
 
-include("//:dds.MODULE.bazel")
+include("//:third_party/third_party.MODULE.bazel")

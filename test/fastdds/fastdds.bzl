@@ -56,7 +56,7 @@ def _cc_fastdds_types_impl(ctx):
     srcs = [f for f in output_files if f.extension == "cxx"]
     hdrs = [f for f in output_files if f.extension in ["hpp", "ipp"]]
 
-    deps_cc_info = [dep[CcInfo] for dep in ctx.attr.deps]
+    deps_cc_info = [dep[CcInfo] for dep in ctx.attr._deps]
 
     cc_toolchain = ctx.attr._cc_toolchain[cc_common.CcToolchainInfo]
     feature_configuration = cc_common.configure_features(
@@ -107,12 +107,12 @@ cc_fastdds_types = rule(
     implementation = _cc_fastdds_types_impl,
     attrs = {
         "idl_srcs": attr.label_list(allow_files = True),
-        "deps": attr.label_list(providers = [CcInfo], default = ["@fastdds"]),
+        "_deps": attr.label_list(providers = [CcInfo], default = ["@fastdds"]),
         "linkstatic": attr.bool(default = True),
         "_generator": attr.label(
             executable = True,
             cfg = "exec",
-            default = Label("//tools:fastddsgen"),
+            default = Label("@fastddsgen"),
         ),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
