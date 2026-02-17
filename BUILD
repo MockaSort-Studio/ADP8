@@ -1,8 +1,17 @@
-load("@bazel_env.bzl", "bazel_env")
+load("//tools:tools.bzl", "create_aliases", "create_compile_commands")
 
-package(default_visibility = ["//:__subpackages__"])
+package(
+    default_visibility = ["//visibility:public"],
+)
 
-alias(
-    name = "format",
-    actual = "//tools:format",
+create_aliases()
+
+create_compile_commands(
+    name = "compile_cc",
+    targets = {
+        "//core/...": "",
+        "//test/...": "",
+        "//support/...": "",
+        "@fastdds": "",
+    },
 )

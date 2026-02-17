@@ -5,6 +5,9 @@ This module provides codegen of FastDDS types from IDL definitions.
 
 """
 
+load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
+load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+
 def _cc_fastdds_types_impl(ctx):
     idls = ctx.files.idl_srcs
     idls_paths = [idl.path for idl in idls]

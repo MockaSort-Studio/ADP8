@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# https://bazel.build/docs/user-manual#running-executables
+cc_file="$BUILD_WORKSPACE_DIRECTORY/compile_commands.json"
+
+if [[ ! -f "$cc_file" ]]; then
+    echo "Error: $cc_file not found"
+    echo "Please run the compile commands generation"
+    exit 1
+fi
+
+sed -i 's|bazel-out/k8-fastbuild/bin|bazel-bin|g' "$cc_file"
+echo "Patched $cc_file successfully"

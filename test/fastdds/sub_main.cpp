@@ -54,6 +54,9 @@ class HelloWorldSubscriber
 
         void on_data_available(DataReader* reader) override
         {
+            std::thread::id this_id = std::this_thread::get_id();
+
+            std::cout << "Thread ID: " << this_id << std::endl;
             SampleInfo info;
             if (reader->take_next_sample(&hello_, &info) ==
                 eprosima::fastdds::dds::RETCODE_OK)
@@ -148,6 +151,9 @@ class HelloWorldSubscriber
     //! Run the Subscriber
     void run(uint32_t samples)
     {
+        std::thread::id this_id = std::this_thread::get_id();
+
+        std::cout << "Main Thread ID: " << this_id << std::endl;
         while (listener_.samples_ < samples)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));

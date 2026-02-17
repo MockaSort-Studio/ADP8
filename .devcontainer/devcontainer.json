@@ -1,18 +1,18 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
-    "name": "C++",
+    "name": "adp8-devcontainer",
+    "initializeCommand": "${localWorkspaceFolder}/.devcontainer/initialize_command.sh",
     "build": {
-        "dockerfile": "./Dockerfile"
+        "dockerfile": "./Dockerfile",
+        "options": [
+            "--network=host"
+        ]
     },
-    "features": {
-        "ghcr.io/balazs23/devcontainers-features/bazel:1": {},
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-        "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {}
-    },
-    "initializeCommand": "mkdir -p ${localEnv:HOME}/.cache && chmod 777 ${localEnv:HOME}/.cache",
     "mounts": [
-        "source=${localEnv:HOME}${localEnv:USERPROFILE}/.cache,target=/home/vscode/.cache,type=bind",
+        "source=${localEnv:HOME}/.cache/bazel,target=/home/vscode/.cache/bazel,type=bind",
+        "source=${localEnv:HOME}/adp8_data,target=/home/vscode/adp8_data,type=bind",
+        "source=/usr/local/share/ca-certificates,target=/usr/local/share/ca-certificates,type=bind",
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind",
     ],
     "containerEnv": {
@@ -22,6 +22,14 @@
         "--network=host",
         "--ipc=host",
     ],
+    "remoteUser": "vscode",
+    "postCreateCommand": "sudo update-ca-certificates",
+    "features": {
+        "ghcr.io/balazs23/devcontainers-features/bazel:1": {},
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1.6.5": {},
+        "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
+        "ghcr.io/devcontainers/features/git-lfs:1": {}
+    },
     "customizations": {
         "vscode": {
             "extensions": [
@@ -31,11 +39,55 @@
                 "akiramiyakoda.cppincludeguard",
                 "ms-python.black-formatter",
                 "eamodio.gitlens",
-                "hediet.vscode-drawio"
-            ]
+                "hediet.vscode-drawio",
+                "ms-azuretools.vscode-containers",
+            ],
+            "settings": {
+                // Editor
+                "editor.detectIndentation": false,
+                "editor.formatOnSave": true,
+                // Language-specific editor overrides
+                "[cpp]": {
+                    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+                },
+                "[python]": {
+                    "editor.defaultFormatter": "ms-python.black-formatter"
+                },
+                "[dockerfile]": {
+                    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
+                },
+                // C/C++ (MS C_Cpp)
+                "C_Cpp.intelliSenseEngine": "disabled",
+                "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+                "C_Cpp.codeAnalysis.runAutomatically": false,
+                "C_Cpp.clang_format_path": "clang-format",
+                "C_Cpp.formatting": "clangFormat",
+                "C/C++ Include Guard.Comment Style": "Line",
+                "C/C++ Include Guard.Macro Type": "Filepath",
+                // C/C++ (clangd)
+                "clangd.path": "clangd",
+                "clangd.checkUpdates": true,
+                "clangd.arguments": [
+                    "--query-driver=**",
+                    "--compile-commands-dir=${workspaceFolder}"
+                ],
+                // Bazel
+                "bazel.buildifierExecutable": "buildifier",
+                "bazel.lsp.command": "starpls",
+            },
+            "tasks": {
+                "version": "2.0.0",
+                "tasks": [
+                    {
+                        "label": "generate compile commands",
+                        "type": "shell",
+                        "command": "bazel run //:compile_cc && bazel run //:compile_cc_fix",
+                        "options": {
+                            "cwd": "${workspaceFolder}"
+                        },
+                    }
+                ]
+            }
         }
-    },
-    "postCreateCommand": "/home/vscode/scripts/bootstrap.sh ${containerWorkspaceFolder}",
-    "updateContentCommand": "/home/vscode/scripts/bootstrap.sh ${containerWorkspaceFolder}",
-    "postStartCommand": "sudo chown -R vscode /workspaces && direnv allow .envrc",
+    }
 }
