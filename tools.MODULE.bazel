@@ -1,22 +1,24 @@
 """
 this makes bazel linter happy
 """
+
 #####################
 #### bazel tools ####
 #####################
-
-bazel_dep(name = "bazel_skylib", version = "1.8.2")
-
-bazel_dep(name = "bazel_env.bzl", version = "0.4.0", dev_dependency = True)
-
-#### buildifier ####
-bazel_dep(
-    name = "buildifier_prebuilt",
-    version = "8.2.0.2",
-    dev_dependency = True,
+# Hedron's Compile Commands Extractor for Bazel
+# https://github.com/hedronvision/bazel-compile-commands-extractor
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    commit = "02d15621b528efd877f5d5657c4b738523a0eb17",
+    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
 )
 
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
 bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
+bazel_dep(name = "aspect_bazel_lib", version = "2.20.0")
+bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "rules_multirun", version = "0.13.0")
 
 #### python linter ####
 pip_tools = use_extension("@rules_python//python/extensions:pip.bzl", "pip")

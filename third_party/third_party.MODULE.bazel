@@ -1,0 +1,20 @@
+"""
+this makes bazel linter happy
+"""
+
+###### FASTDDS and FASTDDS GEN ######
+##
+bazel_dep(name = "fastdds", version = "3.1.1.bcr.1")
+
+##
+bazel_dep(name = "fastcdr", version = "2.2.2")
+bazel_dep(name = "foonathan_memory", version = "0.7.3.bcr.2")
+bazel_dep(name = "tinyxml2", version = "10.0.0")
+bazel_dep(name = "asio", version = "1.32.0")
+bazel_dep(name = "rules_foreign_cc", version = "0.13.0")
+
+###
+bazel_dep(name = "cmake_configure_file", version = "0.1.0")
+
+fastddsgen_ext = use_extension("//:third_party/fastddsgen/extensions.bzl", "fastddsgen")
+use_repo(fastddsgen_ext, "fastddsgen")

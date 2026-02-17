@@ -1,3 +1,8 @@
 brew "bazel-diff"
 brew "llvm@18"
+brew "binutils"
+brew "buildifier"
+brew "ca-certificates"
+brew "ibazel"
+brew "shfmt"
 brew "mkdocs-material"

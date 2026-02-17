@@ -1,24 +1,14 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "run hedron",
+            "label": "gen-compile-commands",
             "type": "shell",
-            "command": "bazel run @hedron_compile_commands//:refresh_all -- --repo_env=BAZEL_CXXOPTS=\"-std=c++17\"",
-            "options": {
-                "cwd": "${workspaceFolder}"
+            "command": "bazel run //:compile_cc && bazel run //:compile_cc_fix",
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
-        },
-        {
-            "label": "fix compile_commands",
-            "type": "shell",
-            "command": "find . -name 'compile_commands.json' -exec sed -i 's|bazel-out/k8-fastbuild/bin|bazel-bin|g' {} +",
-            "options": {
-                "cwd": "${workspaceFolder}",
-            },
-            "dependsOn": "run hedron",
         }
     ]
 }
