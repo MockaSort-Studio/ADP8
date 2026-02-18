@@ -1,5 +1,0 @@
-struct SorcyPorty
-{
-    unsigned long index;
-    string message;
-};

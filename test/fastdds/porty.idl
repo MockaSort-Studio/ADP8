@@ -1,5 +1,0 @@
-struct Porty
-{
-    unsigned long index;
-    string message;
-};
