@@ -74,19 +74,7 @@
                 // Bazel
                 "bazel.buildifierExecutable": "buildifier",
                 "bazel.lsp.command": "starpls",
-            },
-            "tasks": {
-                "version": "2.0.0",
-                "tasks": [
-                    {
-                        "label": "generate compile commands",
-                        "type": "shell",
-                        "command": "bazel run //:compile_cc && bazel run //:compile_cc_fix",
-                        "options": {
-                            "cwd": "${workspaceFolder}"
-                        },
-                    }
-                ]
+                "bazel.buildifierFixOnFormat": true,
             }
         }
     }
