@@ -1,0 +1,4 @@
+struct TestPayload
+{
+    boolean ok;
+};

@@ -1,17 +1,20 @@
 #ifndef CORE_COMMUNICATION_DDS_PUBLISHER
 #define CORE_COMMUNICATION_DDS_PUBLISHER
 
+#include <memory>
+
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
-
 namespace core::communication {
 
+namespace dds = eprosima::fastdds::dds;
+
 namespace {
-class PubListener : public eprosima::fastdds::dds::DataWriterListener
+class PubListener : public dds::DataWriterListener
 {
   public:
     PubListener() : matched_(0) {}
@@ -19,9 +22,10 @@ class PubListener : public eprosima::fastdds::dds::DataWriterListener
     ~PubListener() override {}
 
     void on_publication_matched(
-        eprosima::fastdds::dds::DataWriter*,
-        const eprosima::fastdds::dds::PublicationMatchedStatus& info) override
+        dds::DataWriter*, const dds::PublicationMatchedStatus& info) override
     {
+        matched_count_ = info.current_count;
+
         if (info.current_count_change == 1)
         {
             matched_ = info.total_count;
@@ -40,91 +44,76 @@ class PubListener : public eprosima::fastdds::dds::DataWriterListener
     }
 
     std::atomic_int matched_;
+    std::atomic<int> matched_count_ {0};
 };
 }  // namespace
 
-template <typename TopicType>
+template <typename TopicClass>
 class DDSPublisher
 {
   public:
-    using DDSDataType = typename TopicType::type;
-    using DDSTopic = eprosima::fastdds::dds::Topic;
-    using DDSDataWriter = eprosima::fastdds::dds::DataWriter;
-    using DDSPub = eprosima::fastdds::dds::Publisher;
+    // Reach into the Topic class to get the IDL-generated message type
+    using DDSDataType = typename TopicClass::MsgType;
 
     DDSPublisher(
-        std::string topic_name,
-        std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant)
-        : participant_(participant)
+        std::shared_ptr<TopicClass> topic_handle,
+        std::shared_ptr<dds::DomainParticipant> participant)
+        : topic_handle_(topic_handle), participant_(participant)
     {
-        // type registration on participant, I see it happening once (see comment below)
-        // type_ = std::shared_ptr<eprosima::fastdds::dds::TypeSupport>(new TopicType());
-        auto type = eprosima::fastdds::dds::TypeSupport(new TopicType());
-        type.register_type(participant_.get());
-        std::cout << "DioSerpente" << std::endl;
-        topic_ = std::shared_ptr<DDSTopic>(participant_->create_topic(
-            topic_name, type.get_type_name(), eprosima::fastdds::dds::TOPIC_QOS_DEFAULT));
-        std::cout << "DioSerpente" << std::endl;
-
-        if (topic_.get() == nullptr)
+        if (!topic_handle_.get() || !participant_.get())
         {
-            throw std::runtime_error("Failed to create topic");
+            throw std::runtime_error(
+                "Invalid Topic or Participant provided to Publisher");
         }
-
-        // Create the Publisher
-        pub_ = std::shared_ptr<DDSPub>(participant_->create_publisher(
-            eprosima::fastdds::dds::PUBLISHER_QOS_DEFAULT, nullptr));
-
-        if (pub_.get() == nullptr)
-        {
+        auto* raw_pub =
+            participant_->create_publisher(dds::PUBLISHER_QOS_DEFAULT, nullptr);
+        if (!raw_pub)
             throw std::runtime_error("Failed to create Publisher");
-        }
 
-        // Create the DataWriter
-        writer_ = std::shared_ptr<DDSDataWriter>(pub_->create_datawriter(
-            topic_.get(), eprosima::fastdds::dds::DATAWRITER_QOS_DEFAULT, &listener_));
+        pub_ = std::unique_ptr<dds::Publisher, std::function<void(dds::Publisher*)>>(
+            raw_pub,
+            [part = participant_](dds::Publisher* p)
+            {
+                if (part && p)
+                    part->delete_publisher(p);
+            });
 
-        if (writer_.get() == nullptr)
-        {
+        auto* raw_writer = pub_->create_datawriter(
+            topic_handle_->Get(), dds::DATAWRITER_QOS_DEFAULT, &listener_);
+
+        if (!raw_writer)
             throw std::runtime_error("Failed to create DataWriter");
-        }
-    }
 
-    virtual ~DDSPublisher()
-    {
-        if (writer_.get() != nullptr)
-        {
-            pub_->delete_datawriter(writer_.get());
-        }
-        if (pub_.get() != nullptr)
-        {
-            participant_->delete_publisher(pub_.get());
-        }
-        if (topic_.get() != nullptr)
-        {
-            participant_->delete_topic(topic_.get());
-        }
+        writer_ = std::unique_ptr<dds::DataWriter, std::function<void(dds::DataWriter*)>>(
+            raw_writer,
+            [p = pub_.get()](dds::DataWriter* w)
+            {
+                if (p && w)
+                    p->delete_datawriter(w);
+            });
     }
 
     bool Publish(const DDSDataType& payload)
     {
-        if (listener_.matched_ > 0)
+        if (listener_.matched_count_ > 0)
         {
-            writer_->write(&payload);
-            return true;
+            return writer_->write(const_cast<DDSDataType*>(&payload)) == dds::RETCODE_OK;
         }
         return false;
     }
 
-  private:
-    // I can see an object managing both of it and being shared by different
-    // participant in the domain
-    std::shared_ptr<DDSTopic> topic_;
-    std::shared_ptr<eprosima::fastdds::dds::DomainParticipant> participant_;
+    [[nodiscard]] bool IsMatched() const { return listener_.matched_count_ > 0; }
 
-    std::shared_ptr<DDSDataWriter> writer_;
-    std::shared_ptr<DDSPub> pub_;
+  private:
+    std::shared_ptr<TopicClass> topic_handle_;
+    std::shared_ptr<dds::DomainParticipant> participant_;
+
+    std::unique_ptr<dds::Publisher, std::function<void(dds::Publisher*)>> pub_;
+    std::unique_ptr<dds::DataWriter, std::function<void(dds::DataWriter*)>> writer_;
+
     PubListener listener_;
 };
+template <typename TopicType>
+using DDSPublisherPtr = std::unique_ptr<DDSPublisher<TopicType>>;
 }  // namespace core::communication
 #endif  // CORE_COMMUNICATION_DDS_PUBLISHER
