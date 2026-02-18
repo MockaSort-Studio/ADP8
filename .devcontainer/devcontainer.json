@@ -40,7 +40,7 @@
                 "ms-python.black-formatter",
                 "eamodio.gitlens",
                 "hediet.vscode-drawio",
-                "ms-azuretools.vscode-containers",
+                "ms-azuretools.vscode-containers"
             ],
             "settings": {
                 // Editor
@@ -74,7 +74,7 @@
                 // Bazel
                 "bazel.buildifierExecutable": "buildifier",
                 "bazel.lsp.command": "starpls",
-                "bazel.buildifierFixOnFormat": true,
+                "bazel.buildifierFixOnFormat": true
             }
         }
     }
