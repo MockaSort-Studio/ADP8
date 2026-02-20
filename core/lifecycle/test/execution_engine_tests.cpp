@@ -3,8 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/lifecycle/execution_engine.hpp"  // Assuming your file name
-
+#include "core/lifecycle/execution_engine.hpp"
 namespace core::lifecycle {
 using namespace std::chrono_literals;
 
@@ -16,11 +15,7 @@ TEST(ExecutionEngineTest, PeriodicExecutionCount)
     std::atomic<int> count_5ms {0};
     std::atomic<int> count_20ms {0};
 
-    // Define the 5ms heartbeat
-    // Use a pointer/std::function wrapper so the lambda can capture itself
     std::function<void()> pulse_5ms = [&]() { count_5ms++; };
-
-    // Define the 20ms heartbeat
     std::function<void()> pulse_20ms = [&]() { count_20ms++; };
 
     // Kick them off
@@ -38,9 +33,6 @@ TEST(ExecutionEngineTest, PeriodicExecutionCount)
     // isn't hard real-time, but it should be very close.
     EXPECT_GE(count_5ms.load(), 19);
     EXPECT_GE(count_20ms.load(), 4);
-
-    std::cout << "5ms task ran: " << count_5ms.load() << " times" << std::endl;
-    std::cout << "20ms task ran: " << count_20ms.load() << " times" << std::endl;
 }
 
 TEST(ExecutionEngineTest, StopBreaksPeriodicChain)
@@ -50,11 +42,10 @@ TEST(ExecutionEngineTest, StopBreaksPeriodicChain)
 
     std::atomic<int> count {0};
 
-    // Schedule a very fast task
     engine.Schedule(1ms, [&]() { count++; });
 
     std::this_thread::sleep_for(10ms);
-    engine.Stop();  // This clears the queue and sets running_ = false
+    engine.Stop();
 
     int count_after_stop = count.load();
 
@@ -71,9 +62,8 @@ TEST(ExecutionEngineTest, PeriodicTaskResilience)
     engine.Start();
     engine.Schedule(5ms, [&]() { throw std::runtime_error("First run failure"); });
 
-    // Wait a bit more to ensure task run
     std::this_thread::sleep_for(10ms);
-    // after failure task is popped forever
+
     EXPECT_EQ(engine.TaskQueueSize(), 0);
 }
 
