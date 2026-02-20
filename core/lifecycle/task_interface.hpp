@@ -1,5 +1,5 @@
-#ifndef CORE_TASK_INTERFACE
-#define CORE_TASK_INTERFACE
+#ifndef CORE_LIFECYCLE_TASK_INTERFACE
+#define CORE_LIFECYCLE_TASK_INTERFACE
 
 #include <chrono>
 #include <cstdint>
@@ -66,4 +66,4 @@ class TaskInterface : public rclcpp::Node
     std::vector<rclcpp::SubscriptionBase::SharedPtr> subscribers_;
 };
 }  // namespace sert::core
-#endif  // CORE_TASK_INTERFACE
+#endif  // CORE_LIFECYCLE_TASK_INTERFACE

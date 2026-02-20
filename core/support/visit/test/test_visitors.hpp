@@ -1,14 +1,14 @@
-#ifndef SUPPORT_VISIT_TEST_TEST_VISITORS
-#define SUPPORT_VISIT_TEST_TEST_VISITORS
+#ifndef CORE_SUPPORT_VISIT_TEST_TEST_VISITORS
+#define CORE_SUPPORT_VISIT_TEST_TEST_VISITORS
 
 #include <iostream>
 #include <vector>
 
-#include "support/visit/visitor_base.hpp"
+#include "core/support/visit/visitor_base.hpp"
 
-namespace sert::test {
+namespace core::visit {
 
-struct SimpleVisitor final : public sert::support::VisitorBase<SimpleVisitor>
+struct SimpleVisitor final : public VisitorBase<SimpleVisitor>
 {
     template <typename T>
     void visit(std::string_view name, const T& value)
@@ -39,7 +39,7 @@ struct SimpleVisitor final : public sert::support::VisitorBase<SimpleVisitor>
     std::pair<std::string_view, std::string> s_result {};
 };
 
-struct NestedVisitor final : public sert::support::VisitorBase<NestedVisitor>
+struct NestedVisitor final : public VisitorBase<NestedVisitor>
 {
     template <typename T>
     void visit(std::string_view name, const T& value)
@@ -98,6 +98,6 @@ struct NestedVisitor final : public sert::support::VisitorBase<NestedVisitor>
     bool in_nested {false};
 };
 
-}  // namespace sert::test
+}  // namespace core::visit
 
-#endif  // SUPPORT_VISIT_TEST_TEST_VISITORS
+#endif  // CORE_SUPPORT_VISIT_TEST_TEST_VISITORS

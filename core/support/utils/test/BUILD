@@ -4,7 +4,7 @@ cc_test(
     name = "lookup_table_tests",
     srcs = ["lookup_table_tests.cpp"],
     deps = [
-        "//support:utils",
+        "//core/support/utils",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],

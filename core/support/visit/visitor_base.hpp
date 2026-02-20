@@ -1,11 +1,11 @@
-#ifndef SUPPORT_VISIT_VISITOR_BASE
-#define SUPPORT_VISIT_VISITOR_BASE
+#ifndef CORE_SUPPORT_VISIT_VISITOR_BASE
+#define CORE_SUPPORT_VISIT_VISITOR_BASE
 
 #include <stdexcept>
 #include <string_view>
 #include <type_traits>
 
-namespace sert::support {
+namespace core::visit {
 
 /**
  * \addtogroup support Support
@@ -127,5 +127,5 @@ class VisitorBase
 ///@}
 ///@}
 
-}  // namespace sert::support
-#endif  // SUPPORT_VISIT_VISITOR_BASE
+}  // namespace core::visit
+#endif  // CORE_SUPPORT_VISIT_VISITOR_BASE

@@ -1,5 +1,7 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
+package(default_visibility = ["//core:__subpackages__"])
+
 cc_library(
     name = "visitable",
     srcs = [
@@ -10,7 +12,6 @@ cc_library(
         "property.hpp",
         "visitable.hpp",
     ],
-    visibility = ["//visibility:public"],
     deps = [],
 )
 
@@ -22,6 +23,5 @@ cc_library(
     hdrs = [
         "visitor_base.hpp",
     ],
-    visibility = ["//visibility:public"],
     deps = [],
 )

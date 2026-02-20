@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace sert::support {
+namespace core::visit {
 
 /**
  * \addtogroup support Support
@@ -141,5 +141,5 @@ constexpr inline auto visitable(Properties&&... p)
 ///@}
 ///@}
 
-}  // namespace sert::support
+}  // namespace core::visit
 #endif  // SUPPORT_VISIT_VISITABLE

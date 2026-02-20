@@ -35,9 +35,6 @@ class SizeConstrainedQueue
 
         std::lock_guard<std::mutex> lock(mtx_);
 
-        // std::forward "casts" message back to whatever it was originally.
-        // If the user called push(std::move(msg)), it moves.
-        // If the user called push(msg), it copies (if allowed).
         buffer_[head_] = {Clock::now(), std::forward<U>(message)};
 
         head_ = (head_ + 1) % N;
