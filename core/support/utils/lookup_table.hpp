@@ -1,30 +1,26 @@
 #ifndef CORE_SUPPORT_UTILS_LOOKUP_TABLE
 #define CORE_SUPPORT_UTILS_LOOKUP_TABLE
 
-#include <stdexcept>
 #include <tuple>
+#include <type_traits>
+#include <utility>
 
 namespace core::utils {
 
-template <bool...>
-struct bool_pack;
+template <typename T>
+struct single_type_extractor;
 
-template <std::size_t I, bool B, bool... Bs>
-struct find_true : std::conditional_t<
-                       B,
-                       std::integral_constant<std::size_t, I>,
-                       find_true<I + 1, Bs...>>
+template <typename T>
+struct single_type_extractor<std::tuple<T>>
 {
+    using type = T;
 };
 
-template <std::size_t I, bool B>
-struct find_true<I, B> : std::integral_constant<
-                             std::size_t,
-                             B ? I : throw std::logic_error("No true value found")>
+template <typename... Ts>
+struct single_type_extractor<std::tuple<Ts...>>
 {
+    using type = std::tuple<Ts...>;
 };
-
-struct UnusedValue;
 
 template <typename KeyType, typename... ValueTypes>
 struct TableItem
@@ -32,61 +28,40 @@ struct TableItem
     using Key = KeyType;
     using Values = std::tuple<ValueTypes...>;
 
-    template <typename Func, std::size_t... Is>
-    static constexpr void for_each_in_table_element_impl(
-        Func&& func, std::index_sequence<Is...>)
-    {
-        (func(std::get<Is>(Values {})), ...);
-    }
-
     template <typename Func>
     static constexpr void for_each_in_table_element(Func&& func)
     {
-        for_each_in_table_element_impl(
-            std::forward<Func>(func),
-            std::make_index_sequence<std::tuple_size_v<Values>> {});
+        std::apply(
+            [&func](auto&&... args) { (func(std::forward<decltype(args)>(args)), ...); },
+            Values {});
     }
-};
-
-template <typename T>
-struct single_type_extractor;
-
-// Specialization for tuple with one type
-template <typename T>
-struct single_type_extractor<std::tuple<T>>
-{
-    using type = T;
-};
-
-// General case for tuple
-template <typename... Ts>
-struct single_type_extractor<std::tuple<Ts...>>
-{
-    using type = std::tuple<Ts...>;
 };
 
 template <typename... TableElements>
 struct LookupTable
 {
+    template <typename TargetKey>
+    static constexpr std::size_t count_key_v =
+        (0 + ... + (std::is_same_v<TargetKey, typename TableElements::Key> ? 1 : 0));
+
+    static_assert(
+        ((count_key_v<typename TableElements::Key> == 1) && ...),
+        "LookupTable Error: Duplicate keys detected! Keys must be unique.");
+    // ----------------------------------------------
+
     template <typename Key>
     struct get_type
     {
-        template <typename Pair>
-        struct is_key
-        {
-            static constexpr bool value = std::is_same_v<typename Pair::Key, Key>;
-        };
+        template <typename Element>
+        using extract_match = std::conditional_t<
+            std::is_same_v<typename Element::Key, Key>,
+            typename Element::Values,
+            std::tuple<>>;
 
-        template <std::size_t... Is>
-        static auto find_type(std::index_sequence<Is...>) ->
-            typename single_type_extractor<decltype(std::tuple_cat(
-                std::conditional_t<
-                    is_key<std::tuple_element_t<Is, std::tuple<TableElements...>>>::value,
-                    typename std::tuple_element_t<Is, std::tuple<TableElements...>>::
-                        Values,
-                    std::tuple<>>()...))>::type;
+        using matched_tuple =
+            decltype(std::tuple_cat(std::declval<extract_match<TableElements>>()...));
 
-        using type = decltype(find_type(std::index_sequence_for<TableElements...> {}));
+        using type = typename single_type_extractor<matched_tuple>::type;
     };
 
     template <typename Func>
@@ -96,5 +71,4 @@ struct LookupTable
     }
 };
 }  // namespace core::utils
-
 #endif  // CORE_SUPPORT_UTILS_LOOKUP_TABLE

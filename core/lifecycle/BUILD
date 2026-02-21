@@ -15,7 +15,10 @@ cc_library(
 
 cc_library(
     name = "dds",
-    hdrs = ["dds_task.hpp"],
+    hdrs = [
+        "dds_application.hpp",
+        "dds_task.hpp",
+    ],
     deps = [
         ":lifecycle",
         "//core/communication:dds",

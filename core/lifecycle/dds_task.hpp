@@ -9,6 +9,8 @@ namespace core::lifecycle {
 
 // TaskChain = LookupTable<PippoTask, 10ms>
 // PippoTaskPubSub = tuple<Subscribers, Publisher>
+// AllTopics = MagiaNeraAummaAumma<PippoTaskPubSub, DioCaneTaskPubSub>
+// DDSProvider<AllTopics>
 // pippo:
 //  - frequency_ms: 10ms
 //  - subscribers:
@@ -22,6 +24,8 @@ namespace core::lifecycle {
 
 // Subscribers = tuple<DDSPublisher/DDSSubscribner<PorcoddioTopic>, PippoTopic>
 // class PippoTask : public DDSTask<PippoTaskPubSub>
+//  public:
+//
 class DDSTask : public TaskInterface
 {
   public:
@@ -41,6 +45,7 @@ class DDSTask : public TaskInterface
 
   private:
     // DDSSubscriber<Ticks, 10>
+    // DDSProvider.GetTopic<DDSSubscriber<Ticks, 10>::TopicType> ===== oggetto topic
     // input_ (tuple(DDSSubscriber<Ticks, 10>, SizeConstrainedQueue<TicksMessages,10>),
     // output_ (tuple(DDSPublisher<PorcoDiddio>, PorcoDiddioMessages),
     // .......)
