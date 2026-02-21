@@ -18,7 +18,6 @@ TEST(ExecutionEngineTest, PeriodicExecutionCount)
     std::function<void()> pulse_5ms = [&]() { count_5ms++; };
     std::function<void()> pulse_20ms = [&]() { count_20ms++; };
 
-    // Kick them off
     engine.Schedule(5ms, pulse_5ms);
     engine.Schedule(20ms, pulse_20ms);
 
@@ -30,7 +29,6 @@ TEST(ExecutionEngineTest, PeriodicExecutionCount)
     // 100ms / 5ms = 20 executions
     // 100ms / 20ms = 5 executions
     // We allow for a small margin (e.g., +/- 1) because OS scheduling
-    // isn't hard real-time, but it should be very close.
     EXPECT_GE(count_5ms.load(), 19);
     EXPECT_GE(count_20ms.load(), 4);
 }

@@ -1,6 +1,6 @@
-#include "core/communication/size_constrained_queue.hpp"
+#include "core/support/utils/size_constrained_queue.hpp"
 
-#include <memory>  // for std::unique_ptr
+#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -10,7 +10,7 @@
 class MessageQueueFixture : public ::testing::Test
 {
   protected:
-    core::communication::SizeConstrainedQueue<std::string, 3> queue;
+    core::utils::SizeConstrainedQueue<std::string, 3> queue;
 };
 
 // 1. Test basic Push and Pop (LIFO behavior)
@@ -78,7 +78,7 @@ TEST_F(MessageQueueFixture, EmptyTest)
 // 5.Test Perfect Forwarding with Move-Only Types
 TEST(MessageQueueMoveOnly, HandlesUniquePtr)
 {
-    core::communication::SizeConstrainedQueue<std::unique_ptr<int>, 2> move_queue;
+    core::utils::SizeConstrainedQueue<std::unique_ptr<int>, 2> move_queue;
 
     auto ptr = std::make_unique<int>(100);
 

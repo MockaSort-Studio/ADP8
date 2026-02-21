@@ -18,16 +18,6 @@ cc_test(
 )
 
 cc_test(
-    name = "size_constrained_queue_test",
-    srcs = ["size_constrained_queue_test.cpp"],
-    deps = [
-        "//core/communication:dds",
-        "@googletest//:gtest",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
     name = "dds_topic_test",
     srcs = ["dds_topic_test.cpp"],
     deps = [

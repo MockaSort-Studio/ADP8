@@ -22,3 +22,6 @@ class TaskInterface
 
 }  // namespace core::lifecycle
 #endif  // CORE_LIFECYCLE_TASK_INTERFACE
+
+// DDSTask : TaskInterface -> PippoAlg : public DDSTask
+//  |--> Publisher e Subscribers

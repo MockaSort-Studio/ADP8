@@ -23,7 +23,7 @@ class TasksManager final
 
         engine_->Start();
     }
-    ~TasksManager() = default;
+    ~TasksManager() { engine_->Stop(); }
 
     TasksManager(const TasksManager&) = delete;
     TasksManager& operator=(const TasksManager&) = delete;

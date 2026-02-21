@@ -9,3 +9,13 @@ cc_test(
         "@googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "size_constrained_queue_test",
+    srcs = ["size_constrained_queue_test.cpp"],
+    deps = [
+        "//core/support/utils",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)

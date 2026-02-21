@@ -9,7 +9,9 @@ cc_library(
         "dds_publisher.hpp",
         "dds_subscriber.hpp",
         "dds_topic.hpp",
-        "size_constrained_queue.hpp",
     ],
-    deps = ["@fastdds"],
+    deps = [
+        "//core/support/utils",
+        "@fastdds",
+    ],
 )
