@@ -1,0 +1,93 @@
+#ifndef CORE_LIFECYCLE_TEST_LIFECYCLE_FIXTURE
+#define CORE_LIFECYCLE_TEST_LIFECYCLE_FIXTURE
+#include <gtest/gtest.h>
+
+#include "core/communication/dds_context.hpp"
+#include "core/lifecycle/dds_application.hpp"
+#include "core/lifecycle/dds_task.hpp"
+#include "core/support/utils/lookup_table.hpp"
+#include "TestPubSubTypes.hpp"  //Need to look on how to ma
+
+namespace core::communication {
+template <>
+const char* communication::ImAString<TestPayloadPubSubType>::string()
+{
+    return "TestTopic";
+}
+}  // namespace core::communication
+namespace core::lifecycle {
+static std::atomic<int> mock_task_1_count {0};
+static std::atomic<int> mock_task_2_count {0};
+
+class MockTask1 : public TaskInterface
+{
+  public:
+    using TaskInterface::TaskInterface;
+    void ExecuteStep() override { mock_task_1_count++; }
+};
+
+class MockTask2 : public TaskInterface
+{
+  public:
+    using TaskInterface::TaskInterface;
+    void ExecuteStep() override { mock_task_2_count++; }
+};
+
+using TestTopicSubsList = TopicList<communication::TopicSpec<TestPayloadPubSubType, 2>>;
+using TestTopicPubsList = TopicList<communication::TopicSpec<TestPayloadPubSubType>>;
+using TestApplicationConfig = core::utils::LookupTable<
+    core::utils::TableItem<
+        TaskSpec<MockTask1, 10>,
+        std::tuple<int, float, float>,
+        std::tuple<bool, double, char>>,
+    core::utils::TableItem<
+        TaskSpec<MockTask2, 20>,
+        std::tuple<int, float, float>,
+        std::tuple<bool, double, char>>>;
+
+class LifecycleFixture : public ::testing::TestWithParam<int>
+{
+  protected:
+    void SetUp() override
+    {
+        detail::shutdown_requested.store(false);
+
+        mock_task_1_count.store(0);
+        mock_task_2_count.store(0);
+    }
+
+    void TearDown() override
+    {
+        if (killer_thread_.joinable())
+        {
+            killer_thread_.join();
+        }
+    }
+
+    // simulating shutdown caused by OS signals
+    void ScheduleShutdown(std::chrono::milliseconds delay, int sig_type)
+    {
+        if (sig_type != SIGTERM && sig_type != SIGINT)
+        {
+            throw std::runtime_error(
+                "only SIGINT(2) and SIGTERM(15) suported at the moment");
+        }
+
+        killer_thread_ = std::thread(
+            [delay, sig_type]()
+            {
+                std::this_thread::sleep_for(delay);
+                std::raise(sig_type);
+            });
+
+        killer_thread_.detach();
+    }
+
+    core::lifecycle::TasksManager manager_;
+    core::lifecycle::DDSAPPlication<TestApplicationConfig> app_ {
+        "test_dds_domain_participant"};
+    std::thread killer_thread_;
+};
+}  // namespace core::lifecycle
+
+#endif  // CORE_LIFECYCLE_TEST_LIFECYCLE_FIXTURE

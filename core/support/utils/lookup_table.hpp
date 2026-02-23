@@ -70,5 +70,12 @@ struct LookupTable
         (func(TableElements {}), ...);
     }
 };
+
+template <typename T>
+constexpr bool is_lookup_table_v = false;
+
+template <typename... Args>
+constexpr bool is_lookup_table_v<LookupTable<Args...>> = true;
+
 }  // namespace core::utils
 #endif  // CORE_SUPPORT_UTILS_LOOKUP_TABLE

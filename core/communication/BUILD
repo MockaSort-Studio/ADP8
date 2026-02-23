@@ -6,9 +6,9 @@ cc_library(
     name = "dds",
     srcs = [],
     hdrs = [
+        "dds_context.hpp",
         "dds_publisher.hpp",
         "dds_subscriber.hpp",
-        "dds_topic.hpp",
     ],
     deps = [
         "//core/support/utils",

@@ -1,3 +1,4 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 cc_test(
@@ -14,7 +15,37 @@ cc_test(
     name = "task_manager_tests",
     srcs = ["task_manager_tests.cpp"],
     deps = [
+        ":lifecycle_fixture",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "dds_application_tests",
+    srcs = ["dds_application_tests.cpp"],
+    deps = [
+        ":lifecycle_fixture",
+    ],
+)
+
+cc_test(
+    name = "dds_task_tests",
+    srcs = ["dds_task_tests.cpp"],
+    deps = [
+        ":lifecycle_fixture",
+    ],
+)
+
+cc_library(
+    name = "lifecycle_fixture",
+    testonly = True,
+    srcs = [],
+    hdrs = ["lifecycle_fixture.hpp"],
+    deps = [
+        "//core/communication/test:test_dds_types",
         "//core/lifecycle",
+        "//core/lifecycle:dds",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
