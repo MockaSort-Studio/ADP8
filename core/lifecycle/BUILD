@@ -22,5 +22,7 @@ cc_library(
     deps = [
         ":lifecycle",
         "//core/communication:dds",
+        "//core/support/utils",
+        "@boost.core",
     ],
 )

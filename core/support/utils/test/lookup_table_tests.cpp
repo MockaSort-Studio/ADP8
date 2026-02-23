@@ -1,6 +1,7 @@
 #include <set>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <typeinfo>
 #include <vector>
 
@@ -9,14 +10,13 @@
 #include "core/support/utils/lookup_table.hpp"
 
 namespace core::utils {
+using TestTable = LookupTable<
+    TableItem<int, std::string>,
+    TableItem<float, double, bool, int>,
+    TableItem<char, uint32_t>>;
 
 TEST(LookupTableTest, GivenUniqueElementsCorrectTypeExtracted)
 {
-    using TestTable = LookupTable<
-        TableItem<int, std::string>,
-        TableItem<float, double, bool, int>,
-        TableItem<char, uint32_t>>;
-
     // When
     using CorrectSingleItem = TestTable::get_type<int>::type;
 
@@ -30,10 +30,20 @@ TEST(LookupTableTest, GivenUniqueElementsCorrectTypeExtracted)
     ASSERT_TRUE((std::is_same_v<std::tuple<double, bool, int>, CorrectMultipleItem>));
 }
 
+TEST(LookupTableTest, IsLookupTableTest)
+{
+    ASSERT_TRUE(is_lookup_table_v<TestTable>);
+
+    using FakeTable = std::tuple<double, bool, int>;
+    ASSERT_FALSE((is_lookup_table_v<FakeTable>));
+}
+
 TEST(TableElementTest, ForEachInTableElement)
 {
     using Element = TableItem<int, double, const char*>;
     std::vector<std::string> results;
+
+    ASSERT_TRUE((std::is_same_v<Element::Values, std::tuple<double, const char*>>));
 
     Element::for_each_in_table_element(
         [&results](const auto& value)

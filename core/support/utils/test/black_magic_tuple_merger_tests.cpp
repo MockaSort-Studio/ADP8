@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "core/support/utils/black_magic_tuple_merger.hpp"
+
 namespace core::utils {
 
 TEST(BlackMagicMergerTest, MergeUniqueTuples)

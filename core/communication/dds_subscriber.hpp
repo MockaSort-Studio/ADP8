@@ -12,6 +12,7 @@
 #include <fastdds/dds/subscriber/Subscriber.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
+#include "core/communication/dds_context.hpp"
 #include "core/support/utils/size_constrained_queue.hpp"
 namespace core::communication {
 namespace dds = eprosima::fastdds::dds;
@@ -79,23 +80,25 @@ class SubListener : public dds::DataReaderListener
 };
 }  // namespace
 
-template <typename TopicClass, std::size_t QueueSize = 1>
+template <typename PubSubType, std::size_t QueueSize = 1>
 class DDSSubscriber
 {
+    static_assert(
+        std::is_base_of_v<dds::TopicDataType, PubSubType>,
+        "PubSubType must be derived from eprosima::fastdds::dds::TopicDataType");
+
   public:
-    using DDSDataType = typename TopicClass::MsgType;
+    using DDSDataType = typename PubSubType::type;
     using DDSListener = SubListener<DDSDataType, QueueSize>;
 
-    DDSSubscriber(
-        std::shared_ptr<TopicClass> topic_handle,
-        std::shared_ptr<dds::DomainParticipant> participant)
-        : topic_handle_(topic_handle), participant_(participant)
+    DDSSubscriber() = default;
+
+    void Start(const std::string& topic_name)
     {
-        if (!topic_handle_.get() || !participant_.get())
-        {
-            throw std::runtime_error(
-                "Invalid Topic or Participant provided to Subscriber");
-        }
+        // we store a pointer to participant for lifecycle mgmt of subscriber and data
+        // reader
+        auto& ctx = DDSContextProvider::Get();
+        participant_ = ctx.GetDomainParticipant();
 
         auto* raw_sub =
             participant_->create_subscriber(dds::SUBSCRIBER_QOS_DEFAULT, nullptr);
@@ -111,7 +114,9 @@ class DDSSubscriber
             });
 
         auto* raw_reader = sub_->create_datareader(
-            topic_handle_->Get(), dds::DATAREADER_QOS_DEFAULT, &listener_);
+            ctx.GetDDSTopic<PubSubType>(topic_name),
+            dds::DATAREADER_QOS_DEFAULT,
+            &listener_);
 
         if (!raw_reader)
             throw std::runtime_error("Failed to create DataReader");
@@ -124,7 +129,6 @@ class DDSSubscriber
                     s->delete_datareader(r);
             });
     }
-
     ~DDSSubscriber() = default;
 
     [[nodiscard]] bool IsMatched() const { return listener_.matched_count_ > 0; }
@@ -132,7 +136,6 @@ class DDSSubscriber
     std::optional<DDSDataType> GetSample() { return std::move(listener_.GetSample()); }
 
   private:
-    std::shared_ptr<TopicClass> topic_handle_;
     std::shared_ptr<dds::DomainParticipant> participant_;
 
     std::unique_ptr<dds::Subscriber, std::function<void(dds::Subscriber*)>> sub_;

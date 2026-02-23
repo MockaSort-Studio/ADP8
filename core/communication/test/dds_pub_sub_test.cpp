@@ -3,9 +3,9 @@
 
 #include <gtest/gtest.h>
 
+#include "core/communication/dds_context.hpp"
 #include "core/communication/dds_publisher.hpp"
 #include "core/communication/dds_subscriber.hpp"
-#include "core/communication/dds_topic.hpp"
 #include "TestPubSubTypes.hpp"
 
 using namespace std::chrono_literals;
@@ -16,11 +16,18 @@ namespace dds = eprosima::fastdds::dds;
 class FastDDSPubSubFixture : public ::testing::Test
 {
     using DomainParticipantPtr = std::shared_ptr<dds::DomainParticipant>;
-    using TopicType = core::communication::DDSTopic<TestPayloadPubSubType>;
-    using Pub = core::communication::DDSPublisher<TopicType>;
-    using Sub = core::communication::DDSSubscriber<TopicType>;
+    using Pub = core::communication::DDSPublisher<TestPayloadPubSubType>;
+    using Sub = core::communication::DDSSubscriber<TestPayloadPubSubType>;
 
   public:
+    FastDDSPubSubFixture()
+    {
+        pub_ = std::make_unique<Pub>();
+        sub_ = std::make_unique<Sub>();
+
+        pub_->Start("TestTopic");
+        sub_->Start("TestTopic");
+    }
     bool WaitForMatch(std::chrono::milliseconds timeout)
     {
         std::mutex mtx;
@@ -33,30 +40,8 @@ class FastDDSPubSubFixture : public ::testing::Test
     }
 
   protected:
-    void SetUp() override
-    {
-        dds::DomainParticipantQos participantQos;
-        participantQos.name("FastDDSPubSubFixture");
-        participant_ = std::shared_ptr<dds::DomainParticipant>(
-            dds::DomainParticipantFactory::get_instance()->create_participant(
-                0, participantQos));
-        topic_ = std::make_shared<TopicType>(participant_, "TestTopic");
-        pub_ = std::make_unique<Pub>(topic_, participant_);
-        sub_ = std::make_unique<Sub>(topic_, participant_);
-    }
-
-    void TearDown() override
-    {
-        pub_.reset();
-        sub_.reset();
-        dds::DomainParticipantFactory::get_instance()->delete_participant(
-            participant_.get());
-    }
-
     std::unique_ptr<Pub> pub_;
     std::unique_ptr<Sub> sub_;
-    std::shared_ptr<TopicType> topic_;
-    DomainParticipantPtr participant_;
 };
 }  // namespace
 TEST_F(FastDDSPubSubFixture, DiscoverySuccessAsync)
