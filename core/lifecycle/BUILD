@@ -16,10 +16,11 @@ cc_library(
 cc_library(
     name = "dds",
     hdrs = [
+        "data_endpoint.hpp",
         "dds_application.hpp",
         "dds_task.hpp",
-        "input.hpp",
-        "output.hpp",
+        "input_source.hpp",
+        "output_sink.hpp",
         "type_traits.hpp",
     ],
     deps = [
