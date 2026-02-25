@@ -69,10 +69,9 @@ class DDSAPPlication final
             [&manager](auto type)
             {
                 using TaskSpec = typename decltype(type)::Key;
-                using Values = typename decltype(type)::Values;
+                // using Values = typename decltype(type)::Values;
                 // Static assert values size
-                using Pubs = std::tuple_element_t<0, Values>;
-                using Subs = std::tuple_element_t<1, Values>;
+
                 static_assert(
                     is_task_spec_v<TaskSpec>,
                     "Key of LookupTable must be a TaskSpec: "

@@ -37,6 +37,14 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "input_output_tests",
+    srcs = ["input_output_tests.cpp"],
+    deps = [
+        ":lifecycle_fixture",
+    ],
+)
+
 cc_library(
     name = "lifecycle_fixture",
     testonly = True,

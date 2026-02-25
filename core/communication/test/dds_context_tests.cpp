@@ -12,6 +12,7 @@ class DDSContextTest : public ::testing::Test
     void SetUp() override {}
     DDSContext context_ {"test_domain_participant"};
 };
+
 inline constexpr char kTestTopicName[] = "Topic";
 
 TEST_F(DDSContextTest, SuccessfulInitialization)

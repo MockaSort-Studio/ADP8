@@ -18,6 +18,9 @@ cc_library(
     hdrs = [
         "dds_application.hpp",
         "dds_task.hpp",
+        "input.hpp",
+        "output.hpp",
+        "type_traits.hpp",
     ],
     deps = [
         ":lifecycle",

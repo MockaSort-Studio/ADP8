@@ -6,6 +6,7 @@ cc_library(
     name = "dds",
     srcs = [],
     hdrs = [
+        "topic_spec.hpp",
         "dds_context.hpp",
         "dds_publisher.hpp",
         "dds_subscriber.hpp",

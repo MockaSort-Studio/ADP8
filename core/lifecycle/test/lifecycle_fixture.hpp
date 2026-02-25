@@ -25,14 +25,15 @@ class MockTask2 : public TaskInterface
     using TaskInterface::TaskInterface;
     void ExecuteStep() override { mock_task_2_count++; }
 };
-// Testapplication config - LookupTable<TableItem<DDSTask<Pusb,Subs>, Xms>>
-// Pubs = tuple<TopicSpecs...>
-inline constexpr char kTestTopicName[] = "Topic";
 
-using TestTopicSubsList =
-    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName, 2>>;
-using TestTopicPubsList =
-    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>>;
+inline constexpr char kTestTopicName[] = "Topic";
+inline constexpr char kDifferentTopicName[] = "DifferentTopic";
+using TestTopicSubsList = TopicList<
+    communication::TopicSpec<TestPayloadPubSubType, kTestTopicName, 2>,
+    communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName, 2>>;
+using TestTopicPubsList = TopicList<
+    communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>,
+    communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>>;
 using TestApplicationConfig = core::utils::LookupTable<
     core::utils::TableItem<
         TaskSpec<MockTask1, 10>,

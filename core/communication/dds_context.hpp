@@ -11,41 +11,10 @@
 #include <fastdds/dds/topic/Topic.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
+#include "core/communication/topic_spec.hpp"
 namespace core::communication {
 
 namespace dds = eprosima::fastdds::dds;
-
-constexpr uint64_t Hash(const char* str)
-{
-    uint64_t h = 0xcbf29ce484222325;
-    while (*str)
-    {
-        h = (h ^ static_cast<uint64_t>(*str++)) * 0x100000001b3;
-    }
-    return h;
-}
-
-template <typename T, const char* TopicName, size_t max_queue_size = 0>
-struct TopicSpec
-{
-    using type = T;
-    static constexpr uint64_t kHash {Hash(TopicName)};
-    static constexpr const char* kName {TopicName};
-    static constexpr size_t kQueueSize {max_queue_size};
-};
-
-template <typename T>
-struct is_topic_spec : std::false_type
-{
-};
-
-template <typename T, const char* TopicName, size_t Q>
-struct is_topic_spec<TopicSpec<T, TopicName, Q>> : std::true_type
-{
-};
-
-template <typename T>
-inline constexpr bool is_topic_spec_v = is_topic_spec<T>::value;
 
 class DDSContext
 {
