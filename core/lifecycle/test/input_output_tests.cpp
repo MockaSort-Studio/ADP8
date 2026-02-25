@@ -1,3 +1,4 @@
+#include <thread>
 #include <tuple>
 
 #include "core/lifecycle/input.hpp"
@@ -44,4 +45,25 @@ TEST(TestInputOutput, SameTypeSpecializedWithDifferentTopic)
     EXPECT_EQ(output_2.kHash, Hash(kDifferentTopicName));
 }
 
+TEST(TestInputOutput, TestSetGet)
+{
+    TestInputs inputs;
+    TestOutputs outputs;
+
+    auto& producer = get<kTestTopicName>(outputs);
+    auto& consumer = get<kTestTopicName>(inputs);
+
+    TestPayload payload;
+    payload.ok(true);
+    producer.Set(std::move(payload));
+    producer.Flush();
+
+    std::this_thread::sleep_for(20ms);
+
+    consumer.Fill();
+    auto response = consumer.Get();
+
+    ASSERT_TRUE(response.has_value());
+    EXPECT_TRUE(response.value().data.ok());
+}
 }  // namespace core::lifecycle
