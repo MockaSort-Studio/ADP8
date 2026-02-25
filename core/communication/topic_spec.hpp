@@ -7,7 +7,7 @@
 
 namespace core::communication {
 
-template <typename T, const char* TopicName, size_t max_queue_size = 0>
+template <typename T, const char* TopicName, size_t max_queue_size = 1>
 struct TopicSpec
 {
     using type = T;

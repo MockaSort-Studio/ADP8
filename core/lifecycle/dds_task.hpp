@@ -1,8 +1,11 @@
 #ifndef CORE_LIFECYCLE_DDS_TASK
 #define CORE_LIFECYCLE_DDS_TASK
 
-#include "core/lifecycle/input.hpp"
-#include "core/lifecycle/output.hpp"
+// #include "core/lifecycle/input.hpp"
+// #include "core/lifecycle/output.hpp"
+#include "core/lifecycle/data_endpoint.hpp"
+#include "core/lifecycle/input_source.hpp"
+#include "core/lifecycle/output_sink.hpp"
 #include "core/lifecycle/task_interface.hpp"
 namespace core::lifecycle {
 
@@ -27,28 +30,27 @@ class DDSTask : public TaskInterface
     virtual void Execute() = 0;
     virtual void Init() {}
 
-    // aggressivily unrolling loops at compile time (inline and noexcept)
-    // this return std::optional<Sample<T>>
+    // // this return std::optional<Sample<T>>
     template <const char* TopicName>
-    inline auto GetInput() noexcept
+    inline auto GetInputSource() noexcept
     {
-        return get<TopicName>(inputs_).Get();
+        return InputSource {get<TopicName>(inputs_)};
     }
 
-    template <typename Type, const char* TopicName>
-    inline void SetOutput(Type&& output) noexcept
+    template <const char* TopicName>
+    inline auto GetOutputSink() noexcept
     {
-        get<TopicName>(outputs_).Set(std::forward<Type>(output));
+        OutputSink {get<TopicName>(outputs_)};
     }
 
   private:
     inline void FillInputs() noexcept
     {
-        std::apply([](auto&... input) constexpr { (input.Fill(), ...); }, inputs_);
+        std::apply([](auto&... input) constexpr { (input.Sync(), ...); }, inputs_);
     }
     inline void FlushOutputs() noexcept
     {
-        std::apply([](auto&... output) constexpr { (output.Flush(), ...); }, outputs_);
+        std::apply([](auto&... output) constexpr { (output.Sync(), ...); }, outputs_);
     }
 
     Inputs_t<Subs> inputs_;

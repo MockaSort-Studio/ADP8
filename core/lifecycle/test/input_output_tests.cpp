@@ -1,8 +1,6 @@
 #include <thread>
 #include <tuple>
 
-#include "core/lifecycle/input.hpp"
-#include "core/lifecycle/output.hpp"
 #include "core/lifecycle/test/lifecycle_fixture.hpp"
 
 namespace core::lifecycle {
@@ -55,15 +53,62 @@ TEST(TestInputOutput, TestSetGet)
 
     TestPayload payload;
     payload.ok(true);
-    producer.Set(std::move(payload));
-    producer.Flush();
+    producer.Push(std::move(payload));
+    producer.Sync();
 
     std::this_thread::sleep_for(20ms);
 
-    consumer.Fill();
+    consumer.Sync();
     auto response = consumer.Get();
 
     ASSERT_TRUE(response.has_value());
     EXPECT_TRUE(response.value().data.ok());
 }
+
+TEST(TestInputOutput, TestGetByQueueIndex)
+{
+    TestInputs inputs;
+    TestOutputs outputs;
+
+    auto& producer = get<kTestTopicName>(outputs);
+    auto& consumer = get<kTestTopicName>(inputs);
+
+    TestPayload payload;
+    payload.ok(true);
+    producer.Push(std::move(payload));
+    producer.Sync();
+
+    std::this_thread::sleep_for(20ms);
+
+    consumer.Sync();
+    auto response = consumer[0];
+
+    EXPECT_TRUE(response.data.ok());
+}
+
+TEST(TestInputOutput, TestSinkAndSourceView)
+{
+    TestInputs inputs;
+    TestOutputs outputs;
+
+    auto& producer = get<kTestTopicName>(outputs);
+    auto& consumer = get<kTestTopicName>(inputs);
+
+    auto read_only_view = InputSource {consumer};
+    auto write_only_view = OutputSink {producer};
+
+    TestPayload payload;
+    payload.ok(true);
+
+    write_only_view.Push(std::move(payload));
+    producer.Sync();
+
+    std::this_thread::sleep_for(20ms);
+
+    consumer.Sync();
+    auto response = read_only_view[0];
+
+    EXPECT_TRUE(response.data.ok());
+}
+
 }  // namespace core::lifecycle

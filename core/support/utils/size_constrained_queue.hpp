@@ -21,16 +21,14 @@ struct Sample
 template <typename T, std::size_t N>
 class SizeConstrainedQueue
 {
-    static_assert(
-        N > 0 && (N & (N - 1)) == 0,
-        "SizeConstrainedQueue size N must be a power of 2 for maximum performance.");
+    static_assert(N > 0, "SizeConstrainedQueue size must be greater than 0");
 
   public:
     SizeConstrainedQueue() = default;
 
     /**
-     * @brief Aggressive lock-free read access.
-     * Safe to call on single thread. Newest element will be on top of the queue (index 0)
+     * @brief Access samples in reverse order (0 = newest).
+     * Works for any N, including N=1.
      */
     inline const Sample<T>& operator[](size_t index) const noexcept
     {
@@ -38,7 +36,11 @@ class SizeConstrainedQueue
         const size_t h = head_.load(std::memory_order_relaxed);
 
         assert(index < c && "Out of bounds access!");
-        return buffer_[(h - 1 - index) & (N - 1)];
+
+        // Safe reverse modulo math:
+        // We add N to the subtraction to ensure the result is positive before % N.
+        // For N=1, this always resolves to buffer_[0].
+        return buffer_[(h + N - 1 - index) % N];
     }
 
     template <typename U>
@@ -48,7 +50,6 @@ class SizeConstrainedQueue
             std::is_convertible_v<std::decay_t<U>, T>,
             "Pushing wrong type into SizeConstrainedQueue");
 
-        // C++17: scoped_lock is preferred over lock_guard
         std::scoped_lock lock(mtx_);
 
         size_t h = head_.load(std::memory_order_relaxed);
@@ -56,7 +57,9 @@ class SizeConstrainedQueue
 
         buffer_[h] = {Clock::now(), std::forward<U>(message)};
 
-        head_.store((h + 1) & (N - 1), std::memory_order_relaxed);
+        // Standard circular increment
+        head_.store((h + 1) % N, std::memory_order_relaxed);
+
         if (c < N)
         {
             count_.store(c + 1, std::memory_order_release);
@@ -73,7 +76,8 @@ class SizeConstrainedQueue
 
         size_t h = head_.load(std::memory_order_relaxed);
 
-        h = (h - 1) & (N - 1);
+        // Move head back one slot safely
+        h = (h + N - 1) % N;
         Sample<T> sample = std::move(buffer_[h]);
 
         head_.store(h, std::memory_order_relaxed);
@@ -85,10 +89,6 @@ class SizeConstrainedQueue
     inline bool Empty() const noexcept { return Size() == 0; }
     inline size_t Size() const noexcept { return count_.load(std::memory_order_relaxed); }
 
-    /**
-     * @brief Bulk transfer from one queue to another.
-     * Uses Acquire/Release semantics to ensure data visibility across threads.
-     */
     inline void TransferTo(SizeConstrainedQueue<T, N>& other) noexcept
     {
         std::scoped_lock lock(mtx_, other.mtx_);
@@ -101,7 +101,6 @@ class SizeConstrainedQueue
         }
 
         other.buffer_ = std::move(this->buffer_);
-
         other.head_.store(
             head_.load(std::memory_order_relaxed), std::memory_order_relaxed);
         other.count_.store(current_count, std::memory_order_release);
