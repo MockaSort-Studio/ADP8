@@ -13,24 +13,7 @@
 #include "core/lifecycle/tasks_manager.hpp"
 #include "core/support/utils/black_magic_tuple_merger.hpp"
 #include "core/support/utils/lookup_table.hpp"
-// Utile in futuro per -> tuple<DDSSubscriber<Topic1>, DDSPublisher<Topic2> ->
-// tuple<Topic1, Topic2>
 
-template <typename T>
-struct ExtractInner
-{
-    using type = typename T::type;
-};
-
-template <typename Tuple>
-struct DioMerdaExtractor;
-
-template <typename... Ts>
-struct DioMerdaExtractor<std::tuple<Ts...>>
-{
-    // Maps each T in the pack to its T::type alias
-    using type = std::tuple<typename ExtractInner<Ts>::type...>;
-};
 namespace core::lifecycle {
 namespace detail {
 inline std::atomic<bool> shutdown_requested {false};

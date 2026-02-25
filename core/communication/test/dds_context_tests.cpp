@@ -12,12 +12,7 @@ class DDSContextTest : public ::testing::Test
     void SetUp() override {}
     DDSContext context_ {"test_domain_participant"};
 };
-
-template <>
-const char* TopicSpec<TestPayloadPubSubType>::Name()
-{
-    return "Topic";
-}
+inline constexpr char kTestTopicName[] = "Topic";
 
 TEST_F(DDSContextTest, SuccessfulInitialization)
 {
@@ -43,7 +38,8 @@ TEST_F(DDSContextTest, DomainParticipantNotNull)
 
 TEST_F(DDSContextTest, GetTopicWithTopicSpecTest)
 {
-    auto topic_handle = context_.GetDDSTopic<TopicSpec<TestPayloadPubSubType>>();
+    auto topic_handle =
+        context_.GetDDSTopic<TopicSpec<TestPayloadPubSubType, kTestTopicName>>();
 
     ASSERT_NE(topic_handle, nullptr);
     EXPECT_EQ(topic_handle->get_name(), "Topic");

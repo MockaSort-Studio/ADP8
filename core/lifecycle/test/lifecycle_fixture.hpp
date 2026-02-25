@@ -8,13 +8,6 @@
 #include "core/support/utils/lookup_table.hpp"
 #include "TestPubSubTypes.hpp"  //Need to look on how to ma
 
-namespace core::communication {
-template <>
-const char* communication::ImAString<TestPayloadPubSubType>::string()
-{
-    return "TestTopic";
-}
-}  // namespace core::communication
 namespace core::lifecycle {
 static std::atomic<int> mock_task_1_count {0};
 static std::atomic<int> mock_task_2_count {0};
@@ -32,9 +25,14 @@ class MockTask2 : public TaskInterface
     using TaskInterface::TaskInterface;
     void ExecuteStep() override { mock_task_2_count++; }
 };
+// Testapplication config - LookupTable<TableItem<DDSTask<Pusb,Subs>, Xms>>
+// Pubs = tuple<TopicSpecs...>
+inline constexpr char kTestTopicName[] = "Topic";
 
-using TestTopicSubsList = TopicList<communication::TopicSpec<TestPayloadPubSubType, 2>>;
-using TestTopicPubsList = TopicList<communication::TopicSpec<TestPayloadPubSubType>>;
+using TestTopicSubsList =
+    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName, 2>>;
+using TestTopicPubsList =
+    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>>;
 using TestApplicationConfig = core::utils::LookupTable<
     core::utils::TableItem<
         TaskSpec<MockTask1, 10>,
