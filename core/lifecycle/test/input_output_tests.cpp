@@ -1,12 +1,8 @@
-#include <thread>
-#include <tuple>
+
 
 #include "core/lifecycle/test/lifecycle_fixture.hpp"
-
 namespace core::lifecycle {
-
-using TestInputs = Inputs_t<TestTopicSubsList>;
-using TestOutputs = Outputs_t<TestTopicPubsList>;
+using namespace std::chrono_literals;
 
 TEST(TestHash, ExpectSuccess)
 {

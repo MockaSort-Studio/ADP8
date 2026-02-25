@@ -1,8 +1,6 @@
 #ifndef CORE_LIFECYCLE_DDS_TASK
 #define CORE_LIFECYCLE_DDS_TASK
 
-// #include "core/lifecycle/input.hpp"
-// #include "core/lifecycle/output.hpp"
 #include "core/lifecycle/data_endpoint.hpp"
 #include "core/lifecycle/input_source.hpp"
 #include "core/lifecycle/output_sink.hpp"
@@ -40,7 +38,7 @@ class DDSTask : public TaskInterface
     template <const char* TopicName>
     inline auto GetOutputSink() noexcept
     {
-        OutputSink {get<TopicName>(outputs_)};
+        return OutputSink {get<TopicName>(outputs_)};
     }
 
   private:
