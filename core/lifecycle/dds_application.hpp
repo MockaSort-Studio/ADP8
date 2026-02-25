@@ -11,7 +11,6 @@
 
 #include "core/communication/dds_context.hpp"
 #include "core/lifecycle/tasks_manager.hpp"
-#include "core/support/utils/black_magic_tuple_merger.hpp"
 #include "core/support/utils/lookup_table.hpp"
 
 namespace core::lifecycle {

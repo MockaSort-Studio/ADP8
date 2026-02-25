@@ -11,16 +11,6 @@ cc_test(
 )
 
 cc_test(
-    name = "black_magic_tuple_merger_tests",
-    srcs = ["black_magic_tuple_merger_tests.cpp"],
-    deps = [
-        "//core/support/utils",
-        "@googletest//:gtest",
-        "@googletest//:gtest_main",
-    ],
-)
-
-cc_test(
     name = "size_constrained_queue_test",
     srcs = ["size_constrained_queue_test.cpp"],
     deps = [
