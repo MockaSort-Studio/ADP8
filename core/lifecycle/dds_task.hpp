@@ -28,7 +28,6 @@ class DDSTask : public TaskInterface
     virtual void Execute() = 0;
     virtual void Init() {}
 
-    // // this return std::optional<Sample<T>>
     template <const char* TopicName>
     inline auto GetInputSource() noexcept
     {

@@ -27,7 +27,7 @@ using TestPub = DataEndpoint<
 TEST(DDSTaskTest, PublishTrueExpectFalse)
 {
     auto pub = TestPub();
-    MockDDSTask task("test_task");
+    SendFalseDDSTask task("test_task");
     auto sub = TestSub();
 
     TestPayload payload;

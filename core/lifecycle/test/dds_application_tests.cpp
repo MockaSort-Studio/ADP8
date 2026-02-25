@@ -6,7 +6,7 @@ namespace core::lifecycle {
 
 using namespace std::chrono_literals;
 
-TEST_P(LifecycleFixture, ShutdownTest)
+TEST_P(LifecycleFixture, ApplicationLifecycleTest)
 {
     auto signal_type = GetParam();
     auto start = std::chrono::steady_clock::now();

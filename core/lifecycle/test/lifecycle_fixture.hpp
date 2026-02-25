@@ -2,7 +2,6 @@
 #define CORE_LIFECYCLE_TEST_LIFECYCLE_FIXTURE
 #include <gtest/gtest.h>
 
-#include "core/communication/dds_context.hpp"
 #include "core/lifecycle/dds_application.hpp"
 #include "core/lifecycle/dds_task.hpp"
 #include "core/support/utils/lookup_table.hpp"
@@ -39,10 +38,10 @@ class MockTask2 : public TaskInterface
 };
 
 using DDSTaskTopicSubsList =
-    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName, 2>>;
+    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>>;
 using DDSTaskTopicPubsList =
     TopicList<communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>>;
-class MockDDSTask : public DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>
+class SendFalseDDSTask : public DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>
 {
   public:
     using DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>::DDSTask;
@@ -59,18 +58,39 @@ class MockDDSTask : public DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>
         }
 
         auto data = in[0].data;
-        if (data.ok())
-        {
-            TestPayload response;
-            response.ok(false);
-            out.Push(std::move(response));
-        }
+        EXPECT_TRUE(data.ok());
+        TestPayload response;
+        response.ok(false);
+        out.Push(std::move(response));
     }
 };
 
+class SendTrueDDSTask : public DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsList>
+{
+  public:
+    using DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsList>::DDSTask;
+
+  protected:
+    void Execute() override
+    {
+        auto in = GetInputSource<kDifferentTopicName>();
+        auto out = GetOutputSink<kTestTopicName>();
+
+        if (in.Empty())
+        {
+            return;
+        }
+
+        auto data = in[0].data;
+        EXPECT_FALSE(data.ok());
+        TestPayload response;
+        response.ok(true);
+        out.Push(std::move(response));
+    }
+};
 using TestApplicationConfig = core::utils::LookupTable<
-    core::utils::TableItem<TaskSpec<MockTask1, 10>>,
-    core::utils::TableItem<TaskSpec<MockTask2, 20>>>;
+    core::utils::TableItem<TaskSpec<SendTrueDDSTask, 10>>,
+    core::utils::TableItem<TaskSpec<SendFalseDDSTask, 20>>>;
 
 class LifecycleFixture : public ::testing::TestWithParam<int>
 {
