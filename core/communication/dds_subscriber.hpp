@@ -22,6 +22,8 @@ namespace {
 template <typename Type, std::size_t QueueSize>
 class SubListener : public dds::DataReaderListener
 {
+    using Queue = core::utils::SizeConstrainedQueue<Type, QueueSize>;
+
   public:
     SubListener() : samples_(0) {}
 
@@ -73,10 +75,13 @@ class SubListener : public dds::DataReaderListener
         return std::nullopt;
     }
 
-    Type hello_;
+    inline void DrainQueue(Queue& other) noexcept { message_queue_.TransferTo(other); }
+
     std::atomic<int> samples_;
     std::atomic<int> matched_count_ {0};
-    core::utils::SizeConstrainedQueue<Type, QueueSize> message_queue_;
+
+  private:
+    Queue message_queue_;
 };
 }  // namespace
 
@@ -134,6 +139,12 @@ class DDSSubscriber
     [[nodiscard]] bool IsMatched() const { return listener_.matched_count_ > 0; }
 
     std::optional<DDSDataType> GetSample() { return std::move(listener_.GetSample()); }
+
+    inline void DrainQueue(
+        utils::SizeConstrainedQueue<DDSDataType, QueueSize>& other) noexcept
+    {
+        listener_.DrainQueue(other);
+    }
 
   private:
     std::shared_ptr<dds::DomainParticipant> participant_;

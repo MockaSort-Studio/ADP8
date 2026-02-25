@@ -22,8 +22,17 @@ class Input
     using T = typename Sub::DDSDataType;
 
     Input() { sub_.Start(Spec::kName); }
-    void Fill() {}
-    // void Push(T&& msg) { queue_.Push(std::move(msg)); }
+    void Fill()
+    {
+        if constexpr (std::is_trivially_copyable_v<T>)
+        {
+            // it DDSDataType is a POD the compiler will definitely use SIMD/Memcpy
+            sub_.DrainQueue(queue_);
+        } else
+        {
+            sub_.DrainQueue(queue_);
+        }
+    }
 
     std::optional<utils::Sample<T>> Get() { return queue_.GetSample(); }
 
