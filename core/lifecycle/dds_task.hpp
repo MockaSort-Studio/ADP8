@@ -33,37 +33,51 @@ namespace core::lifecycle {
 template <typename Spec>
 class Input
 {
+    // Add static assert on template type
   public:
-    using T = typename Spec::type;
-    static constexpr size_t N = Spec::Queue();
+    static constexpr size_t N = Spec::kQueueSize;
+    using Sub = communication::DDSSubscriber<typename Spec::type, N>;
+    using T = typename Sub::DDSDataType;
 
-    Input(communication::DDSContext& ctx) {}
-    void Push(T&& msg) { queue_.Push(std::move(msg)); }
+    Input() { sub_.Start(Spec::kName); }
+    void Fill() {}
+    // void Push(T&& msg) { queue_.Push(std::move(msg)); }
 
     std::optional<utils::Sample<T>> Get() { return queue_.GetSample(); }
 
   private:
     utils::SizeConstrainedQueue<T, N> queue_;
+    Sub sub_;
 };
-
+// Output_t = std::tuple<Output<Spec>>
 template <typename Spec>
 class Output
 {
+    // Add static assert on template type
   public:
-    using T = typename Spec::type;
+    using Pub = communication::DDSPublisher<typename Spec::type>;
+    using T = typename Pub::DDSDataType;
 
-    Output(communication::DDSContext& ctx) {}
-
-    // Zero-copy: take ownership of the data to be sent
-    void Set(T&& msg)
-    {
-        // Here you would call your DDS DataWriter::write(std::move(msg))
-        // or store it temporarily if the task flushes later.
-        last_val_ = std::move(msg);
-    }
+    Output() { pub_.Start(Spec::kName); }
+    void Flush() { pub_.Publish(last_val_); }
+    void Set(T&& msg) { last_val_ = std::move(msg); }
 
   private:
     T last_val_;
+    Pub pub_;
+};
+template <uint64_t TargetHash, typename Tuple, size_t Index = 0>
+struct find_by_hash
+{
+    static_assert(Index < std::tuple_size_v<Tuple>, "Topic Hash not found in List!");
+
+    using CurrentWrapper = std::tuple_element_t<Index, Tuple>;
+    using CurrentSpec = typename CurrentWrapper::spec_type;  // Get Spec from Input<Spec>
+
+    static constexpr size_t value =
+        (CurrentSpec::kHash == TargetHash)
+            ? Index
+            : find_by_hash<TargetHash, Tuple, Index + 1>::value;
 };
 
 template <typename T>
@@ -72,6 +86,19 @@ template <typename... Specs>
 struct Inputs<std::tuple<Specs...>>
 {
     using type = std::tuple<Input<Specs>...>;
+
+    template <const char* TopicName>
+    static constexpr size_t index_of =
+        find_by_hash<communication::Hash(TopicName), type>::value;
+
+    template <const char* TopicName>
+    using msg_t = typename std::tuple_element_t<index_of<TopicName>, type>::T::type;
+
+    template <const char* TopicName>
+    static auto& get(type& storage)
+    {
+        return std::get<index_of<TopicName>>(storage);
+    }
 };
 
 template <typename T>
@@ -80,6 +107,19 @@ template <typename... Specs>
 struct Outputs<std::tuple<Specs...>>
 {
     using type = std::tuple<Output<Specs>...>;
+
+    template <const char* TopicName>
+    static constexpr size_t index_of =
+        find_by_hash<communication::Hash(TopicName), type>::value;
+
+    template <const char* TopicName>
+    using msg_t = typename std::tuple_element_t<index_of<TopicName>, type>::T::type;
+
+    template <const char* TopicName>
+    static auto& get(type& storage)
+    {
+        return std::get<index_of<TopicName>>(storage);
+    }
 };
 
 template <typename T>
@@ -98,66 +138,49 @@ class DDSTask : public TaskInterface
     using Pubs = PublicationSpecs;
 
   public:
-    explicit DDSTask(std::string name) : TaskInterface(name)
-    {
-        AddSubscribers(std::make_index_sequence<std::tuple_size_v<Subs>> {});
-        AddPublishers(std::make_index_sequence<std::tuple_size_v<Pubs>> {});
-    }
+    using TaskInterface::TaskInterface;
     virtual ~DDSTask() = default;
 
     void ExecuteStep() override
     {
-        // Fill inputs
+        FillInputs();
         Execute();
-        // Flush outputs
+        FlushOutputs();
     };
 
+  protected:
     virtual void Execute() = 0;
-
     virtual void Init() {}
 
-    // GetInput<Type>(n. samples)
-    // SetOutput<Type>(value)
-    template <typename Type>
-    void AddPublisher(const std::string& name)
+    // this return std::optional<Sample<T>>
+    template <const char* TopicName>
+    auto GetInput()
     {
-        auto& ctx = communication::DDSContextProvider::Get();
+        return decltype(inputs_)::get<TopicName>(inputs_).Get();
     }
 
-    template <typename Type, uint8_t queue_size>
-    void AddSubscriber(const std::string& name)
-    {
-        auto& ctx = communication::DDSContextProvider::Get();
+    template <typename Type, const char* TopicName>
+    void SetOutput(Type&& output)
+    {  // find a way to add a static assert on the type
+        decltype(outputs_)::get<TopicName>(outputs_).Set(std::forward<Type>(output));
     }
 
   private:
-    template <std::size_t... Is>
-    void AddSubscribers(std::index_sequence<Is...>)
+    void FillInputs()
     {
-        (AddSubscriber<
-             typename std::tuple_element_t<Is, Subs>::type,
-             typename std::tuple_element_t<Is, Subs>::Queue()>(
-             typename std::tuple_element_t<Is, Subs>::Name()),
-         ...);
+        std::apply([](auto&... input) { (input.Fill(), ...); }, inputs_);
     }
-
-    template <std::size_t... Is>
-    void AddPublishers(std::index_sequence<Is...>)
+    void FlushOutputs()
     {
-        (AddPublisher<typename std::tuple_element_t<Is, Pubs>::type>(
-             typename std::tuple_element_t<Is, Pubs>::Name()),
-         ...);
+        std::apply([](auto&... output) { (output.Flush(), ...); }, outputs_);
     }
-
     Inputs_t<Subs> inputs_;
     Outputs_t<Pubs> outputs_;
-    // DDSSubscriber<Ticks, 10>
-    // DDSProvider.GetTopic<DDSSubscriber<Ticks, 10>::TopicType> ===== oggetto topic
-    // input_ (tuple(DDSSubscriber<Ticks, 10>, SizeConstrainedQueue<TicksMessages,10>),
-    // output_ (tuple(DDSPublisher<PorcoDiddio>, PorcoDiddioMessages),
-    // .......)
 };
 
+// tuple<TopicSpecs>
+// tuple<Input<TopicSpecs>>
+// tuple<Output<TopicSpecs>>
 }  // namespace core::lifecycle
 // DDSTask : TaskInterface -> PippoAlg : public DDSTask
 //  |--> Publisher e Subscribers

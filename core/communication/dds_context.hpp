@@ -1,6 +1,7 @@
 #ifndef CORE_COMMUNICATION_DDS_CONTEXT
 #define CORE_COMMUNICATION_DDS_CONTEXT
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -14,18 +15,23 @@ namespace core::communication {
 
 namespace dds = eprosima::fastdds::dds;
 
-template <typename T>
-struct ImAString
+constexpr uint64_t Hash(const char* str)
 {
-    static const char* string() { return "DefaultName"; }
-};
+    uint64_t h = 0xcbf29ce484222325;
+    while (*str)
+    {
+        h = (h ^ static_cast<uint64_t>(*str++)) * 0x100000001b3;
+    }
+    return h;
+}
 
-template <typename T, uint8_t max_queue_size = 0>
+template <typename T, const char* TopicName, size_t max_queue_size = 0>
 struct TopicSpec
 {
     using type = T;
-    static const char* Name() { return ImAString<T>::string(); }
-    static const uint8_t QueueSize() { return max_queue_size; }
+    static constexpr uint64_t kHash {Hash(TopicName)};
+    static constexpr const char* kName {TopicName};
+    static constexpr size_t kQueueSize {max_queue_size};
 };
 
 template <typename T>
@@ -33,8 +39,8 @@ struct is_topic_spec : std::false_type
 {
 };
 
-template <typename U>
-struct is_topic_spec<TopicSpec<U>> : std::true_type
+template <typename T, const char* TopicName, size_t Q>
+struct is_topic_spec<TopicSpec<T, TopicName, Q>> : std::true_type
 {
 };
 
@@ -74,7 +80,7 @@ class DDSContext
     {
         static_assert(is_topic_spec_v<Spec>, "Spec must be specialization of TopicSpec");
 
-        return GetDDSTopic<typename Spec::type>(Spec::Name());
+        return GetDDSTopic<typename Spec::type>(Spec::kName);
     }
 
     template <typename PubSubType>
