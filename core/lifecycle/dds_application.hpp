@@ -19,12 +19,6 @@ inline std::atomic<bool> shutdown_requested {false};
 inline void signal_handler(int) { shutdown_requested.store(true); }
 }  // namespace detail
 
-// template<typename TaskTable>
-// PippoSubscriber = tuple<DDSSubscriber<Pippotto>>
-// PippoPublisher = tuple<DDSPublisher<Pippetto>>
-// TaskTable = LookupTable<TableItem<PippoTask, 10ms, PippoSubscribers, PippoPublishers>
-// TopicTypesList = BlackMagicTupleMerger<DioMerdaExtractor<PippoSubscriber>::type,
-// DioMerdaExtractor<PippoPublishers>::type>::type
 template <typename ApplicationConfig>
 class DDSAPPlication final
 {
@@ -37,6 +31,8 @@ class DDSAPPlication final
     {
         std::signal(SIGINT, detail::signal_handler);
         std::signal(SIGTERM, detail::signal_handler);
+
+        communication::DDSContextProvider::SetName(domain_participant_name);
 
         BuildTaskManager();
     }
@@ -57,9 +53,7 @@ class DDSAPPlication final
         tasks_manager_->Stop();
     }
 
-    // Init DDSProvider<TopicList>
   private:
-    // ApplicationConfig<TableItem<TaskSpec<Task,Xms(ex.10)>,PublisherList,SubscriberList>>
     void BuildTaskManager()
     {
         std::unique_ptr<TasksManager> manager = std::make_unique<TasksManager>();
@@ -80,8 +74,6 @@ class DDSAPPlication final
                     boost::core::demangle(typeid(typename TaskSpec::TaskType).name())};
 
                 manager->AddTask<typename TaskSpec::TaskType, TaskSpec::kFrequency>(name);
-                // RegisterPubs<Pubs>(dds_context)
-                // RegisterSubs<Subs>(dds_context)
             });
 
         tasks_manager_ = std::move(manager);
