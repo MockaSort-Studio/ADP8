@@ -11,6 +11,18 @@
 namespace core::lifecycle {
 static std::atomic<int> mock_task_1_count {0};
 static std::atomic<int> mock_task_2_count {0};
+inline constexpr char kTestTopicName[] = "Topic";
+inline constexpr char kDifferentTopicName[] = "DifferentTopic";
+
+using TestTopicSubsList = TopicList<
+    communication::TopicSpec<TestPayloadPubSubType, kTestTopicName, 2>,
+    communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName, 2>>;
+using TestTopicPubsList = TopicList<
+    communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>,
+    communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>>;
+
+using TestInputs = Inputs_t<TestTopicSubsList>;
+using TestOutputs = Outputs_t<TestTopicPubsList>;
 
 class MockTask1 : public TaskInterface
 {
@@ -26,23 +38,39 @@ class MockTask2 : public TaskInterface
     void ExecuteStep() override { mock_task_2_count++; }
 };
 
-inline constexpr char kTestTopicName[] = "Topic";
-inline constexpr char kDifferentTopicName[] = "DifferentTopic";
-using TestTopicSubsList = TopicList<
-    communication::TopicSpec<TestPayloadPubSubType, kTestTopicName, 2>,
-    communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName, 2>>;
-using TestTopicPubsList = TopicList<
-    communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>,
-    communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>>;
+using DDSTaskTopicSubsList =
+    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName, 2>>;
+using DDSTaskTopicPubsList =
+    TopicList<communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>>;
+class MockDDSTask : public DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>
+{
+  public:
+    using DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>::DDSTask;
+
+  protected:
+    void Execute() override
+    {
+        auto in = GetInputSource<kTestTopicName>();
+        auto out = GetOutputSink<kDifferentTopicName>();
+
+        if (in.Empty())
+        {
+            return;
+        }
+
+        auto data = in[0].data;
+        if (data.ok())
+        {
+            TestPayload response;
+            response.ok(false);
+            out.Push(std::move(response));
+        }
+    }
+};
+
 using TestApplicationConfig = core::utils::LookupTable<
-    core::utils::TableItem<
-        TaskSpec<MockTask1, 10>,
-        std::tuple<int, float, float>,
-        std::tuple<bool, double, char>>,
-    core::utils::TableItem<
-        TaskSpec<MockTask2, 20>,
-        std::tuple<int, float, float>,
-        std::tuple<bool, double, char>>>;
+    core::utils::TableItem<TaskSpec<MockTask1, 10>>,
+    core::utils::TableItem<TaskSpec<MockTask2, 20>>>;
 
 class LifecycleFixture : public ::testing::TestWithParam<int>
 {
