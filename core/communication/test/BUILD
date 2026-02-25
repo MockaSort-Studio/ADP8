@@ -19,6 +19,17 @@ cc_test(
 )
 
 cc_test(
+    name = "topic_spec_tests",
+    srcs = ["topic_spec_tests.cpp"],
+    deps = [
+        ":test_dds_types",
+        "//core/communication:dds",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "dds_context_tests",
     srcs = ["dds_context_tests.cpp"],
     deps = [

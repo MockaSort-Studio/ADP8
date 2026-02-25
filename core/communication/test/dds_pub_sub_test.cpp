@@ -46,11 +46,6 @@ class FastDDSPubSubFixture : public ::testing::Test
 }  // namespace
 TEST_F(FastDDSPubSubFixture, DiscoverySuccessAsync)
 {
-    std::mutex mtx;
-    std::condition_variable cv;
-
-    std::unique_lock<std::mutex> lock(mtx);
-
     ASSERT_TRUE(WaitForMatch(2s)) << "Discovery timed out after 2 seconds";
 }
 
