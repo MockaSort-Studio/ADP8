@@ -2,14 +2,22 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "gen-compile-commands",
+            "label": "Clangd: Generate Compile Commands",
             "type": "shell",
             "command": "bazel run //:compile_cc && bazel run //:compile_cc_fix",
             "group": {
                 "kind": "build",
                 "isDefault": true
-            },
-            "runOn": "folderOpen"
+            }
+        },
+        {
+            "label": "Python Linting: Symlink Pip Hubs",
+            "type": "shell",
+            "command": "./tools/symlink_pip_deps.sh",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

@@ -1,0 +1,5 @@
+
+[environment]
+python-version = "3.12"
+root = ["."]
+extra-paths = [".py_external_symlink"]

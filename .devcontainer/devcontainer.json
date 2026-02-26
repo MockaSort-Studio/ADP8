@@ -33,11 +33,16 @@
     "customizations": {
         "vscode": {
             "extensions": [
+                "astral-sh.ty",
+                "charliermarsh.ruff",
+                "kevinrose.vsc-python-indent",
+                "ms-python.python",
+                "tamasfe.even-better-toml",
+                "redhat.vscode-yaml",
                 "ms-vscode.cpptools",
                 "llvm-vs-code-extensions.vscode-clangd",
                 "BazelBuild.vscode-bazel",
                 "akiramiyakoda.cppincludeguard",
-                "ms-python.black-formatter",
                 "eamodio.gitlens",
                 "hediet.vscode-drawio",
                 "ms-azuretools.vscode-containers"
@@ -46,16 +51,43 @@
                 // Editor
                 "editor.detectIndentation": false,
                 "editor.formatOnSave": true,
+                "ty.configurationFile": "/workspaces/ADP8/ty.toml",
                 // Language-specific editor overrides
                 "[cpp]": {
                     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
                 },
                 "[python]": {
-                    "editor.defaultFormatter": "ms-python.black-formatter"
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll": "explicit",
+                        "source.organizeImports": "explicit"
+                    },
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.formatOnSave": true,
+                    "editor.tabSize": 4
+                },
+                "[toml]": {
+                    "editor.defaultFormatter": "tamasfe.even-better-toml",
+                    "editor.formatOnSave": true,
+                    "editor.insertSpaces": true,
+                    "editor.tabSize": 4
+                },
+                "[yaml]": {
+                    "editor.autoIndent": "advanced",
+                    "editor.defaultFormatter": "redhat.vscode-yaml",
+                    "editor.formatOnSave": true,
+                    "editor.insertSpaces": true,
+                    "editor.tabSize": 2
                 },
                 "[dockerfile]": {
                     "editor.defaultFormatter": "ms-azuretools.vscode-containers"
                 },
+                //Python Interpreter
+                "python.defaultInterpreterPath": "${workspaceFolder}/.py_external_symlink/bin/python",
+                "python-envs.defaultEnvManager": "ms-python.python:system",
+                "python.analysis.extraPaths": [
+                    "${workspaceFolder}/.py_external_symlink/"
+                ],
+                "python.terminal.activateEnvInSelectedTerminal": false,
                 // C/C++ (MS C_Cpp)
                 "C_Cpp.intelliSenseEngine": "disabled",
                 "C_Cpp.codeAnalysis.clangTidy.enabled": true,
