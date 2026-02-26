@@ -13,6 +13,11 @@ static std::atomic<int> mock_task_2_count {0};
 inline constexpr char kTestTopicName[] = "Topic";
 inline constexpr char kDifferentTopicName[] = "DifferentTopic";
 
+using DDSTaskTopicSubsList =
+    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>>;
+using DDSTaskTopicPubsList =
+    TopicList<communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>>;
+
 using TestTopicSubsList = TopicList<
     communication::TopicSpec<TestPayloadPubSubType, kTestTopicName, 2>,
     communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName, 2>>;
@@ -36,11 +41,6 @@ class MockTask2 : public TaskInterface
     using TaskInterface::TaskInterface;
     void ExecuteStep() override { mock_task_2_count++; }
 };
-
-using DDSTaskTopicSubsList =
-    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>>;
-using DDSTaskTopicPubsList =
-    TopicList<communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>>;
 class SendFalseDDSTask : public DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>
 {
   public:
