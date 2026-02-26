@@ -1,0 +1,15 @@
+#forbid capital letters in yml file
+subscribers:
+  - pornello: # -> kPornelloTopicName{"PornelloTopic"} 
+      queue_size: 2
+      idl_name: "ReadHeadCougar" #ReadHeadCougarPubSubTypes.h , ReadHeadCougarPubSubType --- set rule that idl filename and struct in it must have same name 
+publishers:
+  - sborrello:
+      idl_name: "NelFazzoletto"
+
+
+### Files 
+# <target_name>_topic_names_pub|sub.h ---- kPornelloTopicName{"PornelloTopic"} , kSborrelloTopicName{"SborrelloTopic"}
+# <target_name>_dds_types_pub|sub.h --- ReadHeadCougarPubSubTypes.h, NelFazzolettoPubSubTypes.h
+# <target_name>_topic_list_.pub|sub.h --- using TargetNameSubscriptions = TopicList<TopicSpec<ReadHeadCougarPubSubType, kPornelloTopicName, 2>>
+#                                         using TargetNamePublications = TopicList<TopicSpec<NelFazzolettoPubSubType, kSborrelloTopicName>>

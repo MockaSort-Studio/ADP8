@@ -1,6 +1,12 @@
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//core/communication:bazel/fastdds.bzl", "cc_fastdds_types")
 
+filegroup(
+    name = "test_idl",
+    srcs = ["idl/Test.idl"],
+    visibility = ["//core:__subpackages__"],
+)
+
 cc_fastdds_types(
     name = "test_dds_types",
     idl_srcs = glob(["idl/*.idl"]),
