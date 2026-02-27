@@ -18,8 +18,7 @@ constexpr uint64_t Hash(const char* str)
 }
 
 // Helper for finding the index of Input/Output by hash in a tuple
-// Input core/lifecycle/input.hpp
-// Output core/lifecycle/output.hpp
+// Input/Outputs core/lifecycle/endpoint.hpp
 template <uint64_t Hash, typename Tuple, typename Seq>
 struct find_hash_impl;
 

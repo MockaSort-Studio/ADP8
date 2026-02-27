@@ -1,0 +1,5 @@
+struct SystemStatus {
+    unsigned long uptime_seconds;
+    float battery_voltage;
+    boolean is_locked;
+};

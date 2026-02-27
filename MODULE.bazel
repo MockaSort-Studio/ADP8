@@ -15,9 +15,8 @@ bazel_dep(name = "rules_python", version = "1.7.0")
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     is_default = True,
-    python_version = "3.12.12",
+    python_version = "3.12",
 )
-
 ######################
 ####  rules  C++  ####
 ######################

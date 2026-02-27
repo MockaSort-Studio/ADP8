@@ -6,7 +6,7 @@
 #include "core/communication/topic_spec.hpp"
 #include "core/lifecycle/type_traits.hpp"
 #include "core/support/utils/size_constrained_queue.hpp"
-
+//this should be moved in communication
 namespace core::lifecycle {
 enum class DataDirection
 {

@@ -7,6 +7,6 @@ core_requirements = use_extension("@rules_python//python/extensions:pip.bzl", "p
 core_requirements.parse(
     hub_name = "core_requirements",
     python_version = "3.12",
-    requirements_lock = "//core/scripts:requirements.txt",
+    requirements_lock = "//core/communication/generators:requirements.txt",
 )
 use_repo(core_requirements, "core_requirements")

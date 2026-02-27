@@ -1,5 +1,5 @@
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("//core/communication:bazel/fastdds.bzl", "cc_fastdds_types")
+load("//core/communication/generators:fastdds_types_gen.bzl", "cc_fastdds_types")
 
 filegroup(
     name = "test_idl",
