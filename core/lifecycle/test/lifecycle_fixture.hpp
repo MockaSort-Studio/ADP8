@@ -5,8 +5,12 @@
 #include "core/lifecycle/dds_application.hpp"
 #include "core/lifecycle/dds_task.hpp"
 #include "core/support/utils/lookup_table.hpp"
+#include "core/communication/generators/test_ports_subscriptions.h"
+#include "core/communication/generators/test_ports_publications.h"
 #include "TestPubSubTypes.hpp"  //Need to look on how to ma
 
+using Diomerda= gen::Subscriptions
+using Diobestia = gen::Publications
 namespace core::lifecycle {
 static std::atomic<int> mock_task_1_count {0};
 static std::atomic<int> mock_task_2_count {0};

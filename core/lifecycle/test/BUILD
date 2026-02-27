@@ -4,12 +4,15 @@ load("@rules_cc//cc:cc_test.bzl", "cc_test")
 cc_test(
     name = "dds_lifecycle_bench",
     srcs = ["dds_task_bench.cpp"],
+    copts = [
+        "-O3",
+        "-march=native",
+    ],
     deps = [
         ":lifecycle_fixture",
-        "@google_benchmark//:benchmark_main",
         "//core/communication/test:test_dds_types",
+        "@google_benchmark//:benchmark_main",
     ],
-    copts = ["-O3", "-march=native"], 
 )
 
 cc_test(
@@ -57,10 +60,11 @@ cc_test(
 
 cc_library(
     name = "lifecycle_fixture",
+    testonly = True,
     srcs = [],
     hdrs = ["lifecycle_fixture.hpp"],
-    testonly = True,
     deps = [
+        "//core/communication/generators:test_ports",
         "//core/communication/test:test_dds_types",
         "//core/lifecycle",
         "//core/lifecycle:dds",
