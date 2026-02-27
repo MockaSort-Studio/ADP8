@@ -1,0 +1,4 @@
+struct Point2d {
+    float x;
+    float y;
+};
