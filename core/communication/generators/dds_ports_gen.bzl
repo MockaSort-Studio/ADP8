@@ -2,37 +2,37 @@ load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 
 def _dds_ports_impl(ctx):
-    pub_ids_h = ctx.actions.declare_file("{}_pub_ids.h".format(ctx.label.name))
-    pub_list_h = ctx.actions.declare_file("{}_publications.h".format(ctx.label.name))
-    sub_ids_h = ctx.actions.declare_file("{}_sub_ids.h".format(ctx.label.name))
-    sub_list_h = ctx.actions.declare_file("{}_subscriptions.h".format(ctx.label.name))
-    dds_types_h = ctx.actions.declare_file("{}_dds_types.h".format(ctx.label.name))
+    pub_ids_h = ctx.actions.declare_file("{}_pub_ids.hpp".format(ctx.label.name))
+    pub_list_h = ctx.actions.declare_file("{}_publications.hpp".format(ctx.label.name))
+    sub_ids_h = ctx.actions.declare_file("{}_sub_ids.hpp".format(ctx.label.name))
+    sub_list_h = ctx.actions.declare_file("{}_subscriptions.hpp".format(ctx.label.name))
+    dds_types_h = ctx.actions.declare_file("{}_dds_types.hpp".format(ctx.label.name))
 
     headers = {
         "publications": {
-            "pub_ids": pub_ids_h.short_path,
-            "pub_list": pub_list_h.short_path,
+            "ids": pub_ids_h.path,
+            "specs": pub_list_h.path,
         },
         "subscriptions": {
-            "sub_ids": sub_ids_h.short_path,
-            "sub_list": sub_list_h.short_path,
+            "ids": sub_ids_h.path,
+            "specs": sub_list_h.path,
         },
-        "dds_types": dds_types_h.short_path,
+        "dds_types": dds_types_h.path,
     }
 
     args = ctx.actions.args()
     args.add("--yaml", ctx.file.yaml_config.path)
-    args.add("--output_headers", headers)
-    args.add("--output_dir", ctx.label.package)
+    args.add("--outputs", json.encode(headers))
 
     idl_paths = []
     for f in ctx.files.idls:
         idl_paths.append(f.path)
 
+    outputs = [pub_ids_h, pub_list_h, sub_ids_h, sub_list_h, dds_types_h]
     args.add_all("--idl", idl_paths)
     ctx.actions.run(
-        outputs = [pub_ids_h, pub_list_h, sub_ids_h, sub_list_h, dds_types_h],
-        inputs = [ctx.file.yaml_config] + ctx.files.idls,
+        outputs = outputs,
+        inputs = [ctx.file.yaml_config] + ctx.files.idls + ctx.files._templates,
         executable = ctx.executable._generator,
         #workaround: there's some nasty toolchain misconfiguration
         #although, due to the nature of the script, it's ok 🐽
@@ -42,17 +42,25 @@ def _dds_ports_impl(ctx):
         progress_message = "Generating DDS Ports",
     )
 
+    compilation_context = cc_common.create_compilation_context(
+        headers = depset(outputs),
+        includes = depset([f.dirname for f in outputs]),
+    )
+
     return [
-        DefaultInfo(files = depset([pub_ids_h, pub_list_h, sub_ids_h, sub_list_h, dds_types_h])),
+        DefaultInfo(files = depset(outputs)),
         CcInfo(
-            compilation_context = cc_common.create_compilation_context(
-                headers = depset([pub_ids_h, pub_list_h, sub_ids_h, sub_list_h, dds_types_h]),
-                includes = depset([pub_ids_h.dirname]),
+            compilation_context = cc_common.merge_compilation_contexts(
+                compilation_contexts = [compilation_context] + [
+                    dep[CcInfo].compilation_context
+                    for dep in ctx.attr.deps
+                    if CcInfo in dep
+                ],
             ),
         ),
     ]
 
-dds_ports = rule(
+cc_dds_ports = rule(
     implementation = _dds_ports_impl,
     attrs = {
         "yaml_config": attr.label(allow_single_file = [".yaml", ".yml"]),
@@ -62,5 +70,10 @@ dds_ports = rule(
             executable = True,
             cfg = "exec",
         ),
+        "_templates": attr.label(
+            default = Label("//core/communication/generators:dds_ports_jinja_templates"),
+            allow_files = [".jinja"],
+        ),
+        "deps": attr.label_list(providers = [CcInfo]),
     },
 )

@@ -1,74 +1,25 @@
 import argparse
+import json
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-import yaml
-from idl_parser.parser import IDLParser
-from pydantic import BaseModel, computed_field, model_validator
+from jinja2 import Template
+
+from core.communication.generators.dds_gen_data_models import (
+    GeneratedHeader,
+    remove_bazel_prefix_path,
+)
+from core.communication.generators.dds_gen_utils import (
+    dds_ports_from_yaml,
+    dds_topic_ids_pub_sub_header_models,
+    dds_topic_specs_pub_sub_header_models,
+    dds_types_header_model,
+    get_available_idl_types,
+)
 
 
-class TopicId(BaseModel):
-    name: str
-
-    @computed_field
-    @property
-    def c_var_name(self) -> str:
-        return f"k{self.name.capitalize()}TopicName"
-
-    @model_validator(mode="before")
-    @classmethod
-    def preprocess(cls, data: Any) -> Any:
-        data["name"] = f"{data['name'].capitalize()}Topic"
-        return data
-
-
-class TopicSpec(BaseModel):
-    type: str
-    topic_id: TopicId
-    queue_size: int = 0
-
-
-class Ports(BaseModel):
-    subscriptions: List[TopicSpec]
-    publications: List[TopicSpec]
-
-    @staticmethod
-    def _preprocess(raw_list: List[Dict]) -> List[Dict]:
-        """Flat helper to turn [{name: {details}}] into [{name: name, **details}]."""
-        results = []
-        for entry in raw_list:
-            for name, details in entry.items():
-                # defaulting missing field (publishers use)
-                if "queue_size" not in details.keys():
-                    details["queue_size"] = 1
-                results.append({"topic_id": {"name": name}, **details})
-        return results
-
-    @model_validator(mode="before")
-    @classmethod
-    def preprocess(cls, data: Any) -> Any:
-        return {
-            "subscriptions": cls._preprocess(data.get("subscriptions", [])),
-            "publications": cls._preprocess(data.get("publications", [])),
-        }
-
-
-class GeneratedHeader(BaseModel):
-    header_guard: str
-    includes: List[str]
-    namespace: str = "generated:"
-
-
-class TopicIdHeader(GeneratedHeader):
-    topic_ids: List[TopicId]
-
-
-class SpecsHeader(GeneratedHeader):
-    topic_specs: List[TopicSpec]
-
-
-def parse_arguments() -> Tuple[str, str, List[str], List[str]]:
+def parse_arguments() -> Tuple[str, List[str], Dict[str, Any]]:
     parser = argparse.ArgumentParser(description="DDS Ports C++ Code Generator")
 
     parser.add_argument(
@@ -76,13 +27,10 @@ def parse_arguments() -> Tuple[str, str, List[str], List[str]]:
     )
 
     parser.add_argument(
-        "--output_headers",
-        nargs="+",
+        "--outputs",
         required=True,
-        help="List of header files to be generated",
+        help="Json dictionary holding output file paths",
     )
-
-    parser.add_argument("--output_dir", required=True, help="Output directory")
 
     parser.add_argument(
         "--idls",
@@ -93,39 +41,86 @@ def parse_arguments() -> Tuple[str, str, List[str], List[str]]:
 
     args = parser.parse_args()
 
+    outputs_dic = json.loads(args.outputs)
+
     if not Path(args.yaml).exists():
         print(f"Error: YAML file not found at {args.yaml}")
         sys.exit(1)
 
-    print(f"🔧 Generator Output Path: {args.output_dir}")
     print(f"📄 Pub Sub Config: {args.yaml}")
     print(f"🔍 Idls Files {', '.join(args.idls)}")
-    print(f"🚀 Generated Files: {', '.join(args.output_headers)}")
+    print(f"🚀 Generated Files: {outputs_dic}")
 
-    return args.output_dir, args.yaml, args.idls, args.output_headers
-
-
-def parse_yaml(yaml_path: str) -> None:
-    with open(yaml_path, "r") as file:
-        try:
-            ports = yaml.safe_load(file)
-            return ports
-        except yaml.YAMLError as exc:
-            print(f"Error parsing YAML: {exc}")
+    return args.yaml, args.idls, outputs_dic
 
 
-def get_available_idl_types(idl_file_paths: List[str]) -> List[str]:
-    parser = IDLParser(verbose=True)
-    parser.parse(idl_file_paths)
-    structs = parser.global_module.to_dic()["structs"]
-    return [s["name"] for s in structs]
+def generate_header_file(
+    template_path: str,
+    model_instance: GeneratedHeader,
+) -> None:
+
+    template_content = Path(template_path).read_text()
+
+    template = Template(template_content, trim_blocks=True, lstrip_blocks=True)
+
+    rendered_content = template.render(model_instance.model_dump())
+
+    output_file = Path(model_instance.output_file_path)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(rendered_content)
+
+
+TEMPLATES: Dict[str, str] = {
+    "ids": "core/communication/generators/templates/dds_topic_ids.hpp.jinja",
+    "specs": "core/communication/generators/templates/dds_specs.hpp.jinja",
+    "types": "core/communication/generators/templates/dds_types.hpp.jinja",
+}
+
+
+def main() -> None:
+    yaml_cfg, idls, outputs = parse_arguments()
+    available_types = get_available_idl_types(idls)
+    ports_model = dds_ports_from_yaml(yaml_cfg, available_types)
+
+    dds_types_h_model = dds_types_header_model(ports_model, outputs["dds_types"])
+
+    sub_topic_id_h = dds_topic_ids_pub_sub_header_models(
+        [sub.topic_id for sub in ports_model.subscriptions],
+        outputs["subscriptions"]["ids"],
+    )
+    pub_topic_id_h = dds_topic_ids_pub_sub_header_models(
+        [pub.topic_id for pub in ports_model.publications],
+        outputs["publications"]["ids"],
+    )
+
+    subs_specs_includes = [
+        remove_bazel_prefix_path(outputs["subscriptions"]["ids"]),
+        remove_bazel_prefix_path(outputs["dds_types"]),
+    ]
+    sub_specs_h = dds_topic_specs_pub_sub_header_models(
+        ports_model.subscriptions,
+        outputs["subscriptions"]["specs"],
+        "Subscriptions",
+        subs_specs_includes,
+    )
+
+    pubs_specs_includes = [
+        remove_bazel_prefix_path(outputs["publications"]["ids"]),
+        remove_bazel_prefix_path(outputs["dds_types"]),
+    ]
+    pub_specs_h = dds_topic_specs_pub_sub_header_models(
+        ports_model.publications,
+        outputs["publications"]["specs"],
+        "Publications",
+        pubs_specs_includes,
+    )
+
+    generate_header_file(TEMPLATES["types"], dds_types_h_model)
+    generate_header_file(TEMPLATES["ids"], sub_topic_id_h)
+    generate_header_file(TEMPLATES["ids"], pub_topic_id_h)
+    generate_header_file(TEMPLATES["specs"], sub_specs_h)
+    generate_header_file(TEMPLATES["specs"], pub_specs_h)
 
 
 if __name__ == "__main__":
-    out_dir, yaml_cfg, idls, out_h = parse_arguments()
-    raw_yaml = parse_yaml(yaml_cfg)
-    print(raw_yaml)
-    available_types = get_available_idl_types(idls)
-    print(available_types)
-    ports = Ports.model_validate(raw_yaml)
-    print(ports)
+    main()

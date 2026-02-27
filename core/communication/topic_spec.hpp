@@ -4,12 +4,19 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <fastdds/dds/topic/TypeSupport.hpp>
 
 namespace core::communication {
+
+namespace dds = eprosima::fastdds::dds;
 
 template <typename T, const char* TopicName, size_t max_queue_size = 1>
 struct TopicSpec
 {
+    static_assert(
+        std::is_base_of_v<dds::TopicDataType, T>,
+        "T must be derived from eprosima::fastdds::dds::TopicDataType");
+
     using type = T;
     static constexpr const char* kName {TopicName};
     static constexpr size_t kQueueSize {max_queue_size};

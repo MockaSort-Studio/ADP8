@@ -1,0 +1,19 @@
+#ifndef {{ header_guard }}
+#define {{ header_guard }}
+
+#include "core/communication/topic_spec.hpp"
+{% for include in includes -%}
+#include "{{ include }}"
+{% endfor %}
+
+namespace {{ namespace }} {
+
+using {{ specs_list_name }} = TopicList<
+{% for spec in topic_specs %}
+    TopicSpec< {{ "%-1s"|format(spec.type + ",") }} {{ "%-1s"|format(spec.topic_id.c_var_name + ",") }} {{ spec.queue_size }} >{{ "," if not loop.last }}
+{% endfor %}
+>;
+
+} // namespace {{ namespace }}
+
+#endif // {{ header_guard }}

@@ -1,0 +1,15 @@
+#ifndef {{ header_guard }}
+#define {{ header_guard }}
+
+namespace {{ namespace }} {
+
+{% for tid in topic_ids -%}
+/**
+ * @brief Auto-generated topic name for {{ tid.name }}
+ */
+static constexpr char {{ tid.c_var_name }}[] = "{{ tid.name }}";
+{% endfor %}
+
+} // namespace {{ namespace }}
+
+#endif // {{ header_guard }}
