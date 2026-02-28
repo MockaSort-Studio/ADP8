@@ -32,10 +32,6 @@
     "[dockerfile]": {
         "editor.defaultFormatter": "ms-azuretools.vscode-containers"
     },
-    // Python Interpreter
-    "python.analysis.extraPaths": [
-        "${workspaceFolder}/.py_external_symlink/"
-    ],
     // C/C++ (MS C_Cpp)
     "C_Cpp.intelliSenseEngine": "disabled",
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
