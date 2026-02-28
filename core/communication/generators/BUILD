@@ -1,6 +1,5 @@
 load("@core_requirements//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("//core/communication/generators:dds_ports_gen.bzl", "cc_dds_ports")
 load("//core/communication/generators:fastdds_types_gen.bzl", "cc_fastdds_types")
 
@@ -19,12 +18,6 @@ cc_dds_ports(
 cc_fastdds_types(
     name = "test_types",
     idl_srcs = glob(["test_idls/*.idl"]),
-)
-
-compile_pip_requirements(
-    name = "requirements",
-    src = "requirements.in",
-    requirements_txt = "requirements.txt",
 )
 
 py_binary(
