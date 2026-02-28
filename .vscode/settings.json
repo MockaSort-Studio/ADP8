@@ -32,13 +32,10 @@
     "[dockerfile]": {
         "editor.defaultFormatter": "ms-azuretools.vscode-containers"
     },
-    //Python Interpreter
-    "python.defaultInterpreterPath": "${workspaceFolder}/.py_external_symlink/bin/python3",
-    "python-envs.defaultEnvManager": "ms-python.python:system",
+    // Python Interpreter
     "python.analysis.extraPaths": [
         "${workspaceFolder}/.py_external_symlink/"
     ],
-    "python.terminal.activateEnvInSelectedTerminal": false,
     // C/C++ (MS C_Cpp)
     "C_Cpp.intelliSenseEngine": "disabled",
     "C_Cpp.codeAnalysis.clangTidy.enabled": true,
@@ -57,5 +54,5 @@
     // Bazel
     "bazel.buildifierExecutable": "buildifier",
     "bazel.lsp.command": "starpls",
-    "bazel.buildifierFixOnFormat": true
+    "bazel.buildifierFixOnFormat": true,
 }
