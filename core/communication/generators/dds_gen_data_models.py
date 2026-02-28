@@ -57,13 +57,11 @@ class Ports(BaseModel):
         }
 
 
-# unfortunately relative path do not work for saving files since exec root is somewhere else
-# to void include/header guards including also bazel-out/../bin we scrape it away by using /bin as anchor
-# It's not pretty, but we do not want to add complexity (e.g. adding more input variables).
-# Also bazel is pretty consistent, so we can safely leave it as it is.
-# We'll revisit in future if it becomes a problem 🐽
+# The upstream bazel rule is configured to generate header usable just using file name (#include "name.hpp")
+# It's code gen, we don't care about pretty folder structure,
+# so we scrape the path away 🐽
 def remove_bazel_prefix_path(path: str) -> str:
-    parts = path.split("bin/", 1)
+    parts = path.rsplit("/", 1)
     clean_path = parts[-1]
     return clean_path
 

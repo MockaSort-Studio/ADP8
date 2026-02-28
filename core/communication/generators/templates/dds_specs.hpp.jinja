@@ -8,10 +8,10 @@
 
 namespace {{ namespace }} {
 
-using {{ specs_list_name }} = TopicList<
+using {{ specs_list_name }} = core::lifecycle::TopicList<
 {% for spec in topic_specs %}
-    TopicSpec< {{ "%-1s"|format(spec.type + ",") }} {{ "%-1s"|format(spec.topic_id.c_var_name + ",") }} {{ spec.queue_size }} >{{ "," if not loop.last }}
-{% endfor %}
+    core::communication::TopicSpec< {{ "%-1s"|format(spec.type + ",") }} {{ "%-1s"|format(spec.topic_id.c_var_name + ",") }} {{ spec.queue_size }} >{{ "," if not loop.last }}
+{%- endfor -%}
 >;
 
 } // namespace {{ namespace }}
