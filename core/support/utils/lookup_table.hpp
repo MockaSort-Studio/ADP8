@@ -27,6 +27,7 @@ struct TableItem
 {
     using Key = KeyType;
     using Values = std::tuple<ValueTypes...>;
+    Values values;
 
     template <typename Func>
     static constexpr void for_each_in_table_element(Func&& func)
@@ -37,38 +38,61 @@ struct TableItem
     }
 };
 
+// Trait to find the specific TableItem base class for a given Key
+template <typename TargetKey, typename... Items>
+struct find_table_item;
+
+template <typename TargetKey, typename First, typename... Rest>
+struct find_table_item<TargetKey, First, Rest...> {
+    using type = std::conditional_t<
+        std::is_same_v<TargetKey, typename First::Key>,
+        First,
+        typename find_table_item<TargetKey, Rest...>::type
+    >;
+};
+
+// Base case (if not found, this will cause a clean compile error on 'type')
+template <typename TargetKey, typename Last>
+struct find_table_item<TargetKey, Last> {
+    using type = std::conditional_t<std::is_same_v<TargetKey, typename Last::Key>, Last, void>;
+};
+
 template <typename... TableElements>
-struct LookupTable
+struct LookupTable : public TableElements...
 {
+    // --- Your original consistency checks ---
     template <typename TargetKey>
     static constexpr std::size_t count_key_v =
         (0 + ... + (std::is_same_v<TargetKey, typename TableElements::Key> ? 1 : 0));
 
     static_assert(
         ((count_key_v<typename TableElements::Key> == 1) && ...),
-        "LookupTable Error: Duplicate keys detected! Keys must be unique.");
-    // ----------------------------------------------
+        "LookupTable Error: Duplicate keys detected!");
+
+template <typename DefaultsTuple>
+    explicit constexpr LookupTable(DefaultsTuple&& defaults)
+        : LookupTable(std::forward<DefaultsTuple>(defaults), 
+                      std::index_sequence_for<TableElements...>{}) {}
 
     template <typename Key>
-    struct get_type
-    {
-        template <typename Element>
-        using extract_match = std::conditional_t<
-            std::is_same_v<typename Element::Key, Key>,
-            typename Element::Values,
-            std::tuple<>>;
+    using get_values_t = typename find_table_item<Key, TableElements...>::type::Values;
 
-        using matched_tuple =
-            decltype(std::tuple_cat(std::declval<extract_match<TableElements>>()...));
-
-        using type = typename single_type_extractor<matched_tuple>::type;
-    };
+    template <typename TargetKey>
+    const auto& GetValue() const {
+        using ItemBase = typename find_table_item<TargetKey, TableElements...>::type;
+        return static_cast<const ItemBase&>(*this).values;
+    }
 
     template <typename Func>
-    static constexpr void for_each_element(Func&& func)
-    {
-        (func(TableElements {}), ...);
+    static constexpr void for_each(Func&& func) {
+        (func(TableElements {}), ...);    
     }
+    private:
+    // Internal helper that unrolls the indices
+    template <typename DefaultsTuple, std::size_t... Is>
+    constexpr LookupTable(DefaultsTuple&& defaults, std::index_sequence<Is...>)
+        : TableElements{ {std::get<Is>(defaults)} }... {}
+
 };
 
 template <typename T>

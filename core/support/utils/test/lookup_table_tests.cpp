@@ -18,18 +18,36 @@ using TestTable = LookupTable<
 TEST(LookupTableTest, GivenUniqueElementsCorrectTypeExtracted)
 {
     // When
-    using CorrectSingleItem = TestTable::get_type<int>::type;
+    using CorrectSingleItem = std::tuple_element_t<0, TestTable::get_values_t<int>>;
 
     // Then
     ASSERT_TRUE((std::is_same_v<std::string, CorrectSingleItem>));
 
     // When
-    using CorrectMultipleItem = TestTable::get_type<float>::type;
+    using CorrectMultipleItem = TestTable::get_values_t<float>;
 
     // Then
     ASSERT_TRUE((std::is_same_v<std::tuple<double, bool, int>, CorrectMultipleItem>));
 }
 
+TEST(LookupTableTest, RuntimeValueExtractiontest)
+{
+    auto tuple_int   = std::make_tuple(std::string("pippo")); 
+    auto tuple_float = std::make_tuple(0.1, false, 1);
+    auto tuple_char  = std::make_tuple(10000u);
+    
+    auto table_values = std::make_tuple(
+        tuple_int,         
+        tuple_float,
+        tuple_char
+    );
+
+    auto table = TestTable(table_values);
+
+    EXPECT_EQ(std::get<0>(table.GetValue<int>()), "pippo");
+    EXPECT_EQ(table.GetValue<float>(), tuple_float);
+    EXPECT_EQ(table.GetValue<char>(), tuple_char);
+}
 TEST(LookupTableTest, IsLookupTableTest)
 {
     ASSERT_TRUE(is_lookup_table_v<TestTable>);
@@ -70,7 +88,7 @@ TEST(LookupTableTest, ForEachElement)
         typeid(int).name(), typeid(float).name(), typeid(bool).name()};
     std::vector<std::string> results;
 
-    Table::for_each_element(
+    Table::for_each(
         [&results, &key_set](auto type)
         {
             using CurrentElement = decltype(type);
