@@ -1,7 +1,7 @@
 """This Makes the linter happy"""
 
-load("//core/communication/generators:dds_ports_gen.bzl", _cc_dds_ports = "cc_dds_ports")
-load("//core/communication/generators:fastdds_types_gen.bzl", _cc_fastdds_types = "cc_fastdds_types")
+load("//core/generators:dds_ports_gen.bzl", _cc_dds_ports = "cc_dds_ports")
+load("//core/generators:fastdds_types_gen.bzl", _cc_fastdds_types = "cc_fastdds_types")
 
 def cc_dds_components(name, idls, ports_yaml):
     """Generates a suite of DDS communication components including port specs and type support.

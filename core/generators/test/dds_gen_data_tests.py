@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 import pytest
 
-from core.communication.generators.dds_gen_data_models import (
+from core.generators.dds_gen_data_models import (
     IdlTypeHeader,
     Ports,
     TopicIdHeader,

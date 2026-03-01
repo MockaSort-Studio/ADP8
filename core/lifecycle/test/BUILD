@@ -1,6 +1,6 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("//core/communication/generators:defs.bzl", "cc_dds_components")
+load("//core/generators:defs.bzl", "cc_dds_components")
 
 cc_dds_components(
     name = "test",

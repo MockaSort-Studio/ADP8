@@ -3,7 +3,7 @@ import sys
 import pytest
 import yaml
 
-from core.communication.generators.dds_gen_utils import (
+from core.generators.dds_gen_utils import (
     dds_ports_from_yaml,
     dds_types_header_model,
 )
