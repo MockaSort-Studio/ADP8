@@ -1,28 +1,27 @@
 #ifndef SUPPORT_VISIT_PROPERTY
 #define SUPPORT_VISIT_PROPERTY
 
-#include <string_view>
-namespace sert::support {
+namespace core::visit {
 
 #define BEGIN_VISITABLE(TypeName)               \
     inline static constexpr auto GetVisitable() \
     {                                           \
         using Type = TypeName;                  \
-            auto v = sert::support::visitable<Type>(
+            auto v = core::visit::visitable<Type>(
 
 #define ADD_PROPERTY_BEGIN(TypeName, PropertyName) \
     inline static constexpr auto GetVisitable()    \
     {                                              \
         using Type = TypeName;                     \
-            auto v = sert::support::visitable<Type>(sert::support::property(#PropertyName, &Type::PropertyName)
+            auto v = core::visit::visitable<Type>(core::visit::property(#PropertyName, &Type::PropertyName)
 
 #define ADD_PROPERTY(PropertyName) \
-    , sert::support::property(#PropertyName, &Type::PropertyName)
+    , core::visit::property(#PropertyName, &Type::PropertyName)
 
-#define ADD_PROPERTY_END(PropertyName)                            \
-    , sert::support::property(#PropertyName, &Type::PropertyName) \
-                );                                                \
-    return v;                                                     \
+#define ADD_PROPERTY_END(PropertyName)                          \
+    , core::visit::property(#PropertyName, &Type::PropertyName) \
+                );                                              \
+    return v;                                                   \
     }
 
 #define END_VISITABLE() \
@@ -99,7 +98,7 @@ constexpr inline auto property(const char* name, MemberType Class::* member)
     return Property<Class, MemberType> {name, member};
 }
 
-}  // namespace sert::support
+}  // namespace core::visit
 
 /// @}
 /// @}

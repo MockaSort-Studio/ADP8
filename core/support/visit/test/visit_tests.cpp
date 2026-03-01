@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include "support/visit/property.hpp"
-#include "support/visit/visitable.hpp"
-#include "support/visit/visitor_base.hpp"
-#include "test_visitors.hpp"
+#include "core/support/visit/property.hpp"
+#include "core/support/visit/test/test_visitors.hpp"
+#include "core/support/visit/visitable.hpp"
+#include "core/support/visit/visitor_base.hpp"
 
-namespace sert::test {
+namespace core::visit {
 
 struct Mock
 {
@@ -33,32 +33,27 @@ struct MockNested
     END_VISITABLE()  // ---|--->  equivalent to ADD_PROPERTY_END(m)
 };
 
-}  // namespace sert::test
-
 TEST(Visitable, GivenMockNestedStructureType_MembersTraitAreCorrect)
 {
-    using namespace sert::test;
-
     MockNested m {};
 
     struct NotVisitable
     {
     };
 
-    EXPECT_FALSE(sert::support::has_get_visitable<decltype(m.c_nested)>::value);
-    EXPECT_TRUE(sert::support::has_get_visitable<decltype(m)>::value);
-    EXPECT_TRUE(sert::support::has_get_visitable<decltype(m.m)>::value);
+    EXPECT_FALSE(has_get_visitable<decltype(m.c_nested)>::value);
+    EXPECT_TRUE(has_get_visitable<decltype(m)>::value);
+    EXPECT_TRUE(has_get_visitable<decltype(m.m)>::value);
 
-    EXPECT_FALSE(sert::support::has_exit_nested_v<SimpleVisitor>);
-    EXPECT_FALSE(sert::support::has_exit_nested_v<SimpleVisitor>);
-    EXPECT_TRUE(sert::support::has_visit_nested_v<NestedVisitor>);
-    EXPECT_TRUE(sert::support::has_visit_nested_v<NestedVisitor>);
+    EXPECT_FALSE(has_exit_nested_v<SimpleVisitor>);
+    EXPECT_FALSE(has_exit_nested_v<SimpleVisitor>);
+    EXPECT_TRUE(has_visit_nested_v<NestedVisitor>);
+    EXPECT_TRUE(has_visit_nested_v<NestedVisitor>);
 }
 
 TEST(Visitable, GivenMockStructure_MembersAreVisited)
 {
-    using namespace sert::test;
-    auto r = sert::support::is_i_visitable_v<decltype(Mock::GetVisitable())>;
+    auto r = is_i_visitable_v<decltype(Mock::GetVisitable())>;
     ASSERT_TRUE(r);
 
     Mock m {};
@@ -81,8 +76,6 @@ TEST(Visitable, GivenMockStructure_MembersAreVisited)
 
 TEST(Visitable, GivenMockNestedStructure_MembersAreVisited)
 {
-    using namespace sert::test;
-
     MockNested m {};
 
     NestedVisitor visitor {};
@@ -101,3 +94,4 @@ TEST(Visitable, GivenMockNestedStructure_MembersAreVisited)
     EXPECT_EQ(visitor.d_result.second, m.m.d);
     EXPECT_EQ(visitor.s_result.second, m.m.s);
 }
+}  // namespace core::visit

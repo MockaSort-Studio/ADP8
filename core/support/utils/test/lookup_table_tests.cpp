@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "support/lookup_table.hpp"
+#include "core/support/utils/lookup_table.hpp"
 
-namespace sert::support {
+namespace core::utils {
 
 TEST(LookupTableTest, GivenTwoElementsCorrectOneAssociatedToTypeKey)
 {
@@ -35,7 +35,7 @@ TEST(TableElementTest, ForEachInTableElement)
         [&results](const auto& value)
         {
             ASSERT_EQ(typeid(Element::Key).name(), typeid(int).name());
-            results.push_back(typeid(value).name());
+            results.emplace_back(typeid(value).name());
         });
 
     ASSERT_EQ(results.size(), 2);
@@ -59,7 +59,7 @@ TEST(LookupTableTest, ForEachElementForEachInTableElement)
             key_set.insert(typeid(typename decltype(type)::Key).name());
             decltype(type)::for_each_in_table_element(
                 [&results](const auto& value)
-                { results.push_back(typeid(value).name()); });
+                { results.emplace_back(typeid(value).name()); });
         });
 
     ASSERT_EQ(results.size(), 5);
@@ -72,4 +72,4 @@ TEST(LookupTableTest, ForEachElementForEachInTableElement)
     EXPECT_EQ(results[3], typeid(std::string).name());
     EXPECT_EQ(results[4], typeid(uint8_t).name());
 }
-}  // namespace sert::support
+}  // namespace core::utils

@@ -1,7 +1,5 @@
 #ifndef CORE_COMMUNICATION_DDS_SUBSCRIBER
 #define CORE_COMMUNICATION_DDS_SUBSCRIBER
-#include <chrono>
-#include <cstdint>
 #include <optional>
 #include <thread>
 
@@ -14,7 +12,7 @@
 #include <fastdds/dds/subscriber/Subscriber.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
-#include "core/communication/size_constrained_queue.hpp"
+#include "core/support/utils/size_constrained_queue.hpp"
 namespace core::communication {
 namespace dds = eprosima::fastdds::dds;
 
@@ -77,7 +75,7 @@ class SubListener : public dds::DataReaderListener
     Type hello_;
     std::atomic<int> samples_;
     std::atomic<int> matched_count_ {0};
-    SizeConstrainedQueue<Type, QueueSize> message_queue_;
+    core::utils::SizeConstrainedQueue<Type, QueueSize> message_queue_;
 };
 }  // namespace
 

@@ -1,9 +1,10 @@
-#ifndef SUPPORT_LOOKUP_TABLE
-#define SUPPORT_LOOKUP_TABLE
+#ifndef CORE_SUPPORT_UTILS_LOOKUP_TABLE
+#define CORE_SUPPORT_UTILS_LOOKUP_TABLE
 
+#include <stdexcept>
 #include <tuple>
 
-namespace sert::support {
+namespace core::utils {
 
 template <bool...>
 struct bool_pack;
@@ -94,6 +95,6 @@ struct LookupTable
         (func(TableElements {}), ...);
     }
 };
-}  // namespace sert::support
+}  // namespace core::utils
 
-#endif  // SUPPORT_LOOKUP_TABLE
+#endif  // CORE_SUPPORT_UTILS_LOOKUP_TABLE
