@@ -12,6 +12,7 @@
 #include <fastdds/dds/subscriber/Subscriber.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
+#include "core/communication/dds_context.hpp"
 #include "core/support/utils/size_constrained_queue.hpp"
 namespace core::communication {
 namespace dds = eprosima::fastdds::dds;
@@ -21,6 +22,8 @@ namespace {
 template <typename Type, std::size_t QueueSize>
 class SubListener : public dds::DataReaderListener
 {
+    using Queue = core::utils::SizeConstrainedQueue<Type, QueueSize>;
+
   public:
     SubListener() : samples_(0) {}
 
@@ -72,30 +75,35 @@ class SubListener : public dds::DataReaderListener
         return std::nullopt;
     }
 
-    Type hello_;
+    inline void DrainQueue(Queue& other) noexcept { message_queue_.TransferTo(other); }
+
     std::atomic<int> samples_;
     std::atomic<int> matched_count_ {0};
-    core::utils::SizeConstrainedQueue<Type, QueueSize> message_queue_;
+
+  private:
+    Queue message_queue_;
 };
 }  // namespace
 
-template <typename TopicClass, std::size_t QueueSize = 1>
+template <typename PubSubType, std::size_t QueueSize = 1>
 class DDSSubscriber
 {
+    static_assert(
+        std::is_base_of_v<dds::TopicDataType, PubSubType>,
+        "PubSubType must be derived from eprosima::fastdds::dds::TopicDataType");
+
   public:
-    using DDSDataType = typename TopicClass::MsgType;
+    using DDSDataType = typename PubSubType::type;
     using DDSListener = SubListener<DDSDataType, QueueSize>;
 
-    DDSSubscriber(
-        std::shared_ptr<TopicClass> topic_handle,
-        std::shared_ptr<dds::DomainParticipant> participant)
-        : topic_handle_(topic_handle), participant_(participant)
+    DDSSubscriber() = default;
+
+    void Start(const std::string& topic_name)
     {
-        if (!topic_handle_.get() || !participant_.get())
-        {
-            throw std::runtime_error(
-                "Invalid Topic or Participant provided to Subscriber");
-        }
+        // we store a pointer to participant for lifecycle mgmt of subscriber and data
+        // reader
+        auto& ctx = DDSContextProvider::Get();
+        participant_ = ctx.GetDomainParticipant();
 
         auto* raw_sub =
             participant_->create_subscriber(dds::SUBSCRIBER_QOS_DEFAULT, nullptr);
@@ -111,7 +119,9 @@ class DDSSubscriber
             });
 
         auto* raw_reader = sub_->create_datareader(
-            topic_handle_->Get(), dds::DATAREADER_QOS_DEFAULT, &listener_);
+            ctx.GetDDSTopic<PubSubType>(topic_name),
+            dds::DATAREADER_QOS_DEFAULT,
+            &listener_);
 
         if (!raw_reader)
             throw std::runtime_error("Failed to create DataReader");
@@ -124,15 +134,19 @@ class DDSSubscriber
                     s->delete_datareader(r);
             });
     }
-
     ~DDSSubscriber() = default;
 
     [[nodiscard]] bool IsMatched() const { return listener_.matched_count_ > 0; }
 
     std::optional<DDSDataType> GetSample() { return std::move(listener_.GetSample()); }
 
+    inline void DrainQueue(
+        utils::SizeConstrainedQueue<DDSDataType, QueueSize>& other) noexcept
+    {
+        listener_.DrainQueue(other);
+    }
+
   private:
-    std::shared_ptr<TopicClass> topic_handle_;
     std::shared_ptr<dds::DomainParticipant> participant_;
 
     std::unique_ptr<dds::Subscriber, std::function<void(dds::Subscriber*)>> sub_;

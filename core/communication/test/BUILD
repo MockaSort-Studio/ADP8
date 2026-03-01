@@ -4,6 +4,7 @@ load("//core/communication:bazel/fastdds.bzl", "cc_fastdds_types")
 cc_fastdds_types(
     name = "test_dds_types",
     idl_srcs = glob(["idl/*.idl"]),
+    visibility = ["//core/lifecycle/test:__subpackages__"],
 )
 
 cc_test(
@@ -18,8 +19,19 @@ cc_test(
 )
 
 cc_test(
-    name = "dds_topic_test",
-    srcs = ["dds_topic_test.cpp"],
+    name = "topic_spec_tests",
+    srcs = ["topic_spec_tests.cpp"],
+    deps = [
+        ":test_dds_types",
+        "//core/communication:dds",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "dds_context_tests",
+    srcs = ["dds_context_tests.cpp"],
     deps = [
         ":test_dds_types",
         "//core/communication:dds",

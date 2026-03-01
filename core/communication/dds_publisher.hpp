@@ -9,6 +9,9 @@
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
+
+#include "core/communication/dds_context.hpp"
+
 namespace core::communication {
 
 namespace dds = eprosima::fastdds::dds;
@@ -48,25 +51,28 @@ class PubListener : public dds::DataWriterListener
 };
 }  // namespace
 
-template <typename TopicClass>
+template <typename PubSubType>
 class DDSPublisher
 {
-  public:
-    // Reach into the Topic class to get the IDL-generated message type
-    using DDSDataType = typename TopicClass::MsgType;
+    static_assert(
+        std::is_base_of_v<dds::TopicDataType, PubSubType>,
+        "PubSubType must be derived from eprosima::fastdds::dds::TopicDataType");
 
-    DDSPublisher(
-        std::shared_ptr<TopicClass> topic_handle,
-        std::shared_ptr<dds::DomainParticipant> participant)
-        : topic_handle_(topic_handle), participant_(participant)
+  public:
+    using DDSDataType = typename PubSubType::type;
+
+    DDSPublisher() = default;
+
+    void Start(const std::string& topic_name)
     {
-        if (!topic_handle_.get() || !participant_.get())
-        {
-            throw std::runtime_error(
-                "Invalid Topic or Participant provided to Publisher");
-        }
+        // we store a pointer to participant for lifecycle mgmt of publisher and data
+        // writer
+        auto& ctx = DDSContextProvider::Get();
+        participant_ = ctx.GetDomainParticipant();
+
         auto* raw_pub =
             participant_->create_publisher(dds::PUBLISHER_QOS_DEFAULT, nullptr);
+
         if (!raw_pub)
             throw std::runtime_error("Failed to create Publisher");
 
@@ -79,7 +85,9 @@ class DDSPublisher
             });
 
         auto* raw_writer = pub_->create_datawriter(
-            topic_handle_->Get(), dds::DATAWRITER_QOS_DEFAULT, &listener_);
+            ctx.GetDDSTopic<PubSubType>(topic_name),
+            dds::DATAWRITER_QOS_DEFAULT,
+            &listener_);
 
         if (!raw_writer)
             throw std::runtime_error("Failed to create DataWriter");
@@ -105,7 +113,6 @@ class DDSPublisher
     [[nodiscard]] bool IsMatched() const { return listener_.matched_count_ > 0; }
 
   private:
-    std::shared_ptr<TopicClass> topic_handle_;
     std::shared_ptr<dds::DomainParticipant> participant_;
 
     std::unique_ptr<dds::Publisher, std::function<void(dds::Publisher*)>> pub_;

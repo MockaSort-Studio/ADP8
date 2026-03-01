@@ -1,53 +1,59 @@
 #ifndef CORE_LIFECYCLE_DDS_TASK
 #define CORE_LIFECYCLE_DDS_TASK
 
-#include <string>
-
+#include "core/lifecycle/data_endpoint.hpp"
+#include "core/lifecycle/input_source.hpp"
+#include "core/lifecycle/output_sink.hpp"
 #include "core/lifecycle/task_interface.hpp"
-
 namespace core::lifecycle {
 
-// TaskChain = LookupTable<PippoTask, 10ms>
-// PippoTaskPubSub = tuple<Subscribers, Publisher>
-// pippo:
-//  - frequency_ms: 10ms
-//  - subscribers:
-//      - {dio,10}
-//      - lupo,11
-//      - serpente,12
-//  - publishers:
-//      - madonna
-//      - ladra
-//      - assassina
-
-// Subscribers = tuple<DDSPublisher/DDSSubscribner<PorcoddioTopic>, PippoTopic>
-// class PippoTask : public DDSTask<PippoTaskPubSub>
+template <typename SubscriptionSpecs, typename PublicationSpecs>
 class DDSTask : public TaskInterface
 {
+    using Subs = SubscriptionSpecs;
+    using Pubs = PublicationSpecs;
+
   public:
-    explicit DDSTask(std::string name) : TaskInterface(name) {}
+    using TaskInterface::TaskInterface;
     virtual ~DDSTask() = default;
 
     void ExecuteStep() override
     {
-        // Fill inputs
+        FillInputs();
         Execute();
-        // Flush outputs
+        FlushOutputs();
     };
 
+  protected:
     virtual void Execute() = 0;
+    virtual void Init() {}
 
-    // GetInputQueue()
+    template <const char* TopicName>
+    inline auto GetInputSource() noexcept
+    {
+        return InputSource {get<TopicName>(inputs_)};
+    }
+
+    template <const char* TopicName>
+    inline auto GetOutputSink() noexcept
+    {
+        return OutputSink {get<TopicName>(outputs_)};
+    }
 
   private:
-    // DDSSubscriber<Ticks, 10>
-    // input_ (tuple(DDSSubscriber<Ticks, 10>, SizeConstrainedQueue<TicksMessages,10>),
-    // output_ (tuple(DDSPublisher<PorcoDiddio>, PorcoDiddioMessages),
-    // .......)
+    inline void FillInputs() noexcept
+    {
+        std::apply([](auto&... input) constexpr { (input.Sync(), ...); }, inputs_);
+    }
+    inline void FlushOutputs() noexcept
+    {
+        std::apply([](auto&... output) constexpr { (output.Sync(), ...); }, outputs_);
+    }
+
+    Inputs_t<Subs> inputs_;
+    Outputs_t<Pubs> outputs_;
 };
 
 }  // namespace core::lifecycle
-// DDSTask : TaskInterface -> PippoAlg : public DDSTask
-//  |--> Publisher e Subscribers
 
 #endif  // CORE_LIFECYCLE_DDS_TASK
