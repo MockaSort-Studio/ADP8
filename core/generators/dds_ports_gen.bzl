@@ -74,12 +74,12 @@ cc_dds_ports = rule(
         "yaml_config": attr.label(allow_single_file = [".yaml", ".yml"]),
         "idls": attr.label_list(allow_files = [".idl"]),
         "_generator": attr.label(
-            default = Label("//core/communication/generators:dds_ports_generator"),
+            default = Label("//core/generators:dds_ports_generator"),
             executable = True,
             cfg = "exec",
         ),
         "_templates": attr.label(
-            default = Label("//core/communication/generators:dds_ports_jinja_templates"),
+            default = Label("//core/generators:dds_ports_jinja_templates"),
             allow_files = [".jinja"],
         ),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),

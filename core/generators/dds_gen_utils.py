@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 import yaml
 from idl_parser.parser import IDLParser
 
-from core.communication.generators.dds_gen_data_models import (
+from core.generators.dds_gen_data_models import (
     IdlTypeHeader,
     Ports,
     SpecsHeader,

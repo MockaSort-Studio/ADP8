@@ -6,11 +6,11 @@ from typing import Any, Dict, List, Tuple
 
 from jinja2 import Template
 
-from core.communication.generators.dds_gen_data_models import (
+from core.generators.dds_gen_data_models import (
     GeneratedHeader,
     remove_bazel_prefix_path,
 )
-from core.communication.generators.dds_gen_utils import (
+from core.generators.dds_gen_utils import (
     dds_ports_from_yaml,
     dds_topic_ids_pub_sub_header_models,
     dds_topic_specs_pub_sub_header_models,
@@ -71,9 +71,9 @@ def generate_header_file(
 
 
 TEMPLATES: Dict[str, str] = {
-    "ids": "core/communication/generators/templates/dds_topic_ids.hpp.jinja",
-    "specs": "core/communication/generators/templates/dds_specs.hpp.jinja",
-    "types": "core/communication/generators/templates/dds_types.hpp.jinja",
+    "ids": "core/generators/templates/dds_topic_ids.hpp.jinja",
+    "specs": "core/generators/templates/dds_specs.hpp.jinja",
+    "types": "core/generators/templates/dds_types.hpp.jinja",
 }
 
 

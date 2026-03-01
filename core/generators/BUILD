@@ -10,7 +10,7 @@ py_binary(
     ],
     deps = [
         requirement("jinja2"),
-        "//core/communication/generators:dds_gen_utils",
+        "//core/generators:dds_gen_utils",
     ],
 )
 
