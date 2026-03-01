@@ -98,7 +98,7 @@ class IdlTypeHeader(GeneratedHeader):
 
         return {
             "output_file_path": data.get("output_file_path", ""),
-            "includes": types_h,
+            "includes": list(set(types_h)),
         }
 
 

@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "core/communication/dds_context.hpp"
-#include "TestPubSubTypes.hpp"
+#include "TestPayloadPubSubTypes.hpp"
 
 namespace core::communication {
 namespace dds = eprosima::fastdds::dds;
@@ -13,7 +13,7 @@ class DDSContextTest : public ::testing::Test
     DDSContext context_ {"test_domain_participant"};
 };
 
-inline constexpr char kTestTopicName[] = "Topic";
+inline constexpr char kTopicName[] = "Topic";
 
 TEST_F(DDSContextTest, SuccessfulInitialization)
 {
@@ -40,7 +40,7 @@ TEST_F(DDSContextTest, DomainParticipantNotNull)
 TEST_F(DDSContextTest, GetTopicWithTopicSpecTest)
 {
     auto topic_handle =
-        context_.GetDDSTopic<TopicSpec<TestPayloadPubSubType, kTestTopicName>>();
+        context_.GetDDSTopic<TopicSpec<TestPayloadPubSubType, kTopicName>>();
 
     ASSERT_NE(topic_handle, nullptr);
     EXPECT_EQ(topic_handle->get_name(), "Topic");

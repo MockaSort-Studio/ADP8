@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "core/communication/topic_spec.hpp"
-#include "TestPubSubTypes.hpp"
+#include "TestPayloadPubSubTypes.hpp"
 
 namespace core::communication {
 

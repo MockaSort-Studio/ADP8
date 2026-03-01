@@ -5,29 +5,22 @@
 #include "core/lifecycle/dds_application.hpp"
 #include "core/lifecycle/dds_task.hpp"
 #include "core/support/utils/lookup_table.hpp"
-#include "core/communication/generators/test_ports_subscriptions.h"
-#include "core/communication/generators/test_ports_publications.h"
-#include "TestPubSubTypes.hpp"  //Need to look on how to ma
+#include "test_ports_subscriptions.hpp"
+#include "test_ports_publications.hpp"
 
-using Diomerda= gen::Subscriptions
-using Diobestia = gen::Publications
 namespace core::lifecycle {
 static std::atomic<int> mock_task_1_count {0};
 static std::atomic<int> mock_task_2_count {0};
-inline constexpr char kTestTopicName[] = "Topic";
-inline constexpr char kDifferentTopicName[] = "DifferentTopic";
 
-using DDSTaskTopicSubsList =
-    TopicList<communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>>;
-using DDSTaskTopicPubsList =
-    TopicList<communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>>;
+using DDSTaskTopicSubsList = gen::Subscriptions;
+using DDSTaskTopicPubsList = gen::Publications;
 
 using TestTopicSubsList = TopicList<
-    communication::TopicSpec<TestPayloadPubSubType, kTestTopicName, 2>,
-    communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName, 2>>;
+    communication::TopicSpec<TestPayloadPubSubType, gen::kSendFalseTopicName, 2>,
+    communication::TopicSpec<TestPayloadPubSubType, gen::kSendTrueTopicName, 2>>;
 using TestTopicPubsList = TopicList<
-    communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>,
-    communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>>;
+    communication::TopicSpec<TestPayloadPubSubType, gen::kSendFalseTopicName>,
+    communication::TopicSpec<TestPayloadPubSubType, gen::kSendTrueTopicName>>;
 
 using TestInputs = Inputs_t<TestTopicSubsList>;
 using TestOutputs = Outputs_t<TestTopicPubsList>;
@@ -53,8 +46,8 @@ class SendFalseDDSTask : public DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsLi
   protected:
     void Execute() override
     {
-        auto in = GetInputSource<kTestTopicName>();
-        auto out = GetOutputSink<kDifferentTopicName>();
+        auto in = GetInputSource<gen::kSendFalseTopicName>();
+        auto out = GetOutputSink<gen::kSendTrueTopicName>();
 
         if (in.Empty())
         {
@@ -77,8 +70,8 @@ class SendTrueDDSTask : public DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsLis
   protected:
     void Execute() override
     {
-        auto in = GetInputSource<kDifferentTopicName>();
-        auto out = GetOutputSink<kTestTopicName>();
+        auto in = GetInputSource<gen::kSendTrueTopicName>();
+        auto out = GetOutputSink<gen::kSendFalseTopicName>();
 
         if (in.Empty())
         {

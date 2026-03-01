@@ -1,0 +1,6 @@
+subscriptions:
+  - send_false:
+      type: TestPayload
+publications:
+  - send_true:
+      type: TestPayload

@@ -57,16 +57,15 @@ class DDSAPPlication final
     void BuildTaskManager()
     {
         std::unique_ptr<TasksManager> manager = std::make_unique<TasksManager>();
-
+        //LookUpTable here is used like list, a tuple could suffice.
+        //Although in future we may want to propagate informations (e.g. task manager options for that specific task)
         ApplicationConfig::for_each_element(
-            [&manager](auto type)
+            [&manager](auto Element)
             {
-                using TaskSpec = typename decltype(type)::Key;
-                // using Values = typename decltype(type)::Values;
-                // Static assert values size
+                using TaskSpec = typename decltype(Element)::Key;
 
                 static_assert(
-                    is_task_spec_v<TaskSpec>,
+                    is<TaskSpec>,
                     "Key of LookupTable must be a TaskSpec: "
                     "core/lifecycle/tasks_manager.hpp");
 
