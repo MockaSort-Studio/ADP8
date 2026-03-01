@@ -46,7 +46,6 @@ class DDSAPPlication final
         // Block until the atomic signal flag is set
         while (!detail::shutdown_requested.load(std::memory_order_relaxed))
         {
-            // Sleep for a short duration to yield CPU to the ExecutionEngine
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
@@ -57,22 +56,26 @@ class DDSAPPlication final
     void BuildTaskManager()
     {
         std::unique_ptr<TasksManager> manager = std::make_unique<TasksManager>();
-        //LookUpTable here is used like list, a tuple could suffice.
-        //Although in future we may want to propagate informations (e.g. task manager options for that specific task)
         ApplicationConfig::for_each_element(
             [&manager](auto Element)
             {
-                using TaskSpec = typename decltype(Element)::Key;
+                using Task = typename decltype(Element)::Key;
+                using TaskSpec = typename std::tuple_element_t<0, typename decltype(Element)::Values>;
 
                 static_assert(
-                    is<TaskSpec>,
-                    "Key of LookupTable must be a TaskSpec: "
+                    std::is_base_of_v<TaskInterface,Task>,
+                    "Key of LookupTable must be a TaskInterface: "
+                    "core/lifecycle/tasks_interface.hpp");
+
+                static_assert(
+                    is_task_spec_v<TaskSpec>,
+                    "Value of LookupTable must be a TaskSpec: "
                     "core/lifecycle/tasks_manager.hpp");
 
                 const auto name {
-                    boost::core::demangle(typeid(typename TaskSpec::TaskType).name())};
+                    boost::core::demangle(typeid(Task).name())};
 
-                manager->AddTask<typename TaskSpec::TaskType, TaskSpec::kFrequency>(name);
+                manager->AddTask<Task, TaskSpec::kFrequency>(name);
             });
 
         tasks_manager_ = std::move(manager);

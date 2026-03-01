@@ -8,10 +8,9 @@
 
 namespace core::lifecycle {
 
-template <class T, std::chrono::milliseconds::rep Ms>
+template <std::chrono::milliseconds::rep Ms>
 struct TaskSpec
 {
-    using TaskType = T;
     static constexpr std::chrono::milliseconds::rep kFrequency = Ms;
 };
 
@@ -26,7 +25,6 @@ template <typename T>
 struct is_task_spec<
     T,
     std::void_t<
-        typename T::TaskType,
         decltype(T::kFrequency),
         std::enable_if_t<std::is_integral_v<decltype(T::kFrequency)>>>> : std::true_type
 {
