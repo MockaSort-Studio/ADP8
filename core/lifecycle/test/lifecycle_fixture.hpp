@@ -12,9 +12,6 @@ namespace core::lifecycle {
 static std::atomic<int> mock_task_1_count {0};
 static std::atomic<int> mock_task_2_count {0};
 
-using DDSTaskTopicSubsList = gen::Subscriptions;
-using DDSTaskTopicPubsList = gen::Publications;
-
 using TestTopicSubsList = TopicList<
     communication::TopicSpec<TestPayloadPubSubType, gen::kSendFalseTopicName, 2>,
     communication::TopicSpec<TestPayloadPubSubType, gen::kSendTrueTopicName, 2>>;
@@ -24,6 +21,10 @@ using TestTopicPubsList = TopicList<
 
 using TestInputs = Inputs_t<TestTopicSubsList>;
 using TestOutputs = Outputs_t<TestTopicPubsList>;
+
+using DDSTaskTopicSubsList = gen::Subscriptions;
+using DDSTaskTopicPubsList = gen::Publications;
+
 
 class MockTask1 : public TaskInterface
 {
@@ -85,9 +86,10 @@ class SendTrueDDSTask : public DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsLis
         out.Push(std::move(response));
     }
 };
+
 using TestApplicationConfig = core::utils::LookupTable<
-    core::utils::TableItem<TaskSpec<SendTrueDDSTask, 10>>,
-    core::utils::TableItem<TaskSpec<SendFalseDDSTask, 20>>>;
+    core::utils::TableItem<SendTrueDDSTask, TaskSpec<10>>,
+    core::utils::TableItem<SendFalseDDSTask, TaskSpec<20>>>;
 
 class LifecycleFixture : public ::testing::TestWithParam<int>
 {
