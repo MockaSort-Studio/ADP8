@@ -7,10 +7,13 @@ cc_library(
     srcs = ["execution_engine.cpp"],
     hdrs = [
         "execution_engine.hpp",
+        "parameters_provider.hpp",
         "task_interface.hpp",
         "tasks_manager.hpp",
     ],
-    deps = [],
+    deps = [
+        "//core/support/utils",
+    ],
 )
 
 cc_library(

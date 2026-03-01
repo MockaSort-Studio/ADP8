@@ -10,8 +10,6 @@ create_compile_commands(
     name = "compile_cc",
     targets = {
         "//core/...": "",
-        "//test/...": "",
-        "//support/...": "",
         "@fastdds": "",
     },
 )
