@@ -1,24 +1,7 @@
 load("@core_requirements//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
-load("//core/communication/generators:dds_ports_gen.bzl", "cc_dds_ports")
-load("//core/communication/generators:fastdds_types_gen.bzl", "cc_fastdds_types")
 
 package(default_visibility = ["//visibility:public"])
-
-cc_dds_ports(
-    name = "test_ports",
-    idls = glob(["test_idls/*.idl"]),
-    yaml_config = "task_ports_example.yml",
-    deps = [
-        ":test_types",
-        "//core/communication:dds",
-    ],
-)
-
-cc_fastdds_types(
-    name = "test_types",
-    idl_srcs = glob(["test_idls/*.idl"]),
-)
 
 py_binary(
     name = "dds_ports_generator",

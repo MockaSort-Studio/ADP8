@@ -18,10 +18,10 @@ TEST_F(LifecycleFixture, SameTopicSpecializedWithDifferentQueue)
 }
 
 using TestSub = DataEndpoint<
-    communication::TopicSpec<TestPayloadPubSubType, kDifferentTopicName>,
+    communication::TopicSpec<TestPayloadPubSubType, gen::kSendTrueTopicName>,
     DataDirection::In>;
 using TestPub = DataEndpoint<
-    communication::TopicSpec<TestPayloadPubSubType, kTestTopicName>,
+    communication::TopicSpec<TestPayloadPubSubType, gen::kSendFalseTopicName>,
     DataDirection::Out>;
 
 TEST(DDSTaskTest, PublishTrueExpectFalse)
