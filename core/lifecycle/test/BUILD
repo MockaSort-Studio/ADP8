@@ -29,6 +29,16 @@ cc_test(
 )
 
 cc_test(
+    name = "parameters_provider_tests",
+    srcs = ["parameters_provider_tests.cpp"],
+    deps = [
+        "//core/lifecycle",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "task_manager_tests",
     srcs = ["task_manager_tests.cpp"],
     deps = [

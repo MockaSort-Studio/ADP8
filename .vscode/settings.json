@@ -5,7 +5,8 @@
     "ty.configurationFile": "/workspaces/ADP8/ty.toml",
     // Language-specific editor overrides
     "[cpp]": {
-        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+        "editor.formatOnSave": true,
     },
     "[python]": {
         "editor.codeActionsOnSave": {
