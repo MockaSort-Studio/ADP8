@@ -15,9 +15,8 @@ bazel_dep(name = "rules_python", version = "1.7.0")
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     is_default = True,
-    python_version = "3.12.0",
+    python_version = "3.14",
 )
-
 ######################
 ####  rules  C++  ####
 ######################
@@ -100,11 +99,12 @@ use_repo(
 pip_requirements = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip_requirements.parse(
     hub_name = "pip_requirements",
-    python_version = "3.12",
+    python_version = "3.14",
     requirements_lock = "//ai/requirements:requirements.txt",
 )
 use_repo(pip_requirements, "pip_requirements")
 
 include("//:tools.MODULE.bazel")
 include("//:simulation.MODULE.bazel")
+include("//core:core.MODULE.bazel")
 include("//:third_party/third_party.MODULE.bazel")

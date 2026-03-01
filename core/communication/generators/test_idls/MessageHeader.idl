@@ -1,0 +1,5 @@
+struct MessageHeader {
+    unsigned long long sequence_number;
+    unsigned long long timestamp_ns;
+    unsigned long source_id;
+};

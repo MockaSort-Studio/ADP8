@@ -8,7 +8,7 @@ this makes bazel linter happy
 sim_py_req = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 sim_py_req.parse(
     hub_name = "sim_py_req",
-    python_version = "3.12",
+    python_version = "3.14",
     requirements_lock = "//simulation/py_req:requirements.txt",
 )
 use_repo(sim_py_req, "sim_py_req")

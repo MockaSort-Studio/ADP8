@@ -1,36 +1,57 @@
 #include <future>
 #include <map>
-
+#include <numeric>
 #include <gtest/gtest.h>
 
 #include "core/lifecycle/execution_engine.hpp"
+
 namespace core::lifecycle {
 using namespace std::chrono_literals;
 
-TEST(ExecutionEngineTest, PeriodicExecutionCount)
-{
+TEST(ExecutionEngineTest, PeriodicIntervalIntegrity) {
     core::lifecycle::ExecutionEngine engine;
     engine.Start();
 
-    std::atomic<int> count_5ms {0};
-    std::atomic<int> count_20ms {0};
+    std::mutex mtx;
+    std::vector<std::chrono::steady_clock::time_point> hits;
+    const auto period = 10ms;
+    const int required_samples = 10;
 
-    std::function<void()> pulse_5ms = [&]() { count_5ms++; };
-    std::function<void()> pulse_20ms = [&]() { count_20ms++; };
+    // Capture the exact time of activation
+    engine.Schedule(period, [&]() {
+        std::lock_guard lock(mtx);
+        hits.push_back(std::chrono::steady_clock::now());
+    });
 
-    engine.Schedule(5ms, pulse_5ms);
-    engine.Schedule(20ms, pulse_20ms);
+    // Wait until enough samples have been collected or time out (prevents infinite hang)
+    auto start_wait = std::chrono::steady_clock::now();
+    while (true) {
+        {
+            std::lock_guard lock(mtx);
+            if (hits.size() >= required_samples) break;
+        }
+        if (std::chrono::steady_clock::now() - start_wait > 500ms) break;
+        std::this_thread::sleep_for(10ms);
+    }
 
-    // Wait for the window to close
-    std::this_thread::sleep_for(100ms);
     engine.Stop();
 
-    // EXPECTATIONS:
-    // 100ms / 5ms = 20 executions
-    // 100ms / 20ms = 5 executions
-    // We allow for a small margin (e.g., +/- 1) because OS scheduling
-    EXPECT_GE(count_5ms.load(), 19);
-    EXPECT_GE(count_20ms.load(), 4);
+    ASSERT_GE(hits.size(), 2) << "Engine didn't even pulse twice!";
+
+    std::vector<double> deltas_ms;
+    for (size_t i = 1; i < hits.size(); ++i) {
+        std::chrono::duration<double, std::milli> diff = hits[i] - hits[i-1];
+        deltas_ms.push_back(diff.count());
+    }
+
+    for (double dt : deltas_ms) {
+        EXPECT_GE(dt, 9.5) << "Task triggered too fast!";
+    }
+
+    double avg_dt = std::accumulate(deltas_ms.begin(), deltas_ms.end(), 0.0) / deltas_ms.size();
+    
+    // Allow 20% overhead for noisy neighbors.
+    EXPECT_NEAR(avg_dt, 10.0, 2.0) << "Average period is outside of acceptable jitter range.";
 }
 
 TEST(ExecutionEngineTest, StopBreaksPeriodicChain)

@@ -51,3 +51,6 @@ RUN --mount=type=cache,target=/home/vscode/.cache/Homebrew
 RUN sudo chown -R vscode /home/vscode
 
 RUN /home/vscode/scripts/bootstrap.sh /workspaces/ADP8
+
+#python is in homebrew folder. to avoid custom shebanging for py_rules we symlink it where bazel is expecting it
+RUN sudo ln -sf $(which python3) /usr/bin/python3

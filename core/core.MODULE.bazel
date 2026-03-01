@@ -1,0 +1,12 @@
+"""
+this makes bazel linter happy
+"""
+
+###### Scripting deps ######
+core_requirements = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+core_requirements.parse(
+    hub_name = "core_requirements",
+    python_version = "3.14",
+    requirements_lock = "//core:requirements.txt",
+)
+use_repo(core_requirements, "core_requirements")

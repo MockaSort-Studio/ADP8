@@ -24,7 +24,7 @@ bazel_dep(name = "rules_multirun", version = "0.13.0")
 pip_tools = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
 pip_tools.parse(
     hub_name = "pip_tools",
-    python_version = "3.12",
+    python_version = "3.14",
     requirements_lock = "//tools:requirements.txt",
 )
 use_repo(pip_tools, "pip_tools")

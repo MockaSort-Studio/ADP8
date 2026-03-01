@@ -1,5 +1,4 @@
 load("@aspect_rules_lint//format:defs.bzl", "format_multirun")
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 package(default_visibility = ["//visibility:public"])
@@ -19,6 +18,5 @@ sh_binary(
 format_multirun(
     name = "format",
     cc = ":clang_formatting",
-    #TODO python = "@aspect_rules_lint//format:ruff",
     shell = ":shell_formatting",
 )

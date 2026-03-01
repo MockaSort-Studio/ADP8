@@ -6,7 +6,7 @@
 #include "core/communication/dds_context.hpp"
 #include "core/communication/dds_publisher.hpp"
 #include "core/communication/dds_subscriber.hpp"
-#include "TestPubSubTypes.hpp"
+#include "TestPayloadPubSubTypes.hpp"
 
 using namespace std::chrono_literals;
 

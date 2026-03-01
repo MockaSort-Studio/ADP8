@@ -1,0 +1,8 @@
+#ifndef {{ header_guard }}
+#define {{ header_guard }}
+
+{% for include in includes -%}
+#include "{{include}}"
+{% endfor %}
+
+#endif // {{ header_guard }}
