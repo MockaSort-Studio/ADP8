@@ -25,7 +25,9 @@ def pack_cc_library(ctx, srcs, hdrs, deps, includes = [], linkstatic = True):
         unsupported_features = ctx.disabled_features,
     )
 
-    deps_cc_info = [dep[CcInfo] for dep in deps]
+    deps_cc_info = []
+    if deps:
+        deps_cc_info = [dep[CcInfo] for dep in deps]
 
     compilation_context, compilation_outputs = cc_common.compile(
         name = ctx.label.name,

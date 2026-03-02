@@ -17,6 +17,7 @@ def _dds_ports_impl(ctx):
     }
 
     args = ctx.actions.args()
+    args.add("--modality", "ports")
     args.add("--yaml", ctx.file.yaml_config.path)
     args.add("--outputs", json.encode(headers))
     args.add_all("--idl", ctx.files.idls)
@@ -25,7 +26,6 @@ def _dds_ports_impl(ctx):
         outputs = outputs,
         inputs = depset(
             [ctx.file.yaml_config] + ctx.files.idls + ctx.files._templates,
-            transitive = [dep[DefaultInfo].files for dep in ctx.attr.deps],
         ),
         executable = ctx.executable._generator,
         arguments = [args],
@@ -50,12 +50,12 @@ cc_dds_ports = rule(
         "yaml_config": attr.label(allow_single_file = [".yaml", ".yml"]),
         "idls": attr.label_list(allow_files = [".idl"]),
         "_generator": attr.label(
-            default = Label("//core/generators:dds_ports_generator"),
+            default = Label("//core/generators:generators"),
             executable = True,
             cfg = "exec",
         ),
         "_templates": attr.label(
-            default = Label("//core/generators:dds_ports_jinja_templates"),
+            default = Label("//core/generators:jinja_templates"),
             allow_files = [".jinja"],
         ),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),

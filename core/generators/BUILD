@@ -4,21 +4,21 @@ load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 package(default_visibility = ["//visibility:public"])
 
 py_binary(
-    name = "dds_ports_generator",
+    name = "generators",
     srcs = [
-        "dds_ports_generator.py",
+        "generators.py",
     ],
     deps = [
         requirement("jinja2"),
-        "//core/generators:dds_gen_utils",
+        "//core/generators:gen_utils",
     ],
 )
 
 py_library(
-    name = "dds_gen_utils",
+    name = "gen_utils",
     srcs = [
-        "dds_gen_data_models.py",
-        "dds_gen_utils.py",
+        "gen_data_models.py",
+        "gen_utils.py",
     ],
     deps = [
         requirement("pydantic"),
@@ -28,6 +28,6 @@ py_library(
 )
 
 filegroup(
-    name = "dds_ports_jinja_templates",
+    name = "jinja_templates",
     srcs = glob(["templates/*.jinja"]),
 )

@@ -2,6 +2,7 @@
 
 load("//core/generators:dds_ports_gen.bzl", _cc_dds_ports = "cc_dds_ports")
 load("//core/generators:fastdds_types_gen.bzl", _cc_fastdds_types = "cc_fastdds_types")
+load("//core/generators:parameters_gen.bzl", _cc_parameters = "cc_parameters")
 
 def cc_dds_components(name, idls, ports_yaml):
     """Generates a suite of DDS communication components including port specs and type support.
@@ -26,4 +27,10 @@ def cc_dds_components(name, idls, ports_yaml):
         idls = idls,
         yaml_config = ports_yaml,
         deps = [":{}_types".format(name), "//core/communication:dds"],
+    )
+
+def cc_parameters(name, yaml_parameters):
+    _cc_parameters(
+        name = name,
+        yaml_config = yaml_parameters,
     )

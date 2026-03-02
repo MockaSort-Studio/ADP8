@@ -2,10 +2,9 @@
 #define CORE_COMMUNICATION_TOPIC_SPEC
 
 #include <cstddef>
-#include <cstdint>
 #include <type_traits>
 
-#include <fastdds/dds/topic/TypeSupport.hpp>
+#include <fastdds/dds/topic/TopicDataType.hpp>
 
 namespace core::communication {
 

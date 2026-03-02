@@ -7,9 +7,18 @@ cc_library(
     srcs = ["execution_engine.cpp"],
     hdrs = [
         "execution_engine.hpp",
-        "parameters_provider.hpp",
         "task_interface.hpp",
         "tasks_manager.hpp",
+    ],
+    deps = [
+        "//core/lifecycle:parameters_provider",
+    ],
+)
+
+cc_library(
+    name = "parameters_provider",
+    hdrs = [
+        "parameters_provider.hpp",
     ],
     deps = [
         "//core/support/utils",

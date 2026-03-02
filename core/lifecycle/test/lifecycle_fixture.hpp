@@ -7,7 +7,7 @@
 #include "core/support/utils/lookup_table.hpp"
 #include "test_ports_publications.hpp"
 #include "test_ports_subscriptions.hpp"
-
+#include "testarillo_parameters.hpp"
 namespace core::lifecycle {
 static std::atomic<int> mock_task_1_count {0};
 static std::atomic<int> mock_task_2_count {0};
@@ -70,6 +70,7 @@ class SendTrueDDSTask : public DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsLis
   protected:
     void Execute() override
     {
+        EXPECT_EQ(params.GetParameterValue<gen::MokkaTag>(), 10);
         auto in = GetInputSource<gen::kSendTrueTopicName>();
         auto out = GetOutputSink<gen::kSendFalseTopicName>();
 
@@ -84,6 +85,8 @@ class SendTrueDDSTask : public DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsLis
         response.ok(true);
         out.Push(std::move(response));
     }
+
+    gen::PippoParamsProvider params;
 };
 
 using TestApplicationConfig = core::utils::LookupTable<
@@ -135,4 +138,4 @@ class LifecycleFixture : public ::testing::TestWithParam<int>
 };
 }  // namespace core::lifecycle
 
-#endif  // CORE_LIFECYCLE_TEST_LIFECYCLE_FIXTURE
+#endif // CORE_LIFECYCLE_TEST_LIFECYCLE_FIXTURE

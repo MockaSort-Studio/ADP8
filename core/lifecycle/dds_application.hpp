@@ -3,7 +3,6 @@
 
 #include <atomic>
 #include <csignal>
-#include <iostream>
 #include <string>
 #include <tuple>
 

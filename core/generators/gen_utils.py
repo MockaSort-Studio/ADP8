@@ -3,8 +3,10 @@ from typing import Any, Dict, List
 import yaml
 from idl_parser.parser import IDLParser
 
-from core.generators.dds_gen_data_models import (
+from core.generators.gen_data_models import (
     IdlTypeHeader,
+    ParameterSet,
+    ParametersHeader,
     Ports,
     SpecsHeader,
     TopicId,
@@ -21,19 +23,33 @@ def type_exists(type: str, type_list: List[str]) -> bool:
 
 
 def get_available_idl_types(idl_file_paths: List[str]) -> List[str]:
-    parser = IDLParser()
-    parser.parse(idl_file_paths)
-    structs = parser.global_module.to_dic()["structs"]
-    return [s["name"] for s in structs]
+    available_types: List[str] = []
+    try:
+        parser = IDLParser()
+        parser.parse(idl_file_paths)
+        structs = parser.global_module.to_dic()["structs"]
+        available_types = [s["name"] for s in structs]
+    except Exception as exc:
+        print(f"!!! Couldn't parse IDLS: {exc}")
+        print(
+            "No available IDLs List, proceeding without: No preliminary consistency checks on declared types"
+        )
+    return available_types
 
 
-def dds_ports_from_yaml(yaml_path: str, available_types: List[str]) -> Ports:
+def parse_yaml(yaml_path: str) -> Dict[str, Any]:
     with open(yaml_path, "r") as file:
         try:
             yaml_dict = yaml.safe_load(file)
         except yaml.YAMLError as exc:
             print(f"Error parsing YAML: {exc}")
-        raw_ports: Dict[str, Any] = {
+    return yaml_dict
+
+
+def dds_ports_from_yaml(yaml_path: str, available_types: List[str]) -> Ports:
+    yaml_dict = parse_yaml(yaml_path)
+    if available_types:
+        yaml_dict: Dict[str, Any] = {
             "subscriptions": [
                 sub
                 for sub in yaml_dict["subscriptions"]
@@ -45,7 +61,7 @@ def dds_ports_from_yaml(yaml_path: str, available_types: List[str]) -> Ports:
                 if type_exists(next(iter(pub.values()))["type"], available_types)
             ],
         }
-    return Ports(**raw_ports)
+    return Ports(**yaml_dict)
 
 
 def dds_types_header_model(
@@ -85,3 +101,19 @@ def dds_topic_specs_pub_sub_header_models(
     }
 
     return SpecsHeader(**model_raw)
+
+
+def parameterset_model_from_yaml(yaml_path: str) -> ParameterSet:
+    raw_yaml = parse_yaml(yaml_path)
+    print(raw_yaml)
+    return ParameterSet(**raw_yaml)
+
+
+def parameters_header_model(
+    parameter_model: ParameterSet, header_output_path: str
+) -> ParametersHeader:
+    model_raw: Dict[str, Any] = {
+        "output_file_path": header_output_path,
+        "params": parameter_model,
+    }
+    return ParametersHeader(**model_raw)

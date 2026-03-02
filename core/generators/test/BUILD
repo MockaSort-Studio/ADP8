@@ -8,7 +8,7 @@ py_test(
         "dds_gen_utils_tests.py",
     ],
     deps = [
-        "//core/generators:dds_gen_utils",
+        "//core/generators:gen_utils",
         tool_requirement("pytest"),
     ],
 )

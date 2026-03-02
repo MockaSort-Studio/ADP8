@@ -43,10 +43,12 @@
     "C/C++ Include Guard.Macro Type": "Filepath",
     // C/C++ (clangd)
     "clangd.path": "clangd",
-    "clangd.checkUpdates": true,
+    "clangd.checkUpdates": false,
     "clangd.arguments": [
-        "--query-driver=**",
-        "--compile-commands-dir=${workspaceFolder}"
+        "--query-driver=/**/*",
+        "--compile-commands-dir=${workspaceFolder}",
+        // "--header-insertion=never",
+        // "--background-index",
     ],
     // Bazel
     "bazel.buildifierExecutable": "buildifier",

@@ -6,12 +6,11 @@
 #include <memory>
 #include <string>
 
-#include <fastdds/dds/domain/DomainParticipant.hpp>
-#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
-#include <fastdds/dds/topic/Topic.hpp>
-#include <fastdds/dds/topic/TypeSupport.hpp>
-
 #include "core/communication/topic_spec.hpp"
+#include "fastdds/dds/domain/DomainParticipant.hpp"
+#include "fastdds/dds/domain/DomainParticipantFactory.hpp"
+#include "fastdds/dds/topic/Topic.hpp"
+#include "fastdds/dds/topic/TypeSupport.hpp"
 namespace core::communication {
 
 namespace dds = eprosima::fastdds::dds;
