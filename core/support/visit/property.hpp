@@ -64,7 +64,7 @@ struct Property
      * @param name The name of the property.
      * @param member Pointer to the member of the class.
      */
-    constexpr Property(const char* name, MemberType Class::* member)
+    constexpr Property(const char* name, MemberType Class::*member)
         : name_ {name}, member_ {member}
     {}
 
@@ -80,7 +80,7 @@ struct Property
     /** The name of the property. This usually matches the member name */
     const char* name_;
     /** Pointer to the member of the class. */
-    MemberType Class::* member_;
+    MemberType Class::*member_;
 };
 
 /**
@@ -93,7 +93,7 @@ struct Property
  * @return constexpr Property<Class, MemberType> The created Property object.
  */
 template <typename Class, typename MemberType>
-constexpr inline auto property(const char* name, MemberType Class::* member)
+constexpr inline auto property(const char* name, MemberType Class::*member)
 {
     return Property<Class, MemberType> {name, member};
 }

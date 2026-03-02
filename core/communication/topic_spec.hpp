@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
 namespace core::communication {

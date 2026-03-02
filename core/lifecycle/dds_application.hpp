@@ -60,10 +60,11 @@ class DDSAPPlication final
             [&manager](auto Element)
             {
                 using Task = typename decltype(Element)::Key;
-                using TaskSpec = typename std::tuple_element_t<0, typename decltype(Element)::Values>;
+                using TaskSpec =
+                    typename std::tuple_element_t<0, typename decltype(Element)::Values>;
 
                 static_assert(
-                    std::is_base_of_v<TaskInterface,Task>,
+                    std::is_base_of_v<TaskInterface, Task>,
                     "Key of LookupTable must be a TaskInterface: "
                     "core/lifecycle/tasks_interface.hpp");
 
@@ -72,8 +73,7 @@ class DDSAPPlication final
                     "Value of LookupTable must be a TaskSpec: "
                     "core/lifecycle/tasks_manager.hpp");
 
-                const auto name {
-                    boost::core::demangle(typeid(Task).name())};
+                const auto name {boost::core::demangle(typeid(Task).name())};
 
                 manager->AddTask<Task, TaskSpec::kFrequency>(name);
             });

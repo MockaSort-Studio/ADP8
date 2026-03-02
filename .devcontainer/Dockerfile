@@ -54,3 +54,7 @@ RUN /home/vscode/scripts/bootstrap.sh /workspaces/ADP8
 
 #python is in homebrew folder. to avoid custom shebanging for py_rules we symlink it where bazel is expecting it
 RUN sudo ln -sf $(which python3) /usr/bin/python3
+
+#dev container nags about clangd and clang-format
+RUN sudo ln -sf "/home/linuxbrew/.linuxbrew/opt/llvm@18/bin/clang-format" /usr/bin/clang-format
+RUN sudo ln -sf "/home/linuxbrew/.linuxbrew/opt/llvm@18/bin/clangd" /usr/bin/clangd
