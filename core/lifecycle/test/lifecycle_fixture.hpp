@@ -70,7 +70,12 @@ class SendTrueDDSTask : public DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsLis
   protected:
     void Execute() override
     {
+        // we test generated parameters here, since everything is handled at compile time
+        // wrong usage = not compiling :D
         EXPECT_EQ(params.GetParameterValue<gen::MokkaTag>(), 10);
+        std::array<float, 3> expected_array = {0.1, 0.2, 0.3};
+        EXPECT_EQ(params.GetParameterValue<gen::SortTag>(), expected_array);
+        EXPECT_EQ(params.GetParameterValue<gen::OkTag>(), false);
         auto in = GetInputSource<gen::kSendTrueTopicName>();
         auto out = GetOutputSink<gen::kSendFalseTopicName>();
 
@@ -138,4 +143,4 @@ class LifecycleFixture : public ::testing::TestWithParam<int>
 };
 }  // namespace core::lifecycle
 
-#endif // CORE_LIFECYCLE_TEST_LIFECYCLE_FIXTURE
+#endif  // CORE_LIFECYCLE_TEST_LIFECYCLE_FIXTURE
