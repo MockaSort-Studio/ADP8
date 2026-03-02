@@ -5,8 +5,8 @@
 #include "core/lifecycle/dds_application.hpp"
 #include "core/lifecycle/dds_task.hpp"
 #include "core/support/utils/lookup_table.hpp"
-#include "test_ports_subscriptions.hpp"
 #include "test_ports_publications.hpp"
+#include "test_ports_subscriptions.hpp"
 
 namespace core::lifecycle {
 static std::atomic<int> mock_task_1_count {0};
@@ -24,7 +24,6 @@ using TestOutputs = Outputs_t<TestTopicPubsList>;
 
 using DDSTaskTopicSubsList = gen::Subscriptions;
 using DDSTaskTopicPubsList = gen::Publications;
-
 
 class MockTask1 : public TaskInterface
 {

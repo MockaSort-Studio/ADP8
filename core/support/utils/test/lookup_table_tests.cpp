@@ -11,21 +11,23 @@
 
 namespace core::utils {
 
-struct TagA {};
-struct TagB {};
+struct TagA
+{
+};
+struct TagB
+{
+};
 
-
-using TagDispatchingTable = LookupTable<
-    TableItem<TagA, int>,          
-    TableItem<TagB, float, float>>;
+using TagDispatchingTable =
+    LookupTable<TableItem<TagA, int>, TableItem<TagB, float, float>>;
 using TestTable = LookupTable<
     TableItem<int, std::string>,
     TableItem<float, double, bool, int>,
     TableItem<char, uint32_t>>;
 
-auto tuple_int   = std::make_tuple(std::string("pippo")); 
+auto tuple_int = std::make_tuple(std::string("pippo"));
 auto tuple_float = std::make_tuple(0.1, false, 1);
-auto tuple_char  = std::make_tuple(10000u);
+auto tuple_char = std::make_tuple(10000u);
 
 TEST(LookupTableTest, GivenUniqueElementsCorrectTypeExtracted)
 {
@@ -42,13 +44,12 @@ TEST(LookupTableTest, GivenUniqueElementsCorrectTypeExtracted)
     ASSERT_TRUE((std::is_same_v<std::tuple<double, bool, int>, CorrectMultipleItem>));
 }
 
-TEST(LookupTableTest, MakeDefaultsOrdering) {
-    //this mumbo jumbo also reorders elements wtr to Table declaration
+TEST(LookupTableTest, MakeDefaultsOrdering)
+{
+    // this mumbo jumbo also reorders elements wtr to Table declaration
     static constexpr auto my_defaults = TableDefaults<TagDispatchingTable>(
-        Init{TagA{}, 42},          
-        Init{TagB{}, 3.3f, 4.4f}   
-    );
-    
+        Init {TagA {}, 42}, Init {TagB {}, 3.3f, 4.4f});
+
     EXPECT_EQ(std::get<0>(std::get<0>(my_defaults)), 42);
 
     EXPECT_FLOAT_EQ(std::get<0>(std::get<1>(my_defaults)), 3.3f);
@@ -57,11 +58,7 @@ TEST(LookupTableTest, MakeDefaultsOrdering) {
 
 TEST(LookupTableTest, RuntimeValueExtractiontest)
 {
-    auto table_values = std::make_tuple(
-        tuple_int,         
-        tuple_float,
-        tuple_char
-    );
+    auto table_values = std::make_tuple(tuple_int, tuple_float, tuple_char);
 
     auto table = TestTable(table_values);
 

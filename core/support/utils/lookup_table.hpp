@@ -28,7 +28,7 @@ struct TableItem
     using Key = KeyType;
     using Values = std::tuple<ValueTypes...>;
     Values values;
-    //candidate for pruning
+    // candidate for pruning
     template <typename Func>
     static constexpr void for_each_in_table_element(Func&& func)
     {
@@ -43,41 +43,48 @@ template <typename TargetKey, typename... Items>
 struct find_table_item;
 
 template <typename TargetKey, typename First, typename... Rest>
-struct find_table_item<TargetKey, First, Rest...> {
+struct find_table_item<TargetKey, First, Rest...>
+{
     using type = std::conditional_t<
         std::is_same_v<TargetKey, typename First::Key>,
         First,
-        typename find_table_item<TargetKey, Rest...>::type
-    >;
+        typename find_table_item<TargetKey, Rest...>::type>;
 };
 template <typename TargetKey, typename Last>
-struct find_table_item<TargetKey, Last> {
-    using type = std::conditional_t<std::is_same_v<TargetKey, typename Last::Key>, Last, void>;
+struct find_table_item<TargetKey, Last>
+{
+    using type =
+        std::conditional_t<std::is_same_v<TargetKey, typename Last::Key>, Last, void>;
 };
 
-
-// Below: Helpers to enable ordered independent (key-val) initialization of LookupTable using tag dispatching
-// use it for complex cases/initialization 
+// Below: Helpers to enable ordered independent (key-val) initialization of LookupTable
+// using tag dispatching use it for complex cases/initialization
 template <typename Tag, typename... ValueTypes>
-struct Init {
+struct Init
+{
     using Key = Tag;
     std::tuple<ValueTypes...> values;
 
-    constexpr Init(Tag, ValueTypes... args) 
-        : values(std::make_tuple(std::forward<ValueTypes>(args)...)) {}
+    constexpr Init(Tag, ValueTypes... args)
+        : values(std::make_tuple(std::forward<ValueTypes>(args)...))
+    {}
 };
 
 template <typename TargetTag, typename First, typename... Rest>
-constexpr const auto& find_val(const First& first, const Rest&... rest) {
-    if constexpr (std::is_same_v<TargetTag, typename First::Key>) {
+constexpr const auto& find_val(const First& first, const Rest&... rest)
+{
+    if constexpr (std::is_same_v<TargetTag, typename First::Key>)
+    {
         return first.values;
-    } else {
+    } else
+    {
         return find_val<TargetTag>(rest...);
     }
 }
 
 template <typename Table, typename... Inits>
-constexpr auto TableDefaults(const Inits&... inits) {
+constexpr auto TableDefaults(const Inits&... inits)
+{
     return Table::SetDefaults(inits...);
 }
 
@@ -93,49 +100,62 @@ struct LookupTable : public TableElements...
         ((count_key_v<typename TableElements::Key> == 1) && ...),
         "LookupTable Error: Duplicate keys detected!");
 
-    explicit constexpr LookupTable()=default;
+    explicit constexpr LookupTable() = default;
 
-    //Init table with a tuple of tuple, use it for simple cases and keep in mind
-    //that the order of default values must match the order of declaration for the table items
+    // Init table with a tuple of tuple, use it for simple cases and keep in mind
+    // that the order of default values must match the order of declaration for the table
+    // items
     template <typename DefaultsTuple>
     explicit constexpr LookupTable(DefaultsTuple&& defaults)
-        : LookupTable(std::forward<DefaultsTuple>(defaults), 
-                      std::index_sequence_for<TableElements...>{}) {}
+        : LookupTable(
+              std::forward<DefaultsTuple>(defaults),
+              std::index_sequence_for<TableElements...> {})
+    {}
 
-    // Use this for complex cases, where the number of entry is > 10 and your types are heavely using templates
-    // tag dispatchig saves us from the ::template syntax. 
+    // Use this for complex cases, where the number of entry is > 10 and your types are
+    // heavely using templates tag dispatchig saves us from the ::template syntax.
     template <typename... Inits>
-    static constexpr auto SetDefaults(const Inits&... inits) {
+    static constexpr auto SetDefaults(const Inits&... inits)
+    {
         return std::make_tuple(find_val<typename TableElements::Key>(inits...)...);
     }
     template <typename Key>
     using get_values_t = typename find_table_item<Key, TableElements...>::type::Values;
 
     template <typename TargetKey>
-    constexpr const auto& GetValue() const {
+    constexpr const auto& GetValue() const
+    {
         using ItemBase = typename find_table_item<TargetKey, TableElements...>::type;
         return static_cast<const ItemBase&>(*this).values;
     }
-    
-    //Sometimes we end up in dependent template types
-    //this is a small helper to enable tag dispatching and auto parameter deduction
-    //so we avoid stupid syntax table.template GetValue<Tag>() oink oink 🐽
+
+    // Sometimes we end up in dependent template types
+    // this is a small helper to enable tag dispatching and auto parameter deduction
+    // so we avoid stupid syntax table.template GetValue<Tag>() oink oink 🐽
     template <typename Tag>
-    constexpr auto& GetValue(Tag) { return GetValue<Tag>(); }
+    constexpr auto& GetValue(Tag)
+    {
+        return GetValue<Tag>();
+    }
 
     template <typename Tag>
-    constexpr const auto& GetValue(Tag) const { return GetValue<Tag>(); }
+    constexpr const auto& GetValue(Tag) const
+    {
+        return GetValue<Tag>();
+    }
 
     template <typename Func>
-    static constexpr void for_each(Func&& func) {
-        (func(TableElements {}), ...);    
+    static constexpr void for_each(Func&& func)
+    {
+        (func(TableElements {}), ...);
     }
-    private:
+
+  private:
     // Internal helper that unrolls the indices
     template <typename DefaultsTuple, std::size_t... Is>
     constexpr LookupTable(DefaultsTuple&& defaults, std::index_sequence<Is...>)
-        : TableElements{ {std::get<Is>(defaults)} }... {}
-
+        : TableElements {{std::get<Is>(defaults)}}...
+    {}
 };
 
 template <typename T>
