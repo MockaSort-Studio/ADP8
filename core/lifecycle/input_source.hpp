@@ -11,21 +11,20 @@ namespace core::lifecycle {
  * @brief Read-Only View for Input DataEndpoints.
  */
 template <typename Spec>
-struct InputSource
-{
-    static_assert(
-        communication::is_topic_spec_v<Spec>, "Spec must be specialization of TopicSpec");
+struct InputSource {
+  static_assert(communication::is_topic_spec_v<Spec>,
+                "Spec must be specialization of TopicSpec");
 
-    using T = typename Spec::type::type;
-    const DataEndpoint<Spec, DataDirection::In>& endpoint;
+  using T = typename Spec::type::type;
+  const DataEndpoint<Spec, DataDirection::In>& endpoint;
 
-    [[nodiscard]] inline const utils::Sample<T>& operator[](size_t i) const noexcept
-    {
-        return endpoint[i];
-    }
+  [[nodiscard]] inline const utils::Sample<T>& operator[](
+      size_t i) const noexcept {
+    return endpoint[i];
+  }
 
-    [[nodiscard]] inline size_t Size() const noexcept { return endpoint.Size(); }
-    [[nodiscard]] inline bool Empty() const noexcept { return endpoint.Empty(); }
+  [[nodiscard]] inline size_t Size() const noexcept { return endpoint.Size(); }
+  [[nodiscard]] inline bool Empty() const noexcept { return endpoint.Empty(); }
 };
 
 template <typename Spec>

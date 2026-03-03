@@ -2,11 +2,10 @@
 #define CORE_LIFECYCLE_DDS_APPLICATION
 
 #include <atomic>
+#include <boost/core/demangle.hpp>
 #include <csignal>
 #include <string>
 #include <tuple>
-
-#include <boost/core/demangle.hpp>
 
 #include "core/communication/dds_context.hpp"
 #include "core/lifecycle/tasks_manager.hpp"
@@ -14,72 +13,63 @@
 
 namespace core::lifecycle {
 namespace detail {
-inline std::atomic<bool> shutdown_requested {false};
+inline std::atomic<bool> shutdown_requested{false};
 inline void signal_handler(int) { shutdown_requested.store(true); }
 }  // namespace detail
 
 template <typename ApplicationConfig>
-class DDSAPPlication final
-{
-    static_assert(
-        core::utils::is_lookup_table_v<ApplicationConfig>,
-        "ApplicationConfig must be a LookupTable: core/support/utils/lookup_table.hpp");
+class DDSAPPlication final {
+  static_assert(core::utils::is_lookup_table_v<ApplicationConfig>,
+                "ApplicationConfig must be a LookupTable: "
+                "core/support/utils/lookup_table.hpp");
 
-  public:
-    DDSAPPlication(const std::string domain_participant_name)
-    {
-        std::signal(SIGINT, detail::signal_handler);
-        std::signal(SIGTERM, detail::signal_handler);
+ public:
+  DDSAPPlication(const std::string domain_participant_name) {
+    std::signal(SIGINT, detail::signal_handler);
+    std::signal(SIGTERM, detail::signal_handler);
 
-        communication::DDSContextProvider::SetName(domain_participant_name);
+    communication::DDSContextProvider::SetName(domain_participant_name);
 
-        BuildTaskManager();
-    }
-    ~DDSAPPlication() { tasks_manager_->Stop(); }
+    BuildTaskManager();
+  }
+  ~DDSAPPlication() { tasks_manager_->Stop(); }
 
-    /**
-     * @brief Blocks the main thread until SIGINT or SIGTERM.
-     */
-    void Run()
-    {
-        // Block until the atomic signal flag is set
-        while (!detail::shutdown_requested.load(std::memory_order_relaxed))
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
-
-        tasks_manager_->Stop();
+  /**
+   * @brief Blocks the main thread until SIGINT or SIGTERM.
+   */
+  void Run() {
+    // Block until the atomic signal flag is set
+    while (!detail::shutdown_requested.load(std::memory_order_relaxed)) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-  private:
-    void BuildTaskManager()
-    {
-        std::unique_ptr<TasksManager> manager = std::make_unique<TasksManager>();
-        ApplicationConfig::for_each(
-            [&manager](auto Element)
-            {
-                using Task = typename decltype(Element)::Key;
-                using TaskSpec =
-                    typename std::tuple_element_t<0, typename decltype(Element)::Values>;
+    tasks_manager_->Stop();
+  }
 
-                static_assert(
-                    std::is_base_of_v<TaskInterface, Task>,
+ private:
+  void BuildTaskManager() {
+    std::unique_ptr<TasksManager> manager = std::make_unique<TasksManager>();
+    ApplicationConfig::for_each([&manager](auto Element) {
+      using Task = typename decltype(Element)::Key;
+      using TaskSpec =
+          typename std::tuple_element_t<0, typename decltype(Element)::Values>;
+
+      static_assert(std::is_base_of_v<TaskInterface, Task>,
                     "Key of LookupTable must be a TaskInterface: "
                     "core/lifecycle/tasks_interface.hpp");
 
-                static_assert(
-                    is_task_spec_v<TaskSpec>,
+      static_assert(is_task_spec_v<TaskSpec>,
                     "Value of LookupTable must be a TaskSpec: "
                     "core/lifecycle/tasks_manager.hpp");
 
-                const auto name {boost::core::demangle(typeid(Task).name())};
+      const auto name{boost::core::demangle(typeid(Task).name())};
 
-                manager->AddTask<Task, TaskSpec::kFrequency>(name);
-            });
+      manager->AddTask<Task, TaskSpec::kFrequency>(name);
+    });
 
-        tasks_manager_ = std::move(manager);
-    }
-    std::unique_ptr<TasksManager> tasks_manager_;
+    tasks_manager_ = std::move(manager);
+  }
+  std::unique_ptr<TasksManager> tasks_manager_;
 };
 }  // namespace core::lifecycle
 

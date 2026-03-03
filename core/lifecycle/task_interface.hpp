@@ -6,18 +6,17 @@
 
 namespace core::lifecycle {
 
-class TaskInterface
-{
-  public:
-    explicit TaskInterface(std::string name) : name_(std::move(name)) {}
-    virtual ~TaskInterface() = default;
+class TaskInterface {
+ public:
+  explicit TaskInterface(std::string name) : name_(std::move(name)) {}
+  virtual ~TaskInterface() = default;
 
-    virtual void ExecuteStep() = 0;
+  virtual void ExecuteStep() = 0;
 
-    const std::string& Name() { return name_; }
+  const std::string& Name() { return name_; }
 
-  protected:
-    std::string name_;
+ protected:
+  std::string name_;
 };
 
 }  // namespace core::lifecycle
