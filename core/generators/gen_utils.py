@@ -14,6 +14,8 @@ from core.generators.gen_data_models import (
     TopicSpec,
 )
 
+DEFAULT_NAMESPACE = "gen"
+
 
 def _assert_type_exists(type_name: str, available_types: List[str]) -> None:
     if type_name not in available_types:
@@ -50,10 +52,8 @@ def parse_yaml(yaml_path: str) -> Dict[str, Any]:
 def dds_ports_from_yaml(yaml_path: str, available_types: List[str]) -> Ports:
     yaml_dict = parse_yaml(yaml_path)
     if available_types:
-        for sub in yaml_dict["subscriptions"]:
-            _assert_type_exists(next(iter(sub.values()))["type"], available_types)
-        for pub in yaml_dict["publications"]:
-            _assert_type_exists(next(iter(pub.values()))["type"], available_types)
+        for entry in (*yaml_dict["subscriptions"], *yaml_dict["publications"]):
+            _assert_type_exists(next(iter(entry.values()))["type"], available_types)
     return Ports(**yaml_dict)
 
 
@@ -70,7 +70,7 @@ def dds_types_header_model(
 def dds_topic_ids_pub_sub_header_models(
     topic_ids: List[TopicId],
     dds_topic_ids_header_output_path: str,
-    namespace: str = "gen",
+    namespace: str = DEFAULT_NAMESPACE,
 ) -> TopicIdHeader:
 
     return TopicIdHeader(
@@ -86,7 +86,7 @@ def dds_topic_specs_pub_sub_header_models(
     dds_topic_specs_header_output_path: str,
     specs_list_name: str,
     includes: List[str],
-    namespace: str = "gen",
+    namespace: str = DEFAULT_NAMESPACE,
 ) -> SpecsHeader:
     model_raw: Dict[str, Any] = {
         "output_file_path": dds_topic_specs_header_output_path,
@@ -100,13 +100,11 @@ def dds_topic_specs_pub_sub_header_models(
 
 
 def parameterset_model_from_yaml(yaml_path: str) -> ParameterSet:
-    raw_yaml = parse_yaml(yaml_path)
-    print(raw_yaml)
-    return ParameterSet(**raw_yaml)
+    return ParameterSet(**parse_yaml(yaml_path))
 
 
 def parameters_header_model(
-    parameter_model: ParameterSet, header_output_path: str, namespace: str = "gen"
+    parameter_model: ParameterSet, header_output_path: str, namespace: str = DEFAULT_NAMESPACE
 ) -> ParametersHeader:
     model_raw: Dict[str, Any] = {
         "output_file_path": header_output_path,

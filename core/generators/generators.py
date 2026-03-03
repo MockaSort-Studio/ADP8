@@ -3,7 +3,7 @@ import json
 import sys
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, NamedTuple
 
 from jinja2 import Template
 
@@ -12,6 +12,7 @@ from core.generators.gen_data_models import (
     remove_bazel_prefix_path,
 )
 from core.generators.gen_utils import (
+    DEFAULT_NAMESPACE,
     dds_ports_from_yaml,
     dds_topic_ids_pub_sub_header_models,
     dds_topic_specs_pub_sub_header_models,
@@ -27,7 +28,15 @@ class Modality(Enum):
     PARAMETERS = "parameters"
 
 
-def parse_arguments() -> Tuple[Modality, str, List[str], Dict[str, Any]]:
+class _GeneratorArgs(NamedTuple):
+    modality: Modality
+    yaml_cfg: str
+    idls: List[str]
+    outputs: Dict[str, Any]
+    namespace: str
+
+
+def parse_arguments() -> _GeneratorArgs:
     parser = argparse.ArgumentParser(description="Javelina-rt C++ Code Generator")
 
     parser.add_argument(
@@ -55,7 +64,7 @@ def parse_arguments() -> Tuple[Modality, str, List[str], Dict[str, Any]]:
     parser.add_argument(
         "--namespace",
         required=False,
-        default="gen",
+        default=DEFAULT_NAMESPACE,
         help="C++ namespace for generated code (default: gen)",
     )
     args = parser.parse_args()
@@ -66,7 +75,13 @@ def parse_arguments() -> Tuple[Modality, str, List[str], Dict[str, Any]]:
         print(f"Error: YAML file not found at {args.yaml}")
         sys.exit(1)
 
-    return Modality(args.modality), args.yaml, args.idls, outputs_dic, args.namespace
+    return _GeneratorArgs(
+        modality=Modality(args.modality),
+        yaml_cfg=args.yaml,
+        idls=args.idls,
+        outputs=outputs_dic,
+        namespace=args.namespace,
+    )
 
 
 def generate_header_file(
@@ -104,12 +119,12 @@ def generate_ports(
     sub_topic_id_h = dds_topic_ids_pub_sub_header_models(
         [sub.topic_id for sub in ports_model.subscriptions],
         outputs["subscriptions"]["ids"],
-        namespace,
+        namespace=namespace,
     )
     pub_topic_id_h = dds_topic_ids_pub_sub_header_models(
         [pub.topic_id for pub in ports_model.publications],
         outputs["publications"]["ids"],
-        namespace,
+        namespace=namespace,
     )
 
     subs_specs_includes = [
@@ -121,7 +136,7 @@ def generate_ports(
         outputs["subscriptions"]["specs"],
         "Subscriptions",
         subs_specs_includes,
-        namespace,
+        namespace=namespace,
     )
 
     pubs_specs_includes = [
@@ -133,7 +148,7 @@ def generate_ports(
         outputs["publications"]["specs"],
         "Publications",
         pubs_specs_includes,
-        namespace,
+        namespace=namespace,
     )
 
     generate_header_file(TEMPLATES["types"], dds_types_h_model)
@@ -152,7 +167,7 @@ def generate_ports(
 
 def generate_parameters(yaml_cfg: str, outputs: Dict[str, Any], namespace: str) -> None:
     parameters_model = parameterset_model_from_yaml(yaml_cfg)
-    header_model = parameters_header_model(parameters_model, outputs["parameters"], namespace)
+    header_model = parameters_header_model(parameters_model, outputs["parameters"], namespace=namespace)
     generate_header_file(TEMPLATES["parameters"], header_model)
 
     print("Generated Parameters Header:")
@@ -160,13 +175,13 @@ def generate_parameters(yaml_cfg: str, outputs: Dict[str, Any], namespace: str) 
 
 
 def main() -> None:
-    modality, yaml_cfg, idls, outputs, namespace = parse_arguments()
+    args = parse_arguments()
     print("=================================================================")
-    print(f"🐽 🐽 🐽 🐽 🐽 Running Javelina Generators [Modality={modality}]")
-    if modality == Modality.PORTS:
-        generate_ports(yaml_cfg, idls, outputs, namespace)
-    if modality == Modality.PARAMETERS:
-        generate_parameters(yaml_cfg, outputs, namespace)
+    print(f"🐽 🐽 🐽 🐽 🐽 Running Javelina Generators [Modality={args.modality}]")
+    if args.modality == Modality.PORTS:
+        generate_ports(args.yaml_cfg, args.idls, args.outputs, namespace=args.namespace)
+    if args.modality == Modality.PARAMETERS:
+        generate_parameters(args.yaml_cfg, args.outputs, namespace=args.namespace)
 
     print("🐽 🐽 🐽 🐽 🐽 Done Oink Oink!")
     print("=================================================================")
