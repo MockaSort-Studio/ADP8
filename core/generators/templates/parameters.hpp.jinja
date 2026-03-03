@@ -1,0 +1,31 @@
+#ifndef {{ header_guard }}
+#define {{ header_guard }}
+
+#include "core/lifecycle/parameters_provider.hpp"
+
+namespace {{ namespace }} {
+//ParameterTags declarations
+{% for param_entry in params.params -%}
+    struct {{param_entry.name}} {};
+{% endfor %}
+
+using {{ params.name }}Table = core::utils::LookupTable<
+{% for param_entry in params.params %}
+    core::utils::TableItem< {{ "%-1s"|format(param_entry.name + ",") }} {{ "%-1s"|format(param_entry.type)}}>{{ "," if not loop.last }}
+{% endfor %}
+>;
+
+struct {{ params.name }}GeneratedInitializer
+{
+    static constexpr auto values = core::utils::TableDefaults<{{ params.name }}Table>(
+    {% for param_entry in params.params %}
+        core::utils::Init{{ "{" }}{{ "%-1s"|format(param_entry.name + "{},") }} {{ "%-1s"|format(param_entry.value)}}{{ "}" }}{{ "," if not loop.last }}
+    {% endfor %}
+    );
+};
+
+
+using {{ params.name }}Provider = core::lifecycle::ParametersProvider<{{ params.name }}Table, {{ params.name }}GeneratedInitializer>;
+} // namespace {{ namespace }}
+
+#endif // {{ header_guard }}

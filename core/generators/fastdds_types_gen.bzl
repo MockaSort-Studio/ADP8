@@ -5,8 +5,8 @@ This module provides codegen of FastDDS types from IDL definitions.
 
 """
 
-load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
+load("//core/generators:cc_utils.bzl", "pack_cc_library")
 
 def _cc_fastdds_types_impl(ctx):
     idls = ctx.files.idl_srcs
@@ -59,52 +59,16 @@ def _cc_fastdds_types_impl(ctx):
     srcs = [f for f in output_files if f.extension == "cxx"]
     hdrs = [f for f in output_files if f.extension in ["hpp", "ipp"]]
 
-    deps_cc_info = [dep[CcInfo] for dep in ctx.attr._deps]
+    includes = [output_files[0].dirname] if output_files else []
 
-    cc_toolchain = ctx.attr._cc_toolchain[cc_common.CcToolchainInfo]
-    feature_configuration = cc_common.configure_features(
+    return pack_cc_library(
         ctx = ctx,
-        cc_toolchain = cc_toolchain,
-        requested_features = ctx.features,
-        unsupported_features = ctx.disabled_features,
-    )
-
-    compilation_context, compilation_outputs = cc_common.compile(
-        name = ctx.label.name,
-        actions = ctx.actions,
-        feature_configuration = feature_configuration,
-        cc_toolchain = cc_toolchain,
         srcs = srcs,
-        public_hdrs = hdrs,
-        includes = [output_files[0].dirname],
-        compilation_contexts = [dep.compilation_context for dep in deps_cc_info],
+        hdrs = hdrs,
+        deps = ctx.attr._deps,
+        includes = includes,
+        linkstatic = ctx.attr.linkstatic,
     )
-
-    linking_context, linking_outputs = cc_common.create_linking_context_from_compilation_outputs(
-        actions = ctx.actions,
-        feature_configuration = feature_configuration,
-        cc_toolchain = cc_toolchain,
-        name = ctx.label.name,
-        compilation_outputs = compilation_outputs,
-        linking_contexts = [dep.linking_context for dep in deps_cc_info],
-        disallow_dynamic_library = ctx.attr.linkstatic,
-    )
-
-    all_outputs = [f for f in output_files]
-    if linking_outputs.library_to_link:
-        lib = linking_outputs.library_to_link
-        if lib.static_library:
-            all_outputs.append(lib.static_library)
-        if lib.dynamic_library:
-            all_outputs.append(lib.dynamic_library)
-
-    return [
-        DefaultInfo(files = depset(all_outputs)),
-        CcInfo(
-            compilation_context = compilation_context,
-            linking_context = linking_context,
-        ),
-    ]
 
 cc_fastdds_types = rule(
     implementation = _cc_fastdds_types_impl,

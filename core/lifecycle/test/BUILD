@@ -1,6 +1,11 @@
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("@rules_cc//cc:cc_test.bzl", "cc_test")
-load("//core/communication/generators:defs.bzl", "cc_dds_components")
+load("//core/generators:defs.bzl", "cc_dds_components", "cc_parameters")
+
+cc_parameters(
+    name = "testarillo",
+    yaml_parameters = "test_parameters.yml",
+)
 
 cc_dds_components(
     name = "test",
@@ -21,6 +26,16 @@ cc_test(
 cc_test(
     name = "execution_engine_tests",
     srcs = ["execution_engine_tests.cpp"],
+    deps = [
+        "//core/lifecycle",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "parameters_provider_tests",
+    srcs = ["parameters_provider_tests.cpp"],
     deps = [
         "//core/lifecycle",
         "@googletest//:gtest",
@@ -69,6 +84,7 @@ cc_library(
     hdrs = ["lifecycle_fixture.hpp"],
     deps = [
         ":test_ports",
+        ":testarillo",
         "//core/lifecycle:dds",
         "@googletest//:gtest",
         "@googletest//:gtest_main",

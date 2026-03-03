@@ -5,16 +5,18 @@
 #include "core/lifecycle/dds_application.hpp"
 #include "core/lifecycle/dds_task.hpp"
 #include "core/support/utils/lookup_table.hpp"
-#include "test_ports_subscriptions.hpp"
 #include "test_ports_publications.hpp"
-
+#include "test_ports_subscriptions.hpp"
+#include "testarillo_parameters.hpp"
 namespace core::lifecycle {
-static std::atomic<int> mock_task_1_count {0};
-static std::atomic<int> mock_task_2_count {0};
+static std::atomic<int> mock_task_1_count{0};
+static std::atomic<int> mock_task_2_count{0};
 
-using TestTopicSubsList = TopicList<
-    communication::TopicSpec<TestPayloadPubSubType, gen::kSendFalseTopicName, 2>,
-    communication::TopicSpec<TestPayloadPubSubType, gen::kSendTrueTopicName, 2>>;
+using TestTopicSubsList =
+    TopicList<communication::TopicSpec<TestPayloadPubSubType,
+                                       gen::kSendFalseTopicName, 2>,
+              communication::TopicSpec<TestPayloadPubSubType,
+                                       gen::kSendTrueTopicName, 2>>;
 using TestTopicPubsList = TopicList<
     communication::TopicSpec<TestPayloadPubSubType, gen::kSendFalseTopicName>,
     communication::TopicSpec<TestPayloadPubSubType, gen::kSendTrueTopicName>>;
@@ -25,114 +27,107 @@ using TestOutputs = Outputs_t<TestTopicPubsList>;
 using DDSTaskTopicSubsList = gen::Subscriptions;
 using DDSTaskTopicPubsList = gen::Publications;
 
-
-class MockTask1 : public TaskInterface
-{
-  public:
-    using TaskInterface::TaskInterface;
-    void ExecuteStep() override { mock_task_1_count++; }
+class MockTask1 : public TaskInterface {
+ public:
+  using TaskInterface::TaskInterface;
+  void ExecuteStep() override { mock_task_1_count++; }
 };
 
-class MockTask2 : public TaskInterface
-{
-  public:
-    using TaskInterface::TaskInterface;
-    void ExecuteStep() override { mock_task_2_count++; }
+class MockTask2 : public TaskInterface {
+ public:
+  using TaskInterface::TaskInterface;
+  void ExecuteStep() override { mock_task_2_count++; }
 };
-class SendFalseDDSTask : public DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>
-{
-  public:
-    using DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>::DDSTask;
+class SendFalseDDSTask
+    : public DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList> {
+ public:
+  using DDSTask<DDSTaskTopicSubsList, DDSTaskTopicPubsList>::DDSTask;
 
-  protected:
-    void Execute() override
-    {
-        auto in = GetInputSource<gen::kSendFalseTopicName>();
-        auto out = GetOutputSink<gen::kSendTrueTopicName>();
+ protected:
+  void Execute() override {
+    auto in = GetInputSource<gen::kSendFalseTopicName>();
+    auto out = GetOutputSink<gen::kSendTrueTopicName>();
 
-        if (in.Empty())
-        {
-            return;
-        }
-
-        auto data = in[0].data;
-        EXPECT_TRUE(data.ok());
-        TestPayload response;
-        response.ok(false);
-        out.Push(std::move(response));
+    if (in.Empty()) {
+      return;
     }
+
+    auto data = in[0].data;
+    EXPECT_TRUE(data.ok());
+    TestPayload response;
+    response.ok(false);
+    out.Push(std::move(response));
+  }
 };
 
-class SendTrueDDSTask : public DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsList>
-{
-  public:
-    using DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsList>::DDSTask;
+class SendTrueDDSTask
+    : public DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsList> {
+ public:
+  using DDSTask<DDSTaskTopicPubsList, DDSTaskTopicSubsList>::DDSTask;
 
-  protected:
-    void Execute() override
-    {
-        auto in = GetInputSource<gen::kSendTrueTopicName>();
-        auto out = GetOutputSink<gen::kSendFalseTopicName>();
+ protected:
+  void Execute() override {
+    // we test generated parameters here, since everything is handled at compile
+    // time wrong usage = not compiling :D
+    EXPECT_EQ(params.GetParameterValue<gen::MokkaTag>(), 10);
+    std::array<float, 3> expected_array = {0.1, 0.2, 0.3};
+    EXPECT_EQ(params.GetParameterValue<gen::SortTag>(), expected_array);
+    EXPECT_EQ(params.GetParameterValue<gen::OkTag>(), false);
+    auto in = GetInputSource<gen::kSendTrueTopicName>();
+    auto out = GetOutputSink<gen::kSendFalseTopicName>();
 
-        if (in.Empty())
-        {
-            return;
-        }
-
-        auto data = in[0].data;
-        EXPECT_FALSE(data.ok());
-        TestPayload response;
-        response.ok(true);
-        out.Push(std::move(response));
+    if (in.Empty()) {
+      return;
     }
+
+    auto data = in[0].data;
+    EXPECT_FALSE(data.ok());
+    TestPayload response;
+    response.ok(true);
+    out.Push(std::move(response));
+  }
+
+  gen::PippoParamsProvider params;
 };
 
 using TestApplicationConfig = core::utils::LookupTable<
     core::utils::TableItem<SendTrueDDSTask, TaskSpec<10>>,
     core::utils::TableItem<SendFalseDDSTask, TaskSpec<20>>>;
 
-class LifecycleFixture : public ::testing::TestWithParam<int>
-{
-  protected:
-    void SetUp() override
-    {
-        detail::shutdown_requested.store(false);
+class LifecycleFixture : public ::testing::TestWithParam<int> {
+ protected:
+  void SetUp() override {
+    detail::shutdown_requested.store(false);
 
-        mock_task_1_count.store(0);
-        mock_task_2_count.store(0);
+    mock_task_1_count.store(0);
+    mock_task_2_count.store(0);
+  }
+
+  void TearDown() override {
+    if (killer_thread_.joinable()) {
+      killer_thread_.join();
+    }
+  }
+
+  // simulating shutdown caused by OS signals
+  void ScheduleShutdown(std::chrono::milliseconds delay, int sig_type) {
+    if (sig_type != SIGTERM && sig_type != SIGINT) {
+      throw std::runtime_error(
+          "only SIGINT(2) and SIGTERM(15) suported at the moment");
     }
 
-    void TearDown() override
-    {
-        if (killer_thread_.joinable())
-        {
-            killer_thread_.join();
-        }
-    }
+    killer_thread_ = std::thread([delay, sig_type]() {
+      std::this_thread::sleep_for(delay);
+      std::raise(sig_type);
+    });
 
-    // simulating shutdown caused by OS signals
-    void ScheduleShutdown(std::chrono::milliseconds delay, int sig_type)
-    {
-        if (sig_type != SIGTERM && sig_type != SIGINT)
-        {
-            throw std::runtime_error(
-                "only SIGINT(2) and SIGTERM(15) suported at the moment");
-        }
+    killer_thread_.detach();
+  }
 
-        killer_thread_ = std::thread(
-            [delay, sig_type]()
-            {
-                std::this_thread::sleep_for(delay);
-                std::raise(sig_type);
-            });
-
-        killer_thread_.detach();
-    }
-
-    core::lifecycle::TasksManager manager_;
-    core::lifecycle::DDSAPPlication<TestApplicationConfig> app_ {
-        "test_dds_domain_participant"};
-    std::thread killer_thread_;
+  core::lifecycle::TasksManager manager_;
+  core::lifecycle::DDSAPPlication<TestApplicationConfig> app_{
+      "test_dds_domain_participant"};
+  std::thread killer_thread_;
 };
 }  // namespace core::lifecycle
 

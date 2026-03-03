@@ -14,6 +14,56 @@ class TopicSpec(BaseModel):
     queue_size: int
 
 
+class ParameterEntry(BaseModel):
+    name: str
+    type: str
+    value: str
+
+
+def normalize_type(raw_type: str) -> str:
+    # array are modeled as type[size] we're splitting using [
+    # then if we have an array we output a comma separated list
+    # e.g. float[3] => float,float,float.
+    # Downstream Parameter Entry in cpp is modelled as tupla<Tag, values...>
+    decomposed_type = raw_type.split("[", 1)
+    type = decomposed_type[0]
+    if len(decomposed_type) > 2:
+        raise RuntimeError(
+            "What are you doing? you're supposed to have Type[Size] for array or Type for single values"
+        )
+    if len(decomposed_type) == 2:
+        size = int(decomposed_type[1].rstrip("]"))
+        type = ", ".join([type] * size)
+
+    return type
+
+
+class ParameterSet(BaseModel):
+    name: str
+    params: List[ParameterEntry]
+
+    @model_validator(mode="before")
+    @classmethod
+    def preprocess(cls, data: Any) -> Any:
+        root_key, items = next(iter(data.items()))
+        transformed = {"name": normalize_name(root_key), "params": []}
+        for item in items:
+            name, body = next(iter(item.items()))
+            value = body["value"]
+            # workaround to render bool in cpp compatible form (otherwise it gets rendered with capital letter)🐽
+            if isinstance(value, bool):
+                value = "true" if value else "false"
+            transformed["params"].append(
+                {
+                    "name": f"{normalize_name(name)}Tag",
+                    "type": normalize_type(body["type"]),
+                    # if we get a list of values we scrape the brackets
+                    "value": str(value).strip("[").rstrip("]"),
+                }
+            )
+        return transformed
+
+
 def normalize_name(raw_name: str) -> str:
     return "".join(word.capitalize() for word in raw_name.split("_"))
 
@@ -109,3 +159,7 @@ class TopicIdHeader(GeneratedHeader):
 class SpecsHeader(GeneratedHeader):
     topic_specs: List[TopicSpec]
     specs_list_name: str
+
+
+class ParametersHeader(GeneratedHeader):
+    params: ParameterSet

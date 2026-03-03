@@ -8,50 +8,45 @@
 namespace core::lifecycle {
 
 template <typename SubscriptionSpecs, typename PublicationSpecs>
-class DDSTask : public TaskInterface
-{
-    using Subs = SubscriptionSpecs;
-    using Pubs = PublicationSpecs;
+class DDSTask : public TaskInterface {
+  using Subs = SubscriptionSpecs;
+  using Pubs = PublicationSpecs;
 
-  public:
-    using TaskInterface::TaskInterface;
-    virtual ~DDSTask() = default;
+ public:
+  using TaskInterface::TaskInterface;
+  virtual ~DDSTask() = default;
 
-    void ExecuteStep() override
-    {
-        FillInputs();
-        Execute();
-        FlushOutputs();
-    };
+  void ExecuteStep() override {
+    FillInputs();
+    Execute();
+    FlushOutputs();
+  };
 
-  protected:
-    virtual void Execute() = 0;
-    virtual void Init() {}
+ protected:
+  virtual void Execute() = 0;
+  virtual void Init() {}
 
-    template <const char* TopicName>
-    inline auto GetInputSource() noexcept
-    {
-        return InputSource {get<TopicName>(inputs_)};
-    }
+  template <const char* TopicName>
+  inline auto GetInputSource() noexcept {
+    return InputSource{get<TopicName>(inputs_)};
+  }
 
-    template <const char* TopicName>
-    inline auto GetOutputSink() noexcept
-    {
-        return OutputSink {get<TopicName>(outputs_)};
-    }
+  template <const char* TopicName>
+  inline auto GetOutputSink() noexcept {
+    return OutputSink{get<TopicName>(outputs_)};
+  }
 
-  private:
-    inline void FillInputs() noexcept
-    {
-        std::apply([](auto&... input) constexpr { (input.Sync(), ...); }, inputs_);
-    }
-    inline void FlushOutputs() noexcept
-    {
-        std::apply([](auto&... output) constexpr { (output.Sync(), ...); }, outputs_);
-    }
+ private:
+  inline void FillInputs() noexcept {
+    std::apply([](auto&... input) constexpr { (input.Sync(), ...); }, inputs_);
+  }
+  inline void FlushOutputs() noexcept {
+    std::apply([](auto&... output) constexpr { (output.Sync(), ...); },
+               outputs_);
+  }
 
-    Inputs_t<Subs> inputs_;
-    Outputs_t<Pubs> outputs_;
+  Inputs_t<Subs> inputs_;
+  Outputs_t<Pubs> outputs_;
 };
 
 }  // namespace core::lifecycle

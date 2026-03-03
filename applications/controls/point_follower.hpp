@@ -7,10 +7,11 @@
 CarControl point_follower(const VehicleState& state, const Point& target);
 
 // Pure pursuit controller
-CarControl pure_pursuit(
-    const VehicleState& state, const Point& target, float current_speed);
+CarControl pure_pursuit(const VehicleState& state, const Point& target,
+                        float current_speed);
 
 // Stanley controller
-CarControl stanley(const VehicleState& state, const Point& target, float current_speed);
+CarControl stanley(const VehicleState& state, const Point& target,
+                   float current_speed);
 
 #endif  // APPLICATIONS_CONTROLS_POINT_FOLLOWER

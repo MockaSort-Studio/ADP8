@@ -1,0 +1,10 @@
+pippo_params:
+  - mokka:
+      type: uint8_t
+      value: 10
+  - sort:
+      type: float[3]
+      value: [0.1, 0.2, 0.3]
+  - ok:
+      type: bool
+      value: false
