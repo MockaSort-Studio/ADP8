@@ -16,8 +16,8 @@ def mock_idl_types():
 
 
 @pytest.fixture
-def valid_yaml_file(tmp_path):
-    """Creates a temporary YAML file with one valid and one invalid type."""
+def yaml_with_unknown_type(tmp_path):
+    """YAML referencing a type not present in the IDL list."""
     content = {
         "publications": [{"gps_pos": {"type": "Position"}}],
         "subscriptions": [
@@ -31,24 +31,30 @@ def valid_yaml_file(tmp_path):
     return str(yaml_path)
 
 
-def test_dds_ports_filtering(valid_yaml_file, mock_idl_types):
+@pytest.fixture
+def yaml_all_valid_types(tmp_path):
+    """YAML where all types are present in the IDL list."""
+    content = {
+        "publications": [{"gps_pos": {"type": "Position"}}],
+        "subscriptions": [{"power": {"type": "BatteryStatus"}}],
+    }
+    yaml_path = tmp_path / "config.yaml"
+    with open(yaml_path, "w") as f:
+        yaml.dump(content, f)
+    return str(yaml_path)
+
+
+def test_dds_ports_unknown_type_raises(yaml_with_unknown_type, mock_idl_types):
     """
-    Verify that ports with types not present in IDL are discarded.
-    This is the most critical logic in your parser.
+    Unknown IDL types must raise — silent filtering produces broken output with no signal.
     """
-    ports = dds_ports_from_yaml(valid_yaml_file, mock_idl_types)
-
-    assert len(ports.publications) == 1
-    assert len(ports.subscriptions) == 1
-
-    sub_names = [s.topic_id.name for s in ports.subscriptions]
-    assert "PowerTopic" in sub_names
-    assert "ImuDataTopic" not in sub_names
+    with pytest.raises(RuntimeError, match="ImuRaw"):
+        dds_ports_from_yaml(yaml_with_unknown_type, mock_idl_types)
 
 
-def test_dds_types_header_generation(valid_yaml_file, mock_idl_types):
+def test_dds_types_header_generation(yaml_all_valid_types, mock_idl_types):
     """Verify that the IdlTypeHeader correctly inherits from Ports."""
-    ports = dds_ports_from_yaml(valid_yaml_file, mock_idl_types)
+    ports = dds_ports_from_yaml(yaml_all_valid_types, mock_idl_types)
     output_path = "bazel-out/bin/dds_types.hpp"
 
     header_model = dds_types_header_model(ports, output_path)

@@ -15,11 +15,13 @@ from core.generators.gen_data_models import (
 )
 
 
-def type_exists(type: str, type_list: List[str]) -> bool:
-    exists = type in type_list
-    if not exists:
-        print(f"{type} not found - Discarding port")
-    return exists
+def _assert_type_exists(type_name: str, available_types: List[str]) -> None:
+    if type_name not in available_types:
+        raise RuntimeError(
+            f"Type '{type_name}' not found in any IDL. "
+            f"Available types: {available_types}. "
+            "Check your YAML config and --idl inputs."
+        )
 
 
 def get_available_idl_types(idl_file_paths: List[str]) -> List[str]:
@@ -40,27 +42,18 @@ def get_available_idl_types(idl_file_paths: List[str]) -> List[str]:
 def parse_yaml(yaml_path: str) -> Dict[str, Any]:
     with open(yaml_path, "r") as file:
         try:
-            yaml_dict = yaml.safe_load(file)
+            return yaml.safe_load(file)
         except yaml.YAMLError as exc:
-            print(f"Error parsing YAML: {exc}")
-    return yaml_dict
+            raise RuntimeError(f"Failed to parse YAML '{yaml_path}': {exc}") from exc
 
 
 def dds_ports_from_yaml(yaml_path: str, available_types: List[str]) -> Ports:
     yaml_dict = parse_yaml(yaml_path)
     if available_types:
-        yaml_dict: Dict[str, Any] = {
-            "subscriptions": [
-                sub
-                for sub in yaml_dict["subscriptions"]
-                if type_exists(next(iter(sub.values()))["type"], available_types)
-            ],
-            "publications": [
-                pub
-                for pub in yaml_dict["publications"]
-                if type_exists(next(iter(pub.values()))["type"], available_types)
-            ],
-        }
+        for sub in yaml_dict["subscriptions"]:
+            _assert_type_exists(next(iter(sub.values()))["type"], available_types)
+        for pub in yaml_dict["publications"]:
+            _assert_type_exists(next(iter(pub.values()))["type"], available_types)
     return Ports(**yaml_dict)
 
 
