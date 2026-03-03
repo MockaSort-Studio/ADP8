@@ -11,6 +11,7 @@ def _cc_parameters_impl(ctx):
     args.add("--modality", "parameters")
     args.add("--yaml", ctx.file.yaml_config.path)
     args.add("--outputs", json.encode(headers))
+    args.add("--namespace", ctx.attr.namespace)
 
     ctx.actions.run(
         outputs = [output],
@@ -38,6 +39,7 @@ cc_parameters = rule(
     implementation = _cc_parameters_impl,
     attrs = {
         "yaml_config": attr.label(allow_single_file = [".yaml", ".yml"]),
+        "namespace": attr.string(default = "gen"),
         "_generator": attr.label(
             default = Label("//core/generators:generators"),
             executable = True,

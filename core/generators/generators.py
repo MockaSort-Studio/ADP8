@@ -52,6 +52,12 @@ def parse_arguments() -> Tuple[Modality, str, List[str], Dict[str, Any]]:
         required=True,
         help="Modality for Javelina Generators [ports,parameters]",
     )
+    parser.add_argument(
+        "--namespace",
+        required=False,
+        default="gen",
+        help="C++ namespace for generated code (default: gen)",
+    )
     args = parser.parse_args()
 
     outputs_dic = json.loads(args.outputs)
@@ -60,7 +66,7 @@ def parse_arguments() -> Tuple[Modality, str, List[str], Dict[str, Any]]:
         print(f"Error: YAML file not found at {args.yaml}")
         sys.exit(1)
 
-    return Modality(args.modality), args.yaml, args.idls, outputs_dic
+    return Modality(args.modality), args.yaml, args.idls, outputs_dic, args.namespace
 
 
 def generate_header_file(
@@ -87,7 +93,9 @@ TEMPLATES: Dict[str, str] = {
 }
 
 
-def generate_ports(yaml_cfg: str, idls: List[str], outputs: Dict[str, Any]) -> None:
+def generate_ports(
+    yaml_cfg: str, idls: List[str], outputs: Dict[str, Any], namespace: str
+) -> None:
     available_types = get_available_idl_types(idls)
     ports_model = dds_ports_from_yaml(yaml_cfg, available_types)
 
@@ -96,10 +104,12 @@ def generate_ports(yaml_cfg: str, idls: List[str], outputs: Dict[str, Any]) -> N
     sub_topic_id_h = dds_topic_ids_pub_sub_header_models(
         [sub.topic_id for sub in ports_model.subscriptions],
         outputs["subscriptions"]["ids"],
+        namespace,
     )
     pub_topic_id_h = dds_topic_ids_pub_sub_header_models(
         [pub.topic_id for pub in ports_model.publications],
         outputs["publications"]["ids"],
+        namespace,
     )
 
     subs_specs_includes = [
@@ -111,6 +121,7 @@ def generate_ports(yaml_cfg: str, idls: List[str], outputs: Dict[str, Any]) -> N
         outputs["subscriptions"]["specs"],
         "Subscriptions",
         subs_specs_includes,
+        namespace,
     )
 
     pubs_specs_includes = [
@@ -122,6 +133,7 @@ def generate_ports(yaml_cfg: str, idls: List[str], outputs: Dict[str, Any]) -> N
         outputs["publications"]["specs"],
         "Publications",
         pubs_specs_includes,
+        namespace,
     )
 
     generate_header_file(TEMPLATES["types"], dds_types_h_model)
@@ -138,9 +150,9 @@ def generate_ports(yaml_cfg: str, idls: List[str], outputs: Dict[str, Any]) -> N
     print(f"{remove_bazel_prefix_path(pub_specs_h.output_file_path)}")
 
 
-def generate_parameters(yaml_cfg: str, outputs: Dict[str, Any]) -> None:
+def generate_parameters(yaml_cfg: str, outputs: Dict[str, Any], namespace: str) -> None:
     parameters_model = parameterset_model_from_yaml(yaml_cfg)
-    header_model = parameters_header_model(parameters_model, outputs["parameters"])
+    header_model = parameters_header_model(parameters_model, outputs["parameters"], namespace)
     generate_header_file(TEMPLATES["parameters"], header_model)
 
     print("Generated Parameters Header:")
@@ -148,13 +160,13 @@ def generate_parameters(yaml_cfg: str, outputs: Dict[str, Any]) -> None:
 
 
 def main() -> None:
-    modality, yaml_cfg, idls, outputs = parse_arguments()
+    modality, yaml_cfg, idls, outputs, namespace = parse_arguments()
     print("=================================================================")
     print(f"🐽 🐽 🐽 🐽 🐽 Running Javelina Generators [Modality={modality}]")
     if modality == Modality.PORTS:
-        generate_ports(yaml_cfg, idls, outputs)
+        generate_ports(yaml_cfg, idls, outputs, namespace)
     if modality == Modality.PARAMETERS:
-        generate_parameters(yaml_cfg, outputs)
+        generate_parameters(yaml_cfg, outputs, namespace)
 
     print("🐽 🐽 🐽 🐽 🐽 Done Oink Oink!")
     print("=================================================================")

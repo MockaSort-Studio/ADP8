@@ -70,13 +70,14 @@ def dds_types_header_model(
 def dds_topic_ids_pub_sub_header_models(
     topic_ids: List[TopicId],
     dds_topic_ids_header_output_path: str,
+    namespace: str = "gen",
 ) -> TopicIdHeader:
 
     return TopicIdHeader(
         output_file_path=dds_topic_ids_header_output_path,
         topic_ids=topic_ids,
         includes=[],
-        namespace="gen",
+        namespace=namespace,
     )
 
 
@@ -85,12 +86,14 @@ def dds_topic_specs_pub_sub_header_models(
     dds_topic_specs_header_output_path: str,
     specs_list_name: str,
     includes: List[str],
+    namespace: str = "gen",
 ) -> SpecsHeader:
     model_raw: Dict[str, Any] = {
         "output_file_path": dds_topic_specs_header_output_path,
         "topic_specs": topic_specs,
         "specs_list_name": specs_list_name,
         "includes": includes,
+        "namespace": namespace,
     }
 
     return SpecsHeader(**model_raw)
@@ -103,10 +106,11 @@ def parameterset_model_from_yaml(yaml_path: str) -> ParameterSet:
 
 
 def parameters_header_model(
-    parameter_model: ParameterSet, header_output_path: str
+    parameter_model: ParameterSet, header_output_path: str, namespace: str = "gen"
 ) -> ParametersHeader:
     model_raw: Dict[str, Any] = {
         "output_file_path": header_output_path,
         "params": parameter_model,
+        "namespace": namespace,
     }
     return ParametersHeader(**model_raw)
