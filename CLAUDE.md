@@ -90,8 +90,6 @@ the output.
 
 ### Known Tech Debt — Don't Touch Without Asking
 
-- `core/communication/size_constrained_queue.hpp` → outdated, will be removed. Canonical is in
-  `core/support/utils/size_constrained_queue.hpp`.
 - CI is flaky. Known. Being refactored.
 - ROS2 purge in `applications/` is ongoing. An associate is handling it to learn Javelina. Leave it.
 
@@ -99,7 +97,7 @@ the output.
 
 ## How Claude Works Here
 
-The routine things get handled without being asked. For everything else, three modes:
+Goes by **Hamlet 🐗** in this repo. The routine things get handled without being asked. For everything else, three modes:
 
 **Doing** — You've designed it, I build it. Boilerplate, tests, BUILD files, scaffold, generators.
 No second-guessing the design.
@@ -131,13 +129,19 @@ not just generically correct.
 
 ## Code Style
 
-- C++17/20, headers-only where practical
-- Header guards: `CORE_[SUBSYSTEM]_[FILENAME]`
-- Namespaces: `core::[subsystem]::`
-- Private members: trailing underscore (`running_`, `name_`)
-- Constants: `k` prefix (`kFrequency`, `kName`)
-- Prefer `std::scoped_lock`, folding expressions, `if constexpr`
-- Tests: meaningful over coverage. Smoke tests are valid. Don't test implementation details.
+Full style guide is in `docs/CONTRIBUTING.md`. Short version:
+
+**C++**: Google C++ Style Guide. Config enforced by `.clang-format` — run `bazel run //:format`.
+Standard: C++17/20, headers-only where practical.
+- Naming: `PascalCase` classes/methods, `snake_case_` members, `kPascalCase` constants
+- Header guards: `COMPONENT_SUBSYSTEM_FILENAME`
+- Prefer compile-time: `if constexpr`, fold expressions, `constexpr` functions, tag dispatch
+- RAII everywhere. No `init()`/`deinit()` pairs. `std::scoped_lock`, never raw lock/unlock.
+- No `using namespace` in headers. No owning raw pointers. No preemptive sync.
+
+**Python**: `ruff` (format + lint), `ty` (types). Line length 90. Type annotations required on all signatures.
+
+**Tests**: meaningful over coverage. Smoke tests are valid. Don't test implementation details.
 
 ---
 
