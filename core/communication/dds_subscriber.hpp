@@ -42,9 +42,6 @@ class SubListener : public dds::DataReaderListener {
   }
 
   void on_data_available(dds::DataReader* reader) override {
-    std::thread::id this_id = std::this_thread::get_id();
-
-    std::cout << "Thread ID: " << this_id << std::endl;
     dds::SampleInfo info;
     Type message;
     if (reader->take_next_sample(&message, &info) == dds::RETCODE_OK) {

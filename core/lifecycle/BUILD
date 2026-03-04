@@ -1,6 +1,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//core/lifecycle:__subpackages__"])
+package(default_visibility = ["//core:__subpackages__"])
 
 cc_library(
     name = "lifecycle",
