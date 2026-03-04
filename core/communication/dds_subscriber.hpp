@@ -76,6 +76,14 @@ class SubListener : public dds::DataReaderListener {
 };
 }  // namespace
 
+/// @brief Wraps a FastDDS DataReader for a single topic, with a fixed-size sample queue.
+///
+/// Incoming samples are pushed into a @c SizeConstrainedQueue by the listener callback.
+/// Call @c DrainQueue() to transfer all buffered samples at once (used by
+/// @c DataEndpoint::Sync()), or @c GetSample() to consume one sample at a time.
+///
+/// @tparam PubSubType FastDDS PubSubType. Must derive from @c TopicDataType.
+/// @tparam QueueSize  Maximum number of samples buffered (default: 1).
 template <typename PubSubType, std::size_t QueueSize = 1>
 class DDSSubscriber {
   static_assert(
@@ -88,6 +96,10 @@ class DDSSubscriber {
 
   DDSSubscriber() = default;
 
+  /// @brief Creates the FastDDS Subscriber and DataReader for the given topic.
+  ///        Retrieves the DomainParticipant from @c DDSContextProvider.
+  /// @param topic_name DDS topic name.
+  /// @throws std::runtime_error if Subscriber or DataReader creation fails.
   void Start(const std::string& topic_name) {
     // we store a pointer to participant for lifecycle mgmt of subscriber and
     // data reader
@@ -118,12 +130,17 @@ class DDSSubscriber {
   }
   ~DDSSubscriber() = default;
 
+  /// @return True if at least one publisher is currently matched.
   [[nodiscard]] bool IsMatched() const { return listener_.matched_count_ > 0; }
 
+  /// @brief Dequeues and returns the most recent sample.
+  /// @return The sample, or @c std::nullopt if the queue is empty.
   std::optional<DDSDataType> GetSample() {
     return std::move(listener_.GetSample());
   }
 
+  /// @brief Transfers all buffered samples from the listener queue into @p other.
+  ///        Replaces the contents of @p other entirely. Used by @c DataEndpoint::Sync().
   inline void DrainQueue(
       utils::SizeConstrainedQueue<DDSDataType, QueueSize>& other) noexcept {
     listener_.DrainQueue(other);

@@ -11,12 +11,22 @@ namespace core::utils {
 using Clock = std::chrono::steady_clock;
 using Timestamp = std::chrono::time_point<Clock>;
 
+/// @brief A timestamped data sample produced by @c SizeConstrainedQueue::Push().
+/// @tparam T Data type of the stored value.
 template <typename T>
 struct Sample {
   Timestamp time_received;
   T data;
 };
 
+/// @brief Fixed-capacity circular buffer storing the @p N most recent samples.
+///
+/// Newer samples overwrite older ones once capacity is reached. Index 0 is
+/// always the most recently pushed sample (reverse-chronological order).
+/// All mutating operations are thread-safe via @c mtx_.
+///
+/// @tparam T Element type.
+/// @tparam N Maximum number of samples. Must be > 0.
 template <typename T, std::size_t N>
 class SizeConstrainedQueue {
   static_assert(N > 0, "SizeConstrainedQueue size must be greater than 0");
@@ -40,6 +50,8 @@ class SizeConstrainedQueue {
     return buffer_[(h + N - 1 - index) % N];
   }
 
+  /// @brief Pushes @p message into the queue, overwriting the oldest sample if full.
+  ///        Timestamps the sample with the current steady clock.
   template <typename U>
   void Push(U&& message) {
     static_assert(std::is_convertible_v<std::decay_t<U>, T>,
@@ -60,6 +72,8 @@ class SizeConstrainedQueue {
     }
   }
 
+  /// @brief Removes and returns the most recent sample.
+  /// @return The sample, or @c std::nullopt if empty.
   std::optional<Sample<T>> GetSample() {
     std::scoped_lock lock(mtx_);
 
@@ -83,6 +97,8 @@ class SizeConstrainedQueue {
     return count_.load(std::memory_order_relaxed);
   }
 
+  /// @brief Atomically moves all samples into @p other, replacing its contents.
+  ///        @c this is cleared. Both queues are locked simultaneously.
   inline void TransferTo(SizeConstrainedQueue<T, N>& other) noexcept {
     std::scoped_lock lock(mtx_, other.mtx_);
 
@@ -101,6 +117,7 @@ class SizeConstrainedQueue {
     this->head_.store(0, std::memory_order_relaxed);
   }
 
+  /// @return Maximum number of samples this queue can hold.
   constexpr std::size_t capacity() const noexcept { return N; }
 
  private:

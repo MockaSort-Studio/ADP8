@@ -24,20 +24,33 @@ constexpr auto collapse_tuple(T&& t) {
   }
 }
 }  // namespace detail
-// Check unit test for example usage 🐽
-// core/lifecycle/test/parameters_provider_tests.cpp
+/// @brief Provides typed read/write access to a @c LookupTable of parameters.
+///
+/// @p Params is a @c LookupTable type. @p ParamsDefaults is a tuple of default
+/// value tuples, one per entry. Single-value entries are returned as the scalar
+/// directly; multi-value entries collapse into a @c std::array.
+///
+/// @see core/lifecycle/test/parameters_provider_tests.cpp for usage examples.
+///
+/// @tparam Params         @c LookupTable type defining the parameter schema.
+/// @tparam ParamsDefaults Tuple of default value tuples (order matches @p Params).
+// proudly AI-generated, human-reviewed
 template <typename Params, typename ParamsDefaults>
 class ParametersProvider {
  public:
+  /// @brief Returns the current value for @p ParameterTag.
+  ///        Single-value entries return the scalar; multi-value entries return a @c std::array.
+  /// @tparam ParameterTag Tag type identifying the parameter in @p Params.
   template <typename ParameterTag>
   constexpr auto GetParameterValue() const {
     return detail::collapse_tuple(parameters_.GetValue(ParameterTag{}));
   }
 
  protected:
-  // we don't want everyone to publically access set
-  // setting it protected enable building parameter server which updates
-  // parameter on rpc
+  // Protected to allow derived classes (e.g. a parameter server) to update values.
+  /// @brief Updates the value for @p ParameterTag.
+  /// @tparam ParameterTag Tag type identifying the parameter in @p Params.
+  /// @param  args         New values, forwarded into the parameter tuple.
   template <typename ParameterTag, typename... Args>
   void SetParameterValue(Args&&... args) {
     parameters_.GetValue(ParameterTag{}).values =

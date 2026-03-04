@@ -1,4 +1,8 @@
-"""This Makes the linter happy"""
+"""Public macros for generating DDS components and task parameters.
+
+Preferred entry points over the underlying rules — they wire dependencies
+and naming conventions automatically.
+"""
 
 load("//core/generators:dds_ports_gen.bzl", _cc_dds_ports = "cc_dds_ports")
 load("//core/generators:fastdds_types_gen.bzl", _cc_fastdds_types = "cc_fastdds_types")
@@ -31,6 +35,15 @@ def cc_dds_components(name, idls, ports_yaml, namespace = "gen"):
     )
 
 def cc_parameters(name, yaml_parameters, namespace = "gen"):
+    """Generates a C++ parameters header from a YAML parameter set definition.
+
+    Wraps the cc_parameters rule; pulls in parameters_provider as a default dep.
+
+    Args:
+        name: A unique name for this target.
+        yaml_parameters: YAML file defining the parameter set.
+        namespace: C++ namespace for generated code (default: "gen").
+    """
     _cc_parameters(
         name = name,
         yaml_config = yaml_parameters,

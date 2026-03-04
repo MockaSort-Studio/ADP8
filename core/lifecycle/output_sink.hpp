@@ -6,9 +6,13 @@
 
 namespace core::lifecycle {
 
-/**
- * @brief Write-Only View for Output DataPoints.
- */
+/// @brief Write-only view over an output @c DataEndpoint.
+///
+/// Returned by @c DDSTask::GetOutputSink(). Accepts one sample per step via
+/// @c Push(); the endpoint publishes it on the next @c Sync(). Does not own
+/// the endpoint.
+///
+/// @tparam Spec @c TopicSpec specialization. Determines the data type.
 template <typename Spec>
 struct OutputSink {
   static_assert(communication::is_topic_spec_v<Spec>,
@@ -17,6 +21,7 @@ struct OutputSink {
   using T = typename Spec::type;
   DataEndpoint<Spec, DataDirection::Out>& endpoint;
 
+  /// @brief Enqueues @p data for publishing on the next sync cycle.
   template <typename U>
   inline void Push(U&& data) {
     endpoint.Push(std::forward<U>(data));

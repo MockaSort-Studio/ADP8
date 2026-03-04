@@ -1,3 +1,9 @@
+"""Bazel rule for generating a C++ parameters header from a YAML parameter set definition.
+
+Produces a single header per target. Prefer the cc_parameters macro in defs.bzl,
+which wires parameters_provider as a default dependency.
+"""
+
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//core/generators:cc_utils.bzl", "pack_cc_library")
 

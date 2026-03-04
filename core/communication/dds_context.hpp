@@ -15,8 +15,16 @@ namespace core::communication {
 
 namespace dds = eprosima::fastdds::dds;
 
+/// @brief Owns a FastDDS DomainParticipant and the topics registered to it.
+///
+/// Topics are created on first request and reused on subsequent calls with the
+/// same name. Participant and topic lifetime is managed through RAII deleters.
+/// Non-copyable; move-constructible.
 class DDSContext {
  public:
+  /// @brief Constructs the context and creates a DomainParticipant with the given name.
+  /// @param domain_participant_name Name assigned to the FastDDS DomainParticipant.
+  /// @throws std::runtime_error if participant creation fails.
   DDSContext(const std::string& domain_participant_name) {
     dds::DomainParticipantQos participantQos;
     participantQos.name(domain_participant_name);
@@ -39,6 +47,9 @@ class DDSContext {
 
   ~DDSContext() = default;
 
+  /// @brief Get or create a topic from a @c TopicSpec.
+  /// @tparam Spec A @c TopicSpec specialization. Derives topic name and PubSubType from it.
+  /// @return Pointer to the FastDDS topic. Owned by this context.
   template <typename Spec>
   dds::Topic* GetDDSTopic() {
     static_assert(is_topic_spec_v<Spec>,
@@ -47,6 +58,15 @@ class DDSContext {
     return GetDDSTopic<typename Spec::type>(Spec::kName);
   }
 
+  /// @brief Get or create a topic by PubSubType and name.
+  ///
+  /// Registers the type on first call, then creates the DDS topic.
+  /// Returns the existing topic if one with @p topic_name already exists.
+  ///
+  /// @tparam PubSubType FastDDS PubSubType. Must derive from @c TopicDataType.
+  /// @param  topic_name DDS topic name string.
+  /// @return Pointer to the FastDDS topic. Owned by this context.
+  /// @throws std::runtime_error if topic creation fails.
   template <typename PubSubType>
   dds::Topic* GetDDSTopic(const std::string& topic_name) {
     static_assert(std::is_base_of_v<dds::TopicDataType, PubSubType>,
@@ -74,6 +94,9 @@ class DDSContext {
     return raw_topic;
   }
 
+  /// @brief Returns the shared domain participant.
+  ///        Callers may hold the returned @c shared_ptr to extend participant
+  ///        lifetime beyond this context.
   std::shared_ptr<dds::DomainParticipant> GetDomainParticipant() {
     return participant_;
   }
@@ -91,13 +114,21 @@ class DDSContext {
   std::vector<TopicPtr> topics_;
 };
 
+/// @brief Singleton accessor for the process-wide @c DDSContext.
+///
+/// The instance is constructed on first call to @c Get(), using the name set
+/// via @c SetName(). Call @c SetName() once at startup before any pub/sub is
+/// created. Non-instantiable — all access is through static methods.
 class DDSContextProvider {
  public:
   DDSContextProvider(const DDSContextProvider&) = delete;
   DDSContextProvider& operator=(const DDSContextProvider&) = delete;
 
+  /// @brief Sets the DomainParticipant name used when the singleton is first constructed.
+  ///        Must be called before the first @c Get() invocation. No effect after construction.
   static void SetName(std::string name) { name_ = std::move(name); }
 
+  /// @brief Returns the singleton @c DDSContext, constructing it on first call.
   static DDSContext& Get() {
     using Deleter = std::function<void(DDSContext*)>;
 

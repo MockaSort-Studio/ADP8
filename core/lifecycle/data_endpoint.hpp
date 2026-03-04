@@ -8,7 +8,21 @@
 #include "core/support/utils/size_constrained_queue.hpp"
 // this should be moved in communication
 namespace core::lifecycle {
+
+/// @brief Direction tag for @c DataEndpoint. @c In = subscriber, @c Out = publisher.
 enum class DataDirection { In, Out };
+
+/// @brief Generic DDS endpoint: subscriber (@c In) or publisher (@c Out) for one topic.
+///
+/// Uses @c if constexpr to instantiate only the relevant DDS primitive — the other
+/// member collapses to @c int. Owns the sample queue.
+///
+/// @c Sync() drives data transfer each step:
+/// - @c In: drains samples from the DDS listener queue into the local buffer.
+/// - @c Out: publishes the most recent queued sample if one is pending.
+///
+/// @tparam Spec A @c TopicSpec specialization defining type, name, and queue size.
+/// @tparam D    @c DataDirection::In (subscriber) or @c DataDirection::Out (publisher).
 template <typename Spec, DataDirection D>
 class DataEndpoint {
   static_assert(communication::is_topic_spec_v<Spec>,
@@ -30,6 +44,9 @@ class DataEndpoint {
       pub_.Start(Spec::kName);
     }
   }
+  /// @brief Synchronizes the endpoint with DDS.
+  ///        In: drains the listener queue into the local sample buffer.
+  ///        Out: publishes the latest queued sample (if any).
   void Sync() noexcept {
     if constexpr (D == DataDirection::In) {
       sub_.DrainQueue(queue_);
@@ -48,6 +65,8 @@ class DataEndpoint {
     return queue_[index];
   }
 
+  /// @brief Enqueues @p data for publishing on the next @c Sync().
+  ///        Only valid for @c DataDirection::Out endpoints.
   void Push(T&& data) {
     static_assert(D == DataDirection::Out, "Cannot push to an Input Source");
     queue_.Push(std::move(data));

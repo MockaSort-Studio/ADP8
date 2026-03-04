@@ -7,6 +7,19 @@
 #include "core/lifecycle/task_interface.hpp"
 namespace core::lifecycle {
 
+/// @brief Base class for tasks that communicate over DDS.
+///
+/// Manages typed input and output @c DataEndpoint collections. On each
+/// @c ExecuteStep() call the engine:
+///   1. Drains all subscriber queues into the input buffers (@c FillInputs).
+///   2. Calls @c Execute() — the user-provided algorithm.
+///   3. Publishes all pending output buffers (@c FlushOutputs).
+///
+/// Access inputs via @c GetInputSource<TopicName>() and outputs via
+/// @c GetOutputSink<TopicName>() inside @c Execute().
+///
+/// @tparam SubscriptionSpecs @c TopicList of @c TopicSpec types for subscribed topics.
+/// @tparam PublicationSpecs  @c TopicList of @c TopicSpec types for published topics.
 template <typename SubscriptionSpecs, typename PublicationSpecs>
 class DDSTask : public TaskInterface {
   using Subs = SubscriptionSpecs;
@@ -23,14 +36,21 @@ class DDSTask : public TaskInterface {
   };
 
  protected:
+  /// @brief User algorithm. Called between @c FillInputs and @c FlushOutputs.
   virtual void Execute() = 0;
+
+  /// @brief Optional init hook. Called once before the first @c ExecuteStep(). No-op by default.
   virtual void Init() {}
 
+  /// @brief Returns a read-only view of the input endpoint for @p TopicName.
+  /// @tparam TopicName Compile-time string matching a subscribed @c TopicSpec::kName.
   template <const char* TopicName>
   inline auto GetInputSource() noexcept {
     return InputSource{get<TopicName>(inputs_)};
   }
 
+  /// @brief Returns a write-only view of the output endpoint for @p TopicName.
+  /// @tparam TopicName Compile-time string matching a published @c TopicSpec::kName.
   template <const char* TopicName>
   inline auto GetOutputSink() noexcept {
     return OutputSink{get<TopicName>(outputs_)};
