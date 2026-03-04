@@ -1,0 +1,6 @@
+subscriptions:
+  - channel_b:
+      type: ChannelMessage
+publications:
+  - channel_a:
+      type: ChannelMessage
