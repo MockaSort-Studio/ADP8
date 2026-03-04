@@ -31,18 +31,20 @@ A sandbox for building autonomous systems. Starting with an autonomous vehicle. 
 - **Francesco Petracci** 
 - **Hamlet 🐗**
 
-## Past contributors
-- **Andrea Nisticò**
-- **Simone Malavasi**
-- **Marco Kanneworff**
+
 
 Two engineers and an AI. The engineers designed it, argued about it, and shipped it.
-The AI is a bore, has strong opinions, wrote boilerplate, tests, and the documentation you're reading now.
+The AI is a wild-boar, has strong opinions, wrote boilerplate, tests, and the documentation you're reading now.
 
 ```cpp
 // docs: Hamlet 🐗
 // "The rest is documentation." — probably
 ```
+
+## Past contributors
+- **Andrea Nisticò**
+- **Simone Malavasi**
+- **Marco Kanneworff**
 
 ---
 
