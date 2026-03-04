@@ -45,6 +45,14 @@ class PubListener : public dds::DataWriterListener {
 };
 }  // namespace
 
+/// @brief Wraps a FastDDS DataWriter for a single topic.
+///
+/// Call @c Start() once to create the publisher and data writer, then
+/// @c Publish() to send messages. Writes only when at least one subscriber
+/// is matched; silent no-op otherwise.
+///
+/// @tparam PubSubType FastDDS PubSubType. Must derive from @c TopicDataType.
+///                    The inner @c ::type alias gives the message payload type.
 template <typename PubSubType>
 class DDSPublisher {
   static_assert(
@@ -56,6 +64,10 @@ class DDSPublisher {
 
   DDSPublisher() = default;
 
+  /// @brief Creates the FastDDS Publisher and DataWriter for the given topic.
+  ///        Retrieves the DomainParticipant from @c DDSContextProvider.
+  /// @param topic_name DDS topic name.
+  /// @throws std::runtime_error if Publisher or DataWriter creation fails.
   void Start(const std::string& topic_name) {
     // we store a pointer to participant for lifecycle mgmt of publisher and
     // data writer
@@ -86,6 +98,8 @@ class DDSPublisher {
             });
   }
 
+  /// @brief Writes @p payload to the topic if at least one subscriber is matched.
+  /// @return True if the write succeeded; false if unmatched or write failed.
   bool Publish(const DDSDataType& payload) {
     if (listener_.matched_count_ > 0) {
       return writer_->write(const_cast<DDSDataType*>(&payload)) ==
@@ -94,6 +108,7 @@ class DDSPublisher {
     return false;
   }
 
+  /// @return True if at least one subscriber is currently matched.
   [[nodiscard]] bool IsMatched() const { return listener_.matched_count_ > 0; }
 
  private:

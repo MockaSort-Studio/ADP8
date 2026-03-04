@@ -20,6 +20,10 @@ struct single_type_extractor<std::tuple<Ts...>> {
   using type = std::tuple<Ts...>;
 };
 
+/// @brief One entry in a @c LookupTable: a tag type paired with one or more values.
+///
+/// @tparam KeyType    Tag type used for compile-time lookup. Typically an empty struct.
+/// @tparam ValueTypes Types of the values stored under this key.
 template <typename KeyType, typename... ValueTypes>
 struct TableItem {
   using Key = KeyType;
@@ -52,8 +56,13 @@ struct find_table_item<TargetKey, Last> {
                                   Last, void>;
 };
 
-// Below: Helpers to enable ordered independent (key-val) initialization of
-// LookupTable using tag dispatching use it for complex cases/initialization
+/// @brief Tag-dispatched initializer for one @c LookupTable entry.
+///
+/// Use with @c TableDefaults() / @c SetDefaults() to initialize tables with
+/// many entries, where positional initialization becomes error-prone.
+///
+/// @tparam Tag        Key type matching the corresponding @c TableItem::Key.
+/// @tparam ValueTypes Types of the values to store.
 template <typename Tag, typename... ValueTypes>
 struct Init {
   using Key = Tag;
@@ -72,11 +81,28 @@ constexpr const auto& find_val(const First& first, const Rest&... rest) {
   }
 }
 
+/// @brief Constructs the defaults tuple for a @c LookupTable using @c Init helpers.
+///        Order-independent: each @c Init is matched to its entry by tag.
 template <typename Table, typename... Inits>
 constexpr auto TableDefaults(const Inits&... inits) {
   return Table::SetDefaults(inits...);
 }
 
+/// @brief Compile-time heterogeneous key-value map backed by multiple inheritance.
+///
+/// Inherits from every @c TableItem, enabling tag-dispatched value lookup with
+/// no runtime overhead. Keys must be unique — a @c static_assert enforces this.
+///
+/// Example:
+/// @code
+/// struct SpeedTag {};
+/// struct TimeoutTag {};
+/// using MyTable = LookupTable<TableItem<SpeedTag, float>, TableItem<TimeoutTag, int>>;
+/// constexpr MyTable table({std::make_tuple(10.0f), std::make_tuple(500)});
+/// float v = table.GetValue<SpeedTag>();  // 10.0f
+/// @endcode
+///
+/// @tparam TableElements Pack of @c TableItem specializations. Keys must be unique.
 template <typename... TableElements>
 struct LookupTable : public TableElements... {
   // --- Your original consistency checks ---
@@ -109,6 +135,9 @@ struct LookupTable : public TableElements... {
   using get_values_t =
       typename find_table_item<Key, TableElements...>::type::Values;
 
+  /// @brief Returns the values for @p TargetKey as a const reference.
+  ///        Fails to compile if @p TargetKey is not present in the table.
+  /// @tparam TargetKey Tag type to look up.
   template <typename TargetKey>
   constexpr const auto& GetValue() const {
     using ItemBase =
@@ -130,6 +159,9 @@ struct LookupTable : public TableElements... {
     return GetValue<Tag>();
   }
 
+  /// @brief Calls @p func once per table entry, passing a default-constructed element.
+  ///        Useful for iterating over entry types without a table instance.
+  /// @tparam Func Callable accepting any @c TableItem by value.
   template <typename Func>
   static constexpr void for_each(Func&& func) {
     (func(TableElements{}), ...);
@@ -142,6 +174,7 @@ struct LookupTable : public TableElements... {
       : TableElements{{std::get<Is>(defaults)}}... {}
 };
 
+/// @brief True iff @p T is a @c LookupTable specialization.
 template <typename T>
 constexpr bool is_lookup_table_v = false;
 

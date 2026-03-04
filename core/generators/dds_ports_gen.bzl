@@ -1,3 +1,9 @@
+"""Bazel rule for generating DDS port headers from YAML and IDL inputs.
+
+Produces five headers per target: pub_ids, pub_specs, sub_ids, sub_specs, dds_types.
+Prefer the cc_dds_components macro in defs.bzl for standard usage.
+"""
+
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")
 load("//core/generators:cc_utils.bzl", "pack_cc_library")
 

@@ -8,6 +8,8 @@
 
 namespace core::lifecycle {
 
+/// @brief Specifies the execution period for a task.
+/// @tparam Ms Period in milliseconds. Must be > 0.
 template <std::chrono::milliseconds::rep Ms>
 struct TaskSpec {
   static constexpr std::chrono::milliseconds::rep kFrequency = Ms;
@@ -29,6 +31,11 @@ template <typename T>
 constexpr bool is_task_spec_v = is_task_spec<T>::value;
 }  // namespace
 
+/// @brief Owns and schedules a collection of @c TaskInterface instances.
+///
+/// Tasks are registered via @c AddTask() before the engine starts.
+/// The underlying @c ExecutionEngine handles periodic scheduling on a dedicated
+/// worker thread. Non-copyable.
 class TasksManager final {
  public:
   TasksManager() = default;
@@ -49,9 +56,10 @@ class TasksManager final {
     return *this;
   }
 
-  /**
-   * @brief Add new tasks with a given frequency in ms
-   */
+  /// @brief Registers and schedules a new task at the given period.
+  /// @tparam T  Task type. Must derive from @c TaskInterface.
+  /// @tparam Ms Execution period in milliseconds. Must be > 0.
+  /// @param name Task name, used for logging and identification.
   template <class T, std::chrono::milliseconds::rep Ms,
             std::enable_if_t<std::is_base_of_v<TaskInterface, T>, int> = 0>
   void AddTask(const std::string& name) {
@@ -64,7 +72,10 @@ class TasksManager final {
                       [task]() { task->ExecuteStep(); });
   }
 
+  /// @brief Starts the execution engine. Safe to call only once.
   void Start() { engine_->Start(); }
+
+  /// @brief Stops the execution engine and joins the worker thread. Idempotent.
   void Stop() { engine_->Stop(); }
 
  private:

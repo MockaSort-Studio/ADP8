@@ -7,9 +7,12 @@
 
 namespace core::lifecycle {
 
-/**
- * @brief Read-Only View for Input DataEndpoints.
- */
+/// @brief Read-only view over an input @c DataEndpoint.
+///
+/// Returned by @c DDSTask::GetInputSource(). Provides indexed sample access
+/// and size queries; does not own the endpoint.
+///
+/// @tparam Spec @c TopicSpec specialization. Determines the data type and queue size.
 template <typename Spec>
 struct InputSource {
   static_assert(communication::is_topic_spec_v<Spec>,
@@ -18,6 +21,7 @@ struct InputSource {
   using T = typename Spec::type::type;
   const DataEndpoint<Spec, DataDirection::In>& endpoint;
 
+  /// @brief Accesses sample at index @p i (0 = newest, Size()-1 = oldest).
   [[nodiscard]] inline const utils::Sample<T>& operator[](
       size_t i) const noexcept {
     return endpoint[i];

@@ -1,26 +1,50 @@
+"""Pydantic models for Javelina-RT code generator inputs and outputs.
+
+Input-side models (TopicId, TopicSpec, ParameterEntry, ParameterSet, Ports)
+represent parsed YAML data. Output-side models (GeneratedHeader and subclasses)
+carry all data needed to render a Jinja2 template into a C++ header.
+"""
 from typing import Any, Dict, List
 
 from pydantic import BaseModel, computed_field, model_validator
 
 
 class TopicId(BaseModel):
+    """C++ identifier pair for a DDS topic: human-readable name and constexpr var name."""
+
     name: str
     c_var_name: str
 
 
 class TopicSpec(BaseModel):
+    """Full specification for one DDS topic: PubSubType name, topic ID, and queue depth."""
+
     type: str
     topic_id: TopicId
     queue_size: int
 
 
 class ParameterEntry(BaseModel):
+    """A single parameter: C++ tag name, type string, and default value string."""
+
     name: str
     type: str
     value: str
 
 
 def normalize_type(raw_type: str) -> str:
+    """Converts a YAML type declaration to a C++ template argument string.
+
+    Scalars (``"float"``) pass through unchanged. Arrays (``"float[3]"``) expand
+    to comma-separated repetitions (``"float,float,float"``) for use as variadic
+    template arguments.
+
+    Args:
+        raw_type: YAML type string, e.g. ``"float"`` or ``"float[3]"``.
+
+    Returns:
+        C++ template argument string.
+    """
     # array are modeled as type[size] we're splitting using [
     # then if we have an array we output a comma separated list
     # e.g. float[3] => float,float,float.
@@ -39,6 +63,12 @@ def normalize_type(raw_type: str) -> str:
 
 
 class ParameterSet(BaseModel):
+    """Collection of ParameterEntry items read from a parameters YAML file.
+
+    The YAML root key becomes the set name (PascalCase). Each parameter name
+    is suffixed with ``"Tag"`` to form the C++ tag type name.
+    """
+
     name: str
     params: List[ParameterEntry]
 
@@ -65,10 +95,24 @@ class ParameterSet(BaseModel):
 
 
 def normalize_name(raw_name: str) -> str:
+    """Converts a snake_case identifier to PascalCase.
+
+    Args:
+        raw_name: Snake-case name, e.g. ``"max_speed"``.
+
+    Returns:
+        PascalCase string, e.g. ``"MaxSpeed"``.
+    """
     return "".join(word.capitalize() for word in raw_name.split("_"))
 
 
 class Ports(BaseModel):
+    """Subscriptions and publications parsed from a ports YAML file.
+
+    The model validator flattens the list-of-dicts YAML structure into typed
+    TopicSpec entries and applies defaults (queue_size=1 for publishers).
+    """
+
     subscriptions: List[TopicSpec]
     publications: List[TopicSpec]
 
@@ -107,16 +151,30 @@ class Ports(BaseModel):
         }
 
 
-# The upstream bazel rule is configured to generate header usable just using file name (#include "name.hpp")
-# It's code gen, we don't care about pretty folder structure,
-# so we scrape the path away 🐽
 def remove_bazel_prefix_path(path: str) -> str:
+    """Strips the directory prefix from a Bazel-generated path, returning just the filename.
+
+    Generated headers are included by filename only (``#include "name.hpp"``), so
+    the path prefix is irrelevant. It's codegen — we don't care about folder structure 🐽
+
+    Args:
+        path: Full path string, e.g. ``"bazel-out/.../foo.hpp"``.
+
+    Returns:
+        Filename only, e.g. ``"foo.hpp"``.
+    """
     parts = path.rsplit("/", 1)
     clean_path = parts[-1]
     return clean_path
 
 
 class GeneratedHeader(BaseModel):
+    """Base model for all generated C++ header files.
+
+    Provides the output path, include list, namespace, and a computed header
+    guard derived from the output filename.
+    """
+
     output_file_path: str
     includes: List[str]
     namespace: str
@@ -139,6 +197,11 @@ class GeneratedHeader(BaseModel):
 
 
 class IdlTypeHeader(GeneratedHeader):
+    """Header model listing the FastDDS-generated type include files.
+
+    Includes one ``*PubSubTypes.hpp`` per unique type referenced in ports.
+    """
+
     @model_validator(mode="before")
     @classmethod
     def preprocess(cls, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -153,13 +216,19 @@ class IdlTypeHeader(GeneratedHeader):
 
 
 class TopicIdHeader(GeneratedHeader):
+    """Header model defining constexpr topic name string constants."""
+
     topic_ids: List[TopicId]
 
 
 class SpecsHeader(GeneratedHeader):
+    """Header model defining TopicSpec instantiations and a topic list type alias."""
+
     topic_specs: List[TopicSpec]
     specs_list_name: str
 
 
 class ParametersHeader(GeneratedHeader):
+    """Header model for the parameters.hpp output, wrapping a full ParameterSet."""
+
     params: ParameterSet

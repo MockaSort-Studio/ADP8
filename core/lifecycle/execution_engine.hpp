@@ -14,6 +14,8 @@ namespace core::lifecycle {
 
 using namespace std::chrono_literals;
 
+/// @brief A single scheduled work item: a deadline and a callback.
+///        Ordered by time (earliest first) in the priority queue.
 struct Job {
   std::chrono::steady_clock::time_point time;
   std::function<void()> callback;
@@ -22,6 +24,14 @@ struct Job {
   bool operator>(const Job& other) const { return time > other.time; }
 };
 
+/// @brief Single-threaded periodic task scheduler backed by a min-heap priority queue.
+///
+/// Each registered function wraps into a self-rescheduling callback: after execution
+/// it re-enqueues itself at @c now + period. The worker thread sleeps until the next
+/// deadline using @c condition_variable::wait_until.
+///
+/// Exceptions from callbacks are caught and logged; the failed task is not rescheduled.
+/// Non-copyable. Destruction automatically calls @c Stop().
 class ExecutionEngine final {
  public:
   ExecutionEngine() = default;
@@ -31,11 +41,22 @@ class ExecutionEngine final {
   ExecutionEngine(const ExecutionEngine&) = delete;
   ExecutionEngine& operator=(const ExecutionEngine&) = delete;
 
+  /// @brief Spawns the worker thread. No-op if already running.
   void Start();
+
+  /// @brief Clears the queue, signals the worker to exit, and joins it. Idempotent.
   void Stop();
 
+  /// @brief Registers a periodic task.
+  ///
+  /// First invocation fires at @c now + @p period. Re-schedules itself on every
+  /// execution. Call after @c Start().
+  ///
+  /// @param period Execution interval.
+  /// @param func   Callable invoked at each period.
   void Schedule(std::chrono::milliseconds period, std::function<void()> func);
 
+  /// @return True if the worker thread is currently running.
   [[nodiscard]] bool IsRunning() const { return running_.load(); }
   [[nodiscard]] int TaskQueueSize() const { return queue_.size(); }
 

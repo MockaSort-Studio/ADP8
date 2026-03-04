@@ -1,4 +1,4 @@
-"""This makes the linter happy"""
+"""Shared Bazel utility for compiling generated C++ files into a cc_library target."""
 
 load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
 load("@rules_cc//cc/common:cc_info.bzl", "CcInfo")

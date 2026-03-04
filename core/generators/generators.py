@@ -1,3 +1,9 @@
+"""Javelina-RT C++ code generator entry point.
+
+Dispatches to DDS ports or parameters generation based on the ``--modality``
+CLI argument. Reads a YAML configuration, optionally parses IDL files for type
+validation, and writes C++ headers via Jinja2 templates.
+"""
 import argparse
 import json
 import sys
@@ -24,11 +30,15 @@ from core.generators.gen_utils import (
 
 
 class Modality(Enum):
+    """Generation modality: DDS ports (pub/sub specs) or task parameters."""
+
     PORTS = "ports"
     PARAMETERS = "parameters"
 
 
 class _GeneratorArgs(NamedTuple):
+    """Parsed and validated CLI arguments returned by parse_arguments()."""
+
     modality: Modality
     yaml_cfg: str
     idls: List[str]
@@ -37,6 +47,13 @@ class _GeneratorArgs(NamedTuple):
 
 
 def parse_arguments() -> _GeneratorArgs:
+    """Parses CLI arguments and returns a validated _GeneratorArgs.
+
+    Exits with an error if the YAML file does not exist.
+
+    Returns:
+        _GeneratorArgs with modality, yaml path, IDL list, output paths, and namespace.
+    """
     parser = argparse.ArgumentParser(description="Javelina-rt C++ Code Generator")
 
     parser.add_argument(
@@ -88,7 +105,12 @@ def generate_header_file(
     template_path: str,
     model_instance: GeneratedHeader,
 ) -> None:
+    """Renders a Jinja2 template with model data and writes the result to disk.
 
+    Args:
+        template_path: Path to the .jinja template file.
+        model_instance: Pydantic model whose fields are passed to the template.
+    """
     template_content = Path(template_path).read_text()
 
     template = Template(template_content, trim_blocks=True, lstrip_blocks=True)
@@ -111,6 +133,16 @@ TEMPLATES: Dict[str, str] = {
 def generate_ports(
     yaml_cfg: str, idls: List[str], outputs: Dict[str, Any], namespace: str
 ) -> None:
+    """Generates the five DDS port headers from a YAML configuration.
+
+    Produces: dds_types, pub_ids, sub_ids, pub_specs, sub_specs headers.
+
+    Args:
+        yaml_cfg: Path to the ports YAML file.
+        idls: List of IDL file paths for type validation.
+        outputs: Dict mapping output keys to file paths (from Bazel rule).
+        namespace: C++ namespace for generated code.
+    """
     available_types = get_available_idl_types(idls)
     ports_model = dds_ports_from_yaml(yaml_cfg, available_types)
 
@@ -166,6 +198,13 @@ def generate_ports(
 
 
 def generate_parameters(yaml_cfg: str, outputs: Dict[str, Any], namespace: str) -> None:
+    """Generates a single parameters header from a YAML configuration.
+
+    Args:
+        yaml_cfg: Path to the parameters YAML file.
+        outputs: Dict with a ``"parameters"`` key pointing to the output path.
+        namespace: C++ namespace for generated code.
+    """
     parameters_model = parameterset_model_from_yaml(yaml_cfg)
     header_model = parameters_header_model(parameters_model, outputs["parameters"], namespace=namespace)
     generate_header_file(TEMPLATES["parameters"], header_model)
@@ -175,6 +214,7 @@ def generate_parameters(yaml_cfg: str, outputs: Dict[str, Any], namespace: str) 
 
 
 def main() -> None:
+    """CLI entry point. Parses arguments and dispatches to the appropriate generator."""
     args = parse_arguments()
     print("=================================================================")
     print(f"🐽 🐽 🐽 🐽 🐽 Running Javelina Generators [Modality={args.modality}]")
