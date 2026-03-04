@@ -3,4 +3,4 @@
 
 WORK IN PROGRESS
 
-[Discord](https://discordapp.com/channels/1387357925235757067/1447578656410046546)
+[Matrix Voice](https://matrix.to/#/!bFKYlzPczaLALdSnnb:matrix.org?via=matrix.org)
