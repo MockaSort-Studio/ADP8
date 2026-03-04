@@ -12,7 +12,7 @@ A sandbox for building autonomous systems. Starting with an autonomous vehicle. 
 
     FastDDS-based real-time communication and lifecycle framework.
 
-    [Overview](javelina-rt/index.md)
+    [Overview](javelina-rt/index.md),
     [Example](javelina-rt/example.md)
 
 -   **Contributing**

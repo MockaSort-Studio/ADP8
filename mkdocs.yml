@@ -4,6 +4,7 @@ site_url: https://mockasort-studio.github.io/ADP8/
 site_description: Yet Another Autonomy Stack
 site_author: MockaSort-Studio
 docs_dir: docs
+exclude_docs: HOWTO.md
 
 theme:
   name: material
