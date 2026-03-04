@@ -1,0 +1,7 @@
+subscriptions:
+  - channel_a:
+      type: ChannelAMessage
+      queue_size: 1 # Optional, default value = 1
+publications:
+  - channel_b:
+      type: ChannelBMessage

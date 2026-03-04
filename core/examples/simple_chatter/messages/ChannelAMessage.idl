@@ -1,0 +1,5 @@
+struct ChannelAMessage
+{
+    string content;
+    unsigned long counter;
+};

@@ -49,6 +49,7 @@ class DDSAPPlication final {
  private:
   void BuildTaskManager() {
     std::unique_ptr<TasksManager> manager = std::make_unique<TasksManager>();
+    manager->Start();
     ApplicationConfig::for_each([&manager](auto Element) {
       using Task = typename decltype(Element)::Key;
       using TaskSpec =
