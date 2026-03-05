@@ -4,7 +4,9 @@ load("@rules_python//python:defs.bzl", "py_library")
 pybind_extension(
     name = "py_dds_bridge",
     srcs = ["py_dds_bridge.cpp"],
-    deps = [],
+    deps = [
+        "//core/lifecycle:dds",
+    ],
 )
 
 py_library(
