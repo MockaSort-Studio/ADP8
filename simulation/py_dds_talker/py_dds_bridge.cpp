@@ -1,6 +1,8 @@
 #include <pybind11/pybind11.h>
 
+#include <string>
 #include <tuple>
+#include <unordered_map>
 
 #include "core/communication/dds_context.hpp"
 #include "core/lifecycle/dds_task.hpp"
@@ -19,7 +21,7 @@ class PyDDSBridge : public PyDDSBridgeBase {
   void Init() { core::communication::DDSContextProvider::Get(); }
 
   // Returns the name the live DomainParticipant was created with.
-  std::string ParticipantName() const {
+  [[nodiscard]] std::string ParticipantName() const {
     auto participant =
         core::communication::DDSContextProvider::Get().GetDomainParticipant();
     eprosima::fastdds::dds::DomainParticipantQos qos;
@@ -27,9 +29,28 @@ class PyDDSBridge : public PyDDSBridgeBase {
     return qos.name().c_str();
   }
 
+  // Calls start() on the subscriber and stores it under topic_name.
+  void RegisterInput(const std::string& topic_name,
+                     pybind11::object subscriber) {
+    subscriber.attr("start")(topic_name);
+    inputs_[topic_name] = std::move(subscriber);
+  }
+
+  // Calls start() on the publisher and stores it under topic_name.
+  void RegisterOutput(const std::string& topic_name,
+                      pybind11::object publisher) {
+    publisher.attr("start")(topic_name);
+    outputs_[topic_name] = std::move(publisher);
+  }
+
  protected:
-  // No topics registered — nothing to do per step yet.
+  // No topics registered at the DDSTask level — Python owns the pub/sub
+  // objects.
   void Execute() override {}
+
+ private:
+  std::unordered_map<std::string, pybind11::object> inputs_;
+  std::unordered_map<std::string, pybind11::object> outputs_;
 };
 
 PYBIND11_MODULE(py_dds_bridge, module) {
@@ -38,5 +59,9 @@ PYBIND11_MODULE(py_dds_bridge, module) {
       .def(pybind11::init<const std::string&>(),
            pybind11::arg("participant_name"))
       .def("init", &PyDDSBridge::Init)
-      .def("participant_name", &PyDDSBridge::ParticipantName);
+      .def("participant_name", &PyDDSBridge::ParticipantName)
+      .def("register_input", &PyDDSBridge::RegisterInput,
+           pybind11::arg("topic_name"), pybind11::arg("subscriber"))
+      .def("register_output", &PyDDSBridge::RegisterOutput,
+           pybind11::arg("topic_name"), pybind11::arg("publisher"));
 }

@@ -46,7 +46,10 @@ cc_binary(
 pybind_extension(
     name = "channel_message_py",
     srcs = ["channel_message_py.cpp"],
-    deps = [":chatter_types"],
+    deps = [
+        ":chatter_types",
+        "//core/communication:dds",
+    ],
 )
 
 py_library(

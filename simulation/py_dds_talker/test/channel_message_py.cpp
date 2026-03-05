@@ -5,11 +5,19 @@
 #include <pybind11/stl.h>
 
 #include <string>
+#include <vector>
 
 #include "ChannelMessage.hpp"
+#include "ChannelMessagePubSubTypes.hpp"
+#include "core/communication/dds_publisher.hpp"
+#include "core/communication/dds_subscriber.hpp"
+
+using Pub = core::communication::DDSPublisher<ChannelMessagePubSubType>;
+using Sub = core::communication::DDSSubscriber<ChannelMessagePubSubType, 10>;
 
 PYBIND11_MODULE(channel_message_py, module) {
   module.doc() = "ChannelMessage IDL type — pybind11 binding";
+
   pybind11::class_<ChannelMessage>(module, "ChannelMessage")
       .def(pybind11::init<>())
       .def_property(
@@ -23,5 +31,24 @@ PYBIND11_MODULE(channel_message_py, module) {
       .def("__repr__", [](const ChannelMessage& m) {
         return "ChannelMessage(content='" + m.content() +
                "', counter=" + std::to_string(m.counter()) + ")";
+      });
+
+  pybind11::class_<Pub>(module, "Publisher")
+      .def(pybind11::init<>())
+      .def("start", &Pub::Start, pybind11::arg("topic_name"))
+      .def("publish", &Pub::Publish, pybind11::arg("message"))
+      .def("is_matched", &Pub::IsMatched);
+
+  pybind11::class_<Sub>(module, "Subscriber")
+      .def(pybind11::init<>())
+      .def("start", &Sub::Start, pybind11::arg("topic_name"))
+      .def("is_matched", &Sub::IsMatched)
+      .def("get_sample", &Sub::GetSample)
+      .def("drain", [](Sub& s) {
+        std::vector<ChannelMessage> out;
+        while (auto sample = s.GetSample()) {
+          out.push_back(std::move(*sample));
+        }
+        return out;
       });
 }
