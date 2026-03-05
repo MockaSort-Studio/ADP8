@@ -1,6 +1,7 @@
+load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
 load("//core/generators:dds_ports_gen.bzl", "cc_dds_ports")
 load("//core/generators:fastdds_types_gen.bzl", "cc_fastdds_types")
 
@@ -41,9 +42,25 @@ cc_binary(
     ],
 )
 
+# ChannelMessage pybind11 binding (future: auto-generated from IDL)
+pybind_extension(
+    name = "channel_message_py",
+    srcs = ["channel_message_py.cpp"],
+    deps = [":chatter_types"],
+)
+
+py_library(
+    name = "channel_message_lib",
+    data = [":channel_message_py"],
+    imports = ["."],
+)
+
 # python node
 py_binary(
     name = "dry_run_bridge_test",
     srcs = ["dry_run_bridge_test.py"],
-    deps = ["//simulation/py_dds_talker:py_dds_lib"],
+    deps = [
+        ":channel_message_lib",
+        "//simulation/py_dds_talker:py_dds_lib",
+    ],
 )
