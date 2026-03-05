@@ -1,8 +1,10 @@
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_python//python:defs.bzl", "py_binary")
 load("//core/generators:dds_ports_gen.bzl", "cc_dds_ports")
 load("//core/generators:fastdds_types_gen.bzl", "cc_fastdds_types")
 
+# cpp node
 cc_fastdds_types(
     name = "chatter_types",
     idl_srcs = glob(["messages/*.idl"]),
@@ -36,4 +38,11 @@ cc_binary(
         "//core/lifecycle:dds",
         "//core/support/utils",
     ],
+)
+
+## python node
+py_binary(
+    name = "dry_run_bridge_test",
+    srcs = ["dry_run_bridge_test.py"],
+    deps = ["//simulation/py_dds_talker:py_dds_lib"],
 )
