@@ -9,31 +9,20 @@ Run alongside cpp_node:
     bazel run //simulation/py_dds_talker/test:py_node
 """
 
-import os
 import signal
 import time
 
-# Must be set before any FastDDS participant is created.
-# BUILD_WORKSPACE_DIRECTORY is provided by bazel run.
-if _ws := os.environ.get("BUILD_WORKSPACE_DIRECTORY"):
-    os.environ.setdefault(
-        "FASTRTPS_DEFAULT_PROFILES_FILE",
-        os.path.join(_ws, "simulation/py_dds_talker/test/fastdds_sim.xml"),
-    )
+# in the future will be something like:
+#   import py_dds_lib
+#   import channel_autogen_lib
+import py_mock_channel as dds_lib
 
-print("=" * 10)
-print("check FASTRTPS_DEFAULT_PROFILES_FILE env")
-print(os.environ.get("FASTRTPS_DEFAULT_PROFILES_FILE", "NOT SET"))
-print("+" * 10)
-
-import channel_message_py as cm  # noqa: E402
-
-_FREQ_HZ: float = 10.0
+_FREQ_HZ: float = 2.0
 _PERIOD: float = 1.0 / _FREQ_HZ
 
 
 def main() -> None:
-    bridge = cm.PyDDSBridge("py_node")
+    bridge = dds_lib.PyDDSBridge("py_node")
     bridge.init()
 
     counter: int = 0
@@ -57,7 +46,7 @@ def main() -> None:
             for sample in samples:
                 print(f"[Py  <- channel_a] {sample.content} #{sample.counter}")
 
-                reply = cm.ChannelMessage()
+                reply = dds_lib.ChannelMessage()
                 reply.content = f"Python ack #{sample.counter}"
                 reply.counter = counter
                 counter += 1

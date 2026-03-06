@@ -33,8 +33,8 @@ cc_binary(
 
 # ChannelMessage pybind11 binding (future: auto-generated from IDL)
 pybind_extension(
-    name = "channel_message_py",
-    srcs = ["channel_message_py.cpp"],
+    name = "py_mock_channel",
+    srcs = ["py_mock_channel.cpp"],
     deps = [
         ":chatter_ports",
         "//core/communication:dds",
@@ -43,8 +43,8 @@ pybind_extension(
 )
 
 py_library(
-    name = "channel_message_lib",
-    data = [":channel_message_py"],
+    name = "py_mock_channel_lib",
+    data = [":py_mock_channel"],
     imports = ["."],
 )
 
@@ -62,6 +62,6 @@ py_binary(
     name = "py_node",
     srcs = ["py_node.py"],
     deps = [
-        ":channel_message_lib",
+        ":py_mock_channel_lib",
     ],
 )
