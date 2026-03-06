@@ -10,9 +10,3 @@ cc_library(
     ],
 )
 
-# py_library(
-#     name = "py_dds_lib",
-#     data = [":py_dds_bridge"],
-#     imports = ["."],
-#     visibility = ["//visibility:public"],
-# )

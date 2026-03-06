@@ -12,8 +12,6 @@
 #include "chatter_ports_publications.hpp"
 #include "chatter_ports_subscriptions.hpp"
 #include "simulation/py_dds_talker/py_dds_bridge.hpp"
-// #include "core/communication/dds_publisher.hpp"
-// #include "core/communication/dds_subscriber.hpp"
 
 using Pub = cpp::Publications;
 using Sub = cpp::Subscriptions;
@@ -22,7 +20,9 @@ using Sub = cpp::Subscriptions;
 using OPont = PyDDSBridge<Pub, Sub>;
 
 PYBIND11_MODULE(py_mock_channel, module) {
-  module.doc() = "pybind  pybind11 binding";
+  module.doc() =
+      "pybind11 binding for the chatter test: ChannelMessage type + "
+      "PyDDSBridge instantiation.";
 
   pybind11::class_<ChannelMessage>(module, "ChannelMessage")
       .def(pybind11::init<>())
@@ -40,7 +40,6 @@ PYBIND11_MODULE(py_mock_channel, module) {
   pybind11::class_<OPont>(module, "PyDDSBridge")
       .def(pybind11::init<const std::string&>(),
            pybind11::arg("participant_name"))
-      .def("init", &OPont::Init)
       .def("participant_name", &OPont::ParticipantName)
       .def("fill_inputs", &OPont::FillInputs)
       .def("flush_outputs", &OPont::FlushOutputs)

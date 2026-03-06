@@ -23,7 +23,6 @@ _PERIOD: float = 1.0 / _FREQ_HZ
 
 def main() -> None:
     bridge = dds_lib.PyDDSBridge("py_node")
-    bridge.init()
 
     counter: int = 0
     running: bool = True

@@ -1,7 +1,8 @@
+load("@pip_tools//:requirements.bzl", "requirement")
 load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("//core/generators:defs.bzl", "cc_dds_components")
 
 # cpp node
@@ -48,15 +49,14 @@ py_library(
     imports = ["."],
 )
 
-# py_test(
-#     name = "ddsbridge_test",
-#     srcs = ["ddsbridge_test.py"],
-#     deps = [
-#         ":channel_message_lib",
-#         "//simulation/py_dds_talker:py_dds_lib",
-#         requirement("pytest"),
-#     ],
-# )
+py_test(
+    name = "ddsbridge_test",
+    srcs = ["ddsbridge_test.py"],
+    deps = [
+        ":py_mock_channel_lib",
+        requirement("pytest"),
+    ],
+)
 
 py_binary(
     name = "py_node",

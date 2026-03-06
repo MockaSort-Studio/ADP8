@@ -1,22 +1,17 @@
 import sys
-import time
 
-import channel_message_py as cm
-import py_dds_bridge
+import py_mock_channel as dds_lib
 import pytest
 
 
-def test_participant() -> None:
+def test_participant_name() -> None:
     name = "py_bridge_test"
-    bridge = py_dds_bridge.PyDDSBridge(name)
-    bridge.init()
-
-    actual = bridge.participant_name()
-    assert actual == name, f"expected '{name}', got '{actual}'"
+    bridge = dds_lib.PyDDSBridge(name)
+    assert bridge.participant_name() == name
 
 
-def test_channel_message() -> None:
-    msg = cm.ChannelMessage()
+def test_channel_message_fields() -> None:
+    msg = dds_lib.ChannelMessage()
     msg.content = "hello from Python"
     msg.counter = 7
 
@@ -24,92 +19,37 @@ def test_channel_message() -> None:
     assert msg.counter == 7
 
 
-def test_pub_sub_registration() -> None:
-    bridge = py_dds_bridge.PyDDSBridge("py_bridge_pubsub_test")
-    bridge.init()
+def test_channel_message_repr() -> None:
+    msg = dds_lib.ChannelMessage()
+    msg.content = "test"
+    msg.counter = 3
 
-    sub = cm.Subscriber()
-    pub = cm.Publisher()
-
-    bridge.register_input("channel_a", sub)
-    bridge.register_output("channel_b", pub)
-
-    # No peer running — unmatched is the expected state.
-    assert not sub.is_matched()
-    assert not pub.is_matched()
+    assert "test" in repr(msg)
+    assert "3" in repr(msg)
 
 
-def test_intraprocess_loopback() -> None:
-    """
-    Publisher and Subscriber on the same topic within the same process.
-    Both live in channel_message_py.so — one DDSContextProvider singleton,
-    one DomainParticipant.
+def test_bridge_get_inputs_no_peer() -> None:
+    # No cpp_node peer running — fill_inputs should not crash and get_inputs
+    # should return an empty list.
+    bridge = dds_lib.PyDDSBridge("py_bridge_no_peer_test")
 
-    Passes  → binding works end-to-end; two-participant split is not a blocker.
-    Fails on is_matched() → FastDDS intraprocess delivery disabled or discovery
-                            too slow; raise the sleep or revisit participant setup.
-    Fails on drain()      → matching works but the data path is broken.
-    """
-    sub = cm.Subscriber()
-    pub = cm.Publisher()
+    bridge.fill_inputs()
+    samples = bridge.get_inputs()
 
-    sub.start("loopback_test")
-    pub.start("loopback_test")
-
-    # SPDP/SEDP matching is async even for intraprocess endpoints.
-    time.sleep(0.5)
-
-    assert sub.is_matched(), "intraprocess sub should match the intraprocess pub"
-    assert pub.is_matched(), "intraprocess pub should match the intraprocess sub"
-
-    msg = cm.ChannelMessage()
-    msg.content = "ping"
-    msg.counter = 42
-    pub.publish(msg)
-
-    time.sleep(0.1)
-
-    samples = sub.drain()
-    assert len(samples) == 1, f"expected 1 sample, got {len(samples)}"
-    assert samples[0].content == "ping"
-    assert samples[0].counter == 42
+    assert isinstance(samples, list)
+    assert len(samples) == 0
 
 
-def test_bridge_get_inputs_push_output() -> None:
-    """
-    Exercises get_inputs() and push_output() end-to-end through the bridge
-    using an intraprocess loopback: the bridge's output feeds its own input.
-    """
-    bridge = py_dds_bridge.PyDDSBridge("py_bridge_io_test")
-    bridge.init()
+def test_bridge_flush_outputs_no_peer() -> None:
+    # No peer — push_output + flush_outputs should not crash.
+    bridge = dds_lib.PyDDSBridge("py_bridge_flush_test")
 
-    bridge.register_input("io_test", cm.Subscriber())
-    bridge.register_output("io_test", cm.Publisher())
+    msg = dds_lib.ChannelMessage()
+    msg.content = "orphan"
+    msg.counter = 0
 
-    time.sleep(0.5)
-
-    msg = cm.ChannelMessage()
-    msg.content = "bridge_ping"
-    msg.counter = 1
-    bridge.push_output("io_test", msg)
-
-    time.sleep(0.1)
-
-    samples = bridge.get_inputs("io_test")
-    assert len(samples) == 1, f"expected 1 sample, got {len(samples)}"
-    assert samples[0].content == "bridge_ping"
-    assert samples[0].counter == 1
-
-
-def test_bridge_key_error_on_unknown_topic() -> None:
-    bridge = py_dds_bridge.PyDDSBridge("py_bridge_err_test")
-    bridge.init()
-
-    with pytest.raises(KeyError):
-        bridge.get_inputs("nonexistent")
-
-    with pytest.raises(KeyError):
-        bridge.push_output("nonexistent", cm.ChannelMessage())
+    bridge.push_output(msg)
+    bridge.flush_outputs()  # unmatched write — should silently succeed
 
 
 if __name__ == "__main__":

@@ -29,15 +29,6 @@ class PyDDSBridge {
     return qos.name().c_str();
   }
 
-  // todo: delete register and use something like
-  //      Inputs_t<Subs> inputs_;
-  //      Outputs_t<Pubs> outputs_;
-  // check docstrings,but in sostanza fanno da soli la register
-
-  // Drains all samples from the registered subscriber for topic_name.
-  // Returns a Python list of message objects (same type as the subscriber
-  // yields). Raises KeyError if topic_name was not registered.
-
   template <const char* TopicName>
   auto GetInputs() {
     auto source =
@@ -50,9 +41,6 @@ class PyDDSBridge {
     return result;
   }
 
-  // Publishes message to the registered publisher for topic_name.
-  // Returns True if the write succeeded (publisher is matched and write ok).
-  // Raises KeyError if topic_name was not registered.
   template <const char* TopicName, typename MsgType>
   inline void PushOutput(MsgType&& message) noexcept {
     auto sink =
@@ -69,21 +57,8 @@ class PyDDSBridge {
   }
 
  private:
-
   core::lifecycle::Inputs_t<Subs> inputs_;
   core::lifecycle::Outputs_t<Pubs> outputs_;
 };
-
-// PYBIND11_MODULE(py_dds_bridge, module) {
-//   module.doc() = "The pybind11 extension of Javelina";
-//   pybind11::class_<PyDDSBridge>(module, "PyDDSBridge")
-//       .def(pybind11::init<const std::string&>(),
-//            pybind11::arg("participant_name"))
-//       .def("participant_name", &PyDDSBridge::ParticipantName)
-//       .def("get_inputs", &PyDDSBridge::GetInputs,
-//       pybind11::arg("topic_name")) .def("push_output",
-//       &PyDDSBridge::PushOutput, pybind11::arg("topic_name"),
-//            pybind11::arg("message"));
-// }
 
 #endif  // SIMULATION_PY_DDS_TALKER_PY_DDS_BRIDGE
