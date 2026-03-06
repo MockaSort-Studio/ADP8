@@ -29,6 +29,11 @@ class PyDDSBridge : public PyDDSBridgeBase {
     return qos.name().c_str();
   }
 
+  // todo: delete register and use something like
+  //      Inputs_t<Subs> inputs_;
+  //      Outputs_t<Pubs> outputs_;
+  // check docstrings,but in sostanza fanno da soli la register
+
   // Calls start() on the subscriber and stores it under topic_name.
   void RegisterInput(const std::string& topic_name,
                      pybind11::object subscriber) {
@@ -41,6 +46,24 @@ class PyDDSBridge : public PyDDSBridgeBase {
                       pybind11::object publisher) {
     publisher.attr("start")(topic_name);
     outputs_[topic_name] = std::move(publisher);
+  }
+
+  // Drains all samples from the registered subscriber for topic_name.
+  // Returns a Python list of message objects (same type as the subscriber
+  // yields). Raises KeyError if topic_name was not registered.
+  pybind11::object GetInputs(const std::string& topic_name) {
+    auto it = inputs_.find(topic_name);
+    if (it == inputs_.end()) throw pybind11::key_error(topic_name);
+    return it->second.attr("drain")();
+  }
+
+  // Publishes message to the registered publisher for topic_name.
+  // Returns True if the write succeeded (publisher is matched and write ok).
+  // Raises KeyError if topic_name was not registered.
+  bool PushOutput(const std::string& topic_name, pybind11::object message) {
+    auto it = outputs_.find(topic_name);
+    if (it == outputs_.end()) throw pybind11::key_error(topic_name);
+    return it->second.attr("publish")(message).cast<bool>();
   }
 
  protected:
@@ -63,5 +86,8 @@ PYBIND11_MODULE(py_dds_bridge, module) {
       .def("register_input", &PyDDSBridge::RegisterInput,
            pybind11::arg("topic_name"), pybind11::arg("subscriber"))
       .def("register_output", &PyDDSBridge::RegisterOutput,
-           pybind11::arg("topic_name"), pybind11::arg("publisher"));
+           pybind11::arg("topic_name"), pybind11::arg("publisher"))
+      .def("get_inputs", &PyDDSBridge::GetInputs, pybind11::arg("topic_name"))
+      .def("push_output", &PyDDSBridge::PushOutput, pybind11::arg("topic_name"),
+           pybind11::arg("message"));
 }

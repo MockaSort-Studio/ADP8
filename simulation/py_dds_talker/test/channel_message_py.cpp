@@ -21,12 +21,10 @@ PYBIND11_MODULE(channel_message_py, module) {
   pybind11::class_<ChannelMessage>(module, "ChannelMessage")
       .def(pybind11::init<>())
       .def_property(
-          "content",
-          [](const ChannelMessage& m) { return m.content(); },
+          "content", [](const ChannelMessage& m) { return m.content(); },
           [](ChannelMessage& m, const std::string& v) { m.content(v); })
       .def_property(
-          "counter",
-          [](const ChannelMessage& m) { return m.counter(); },
+          "counter", [](const ChannelMessage& m) { return m.counter(); },
           [](ChannelMessage& m, uint32_t v) { m.counter(v); })
       .def("__repr__", [](const ChannelMessage& m) {
         return "ChannelMessage(content='" + m.content() +
@@ -45,6 +43,7 @@ PYBIND11_MODULE(channel_message_py, module) {
       .def("is_matched", &Sub::IsMatched)
       .def("get_sample", &Sub::GetSample)
       .def("drain", [](Sub& s) {
+        // this maybe has some issues with mutex stuff
         std::vector<ChannelMessage> out;
         while (auto sample = s.GetSample()) {
           out.push_back(std::move(*sample));
