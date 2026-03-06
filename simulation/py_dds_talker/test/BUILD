@@ -34,26 +34,39 @@ cc_binary(
 
 # ChannelMessage pybind11 binding (future: auto-generated from IDL)
 pybind_extension(
-    name = "py_mock_channel",
-    srcs = ["py_mock_channel.cpp"],
+    name = "channel_message_py",
+    srcs = ["channel_message_py.cpp"],
+    deps = [":chatter_types"],
+)
+
+py_library(
+    name = "channel_message_py_lib",
+    data = [":channel_message_py"],
+    imports = ["."],
+)
+
+# PyDDSBridge instantiation for the chatter test node (future: auto-generated from ports YAML)
+pybind_extension(
+    name = "chatter_bridge_py",
+    srcs = ["chatter_bridge_py.cpp"],
     deps = [
         ":chatter_ports",
-        "//core/communication:dds",
         "//simulation/py_dds_talker:py_dds_bridge",
     ],
 )
 
 py_library(
-    name = "py_mock_channel_lib",
-    data = [":py_mock_channel"],
+    name = "chatter_bridge_py_lib",
+    data = [":chatter_bridge_py"],
     imports = ["."],
+    deps = [":channel_message_py_lib"],
 )
 
 py_test(
     name = "ddsbridge_test",
     srcs = ["ddsbridge_test.py"],
     deps = [
-        ":py_mock_channel_lib",
+        ":chatter_bridge_py_lib",
         requirement("pytest"),
     ],
 )
@@ -61,7 +74,5 @@ py_test(
 py_binary(
     name = "py_node",
     srcs = ["py_node.py"],
-    deps = [
-        ":py_mock_channel_lib",
-    ],
+    deps = [":chatter_bridge_py_lib"],
 )

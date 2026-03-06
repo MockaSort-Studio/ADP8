@@ -12,17 +12,15 @@ Run alongside cpp_node:
 import signal
 import time
 
-# in the future will be something like:
-#   import py_dds_lib
-#   import channel_autogen_lib
-import py_mock_channel as dds_lib
+import channel_message_py as cm
+import chatter_bridge_py as bridge_lib
 
 _FREQ_HZ: float = 2.0
 _PERIOD: float = 1.0 / _FREQ_HZ
 
 
 def main() -> None:
-    bridge = dds_lib.PyDDSBridge("py_node")
+    bridge = bridge_lib.PyDDSBridge("py_node")
 
     counter: int = 0
     running: bool = True
@@ -45,7 +43,7 @@ def main() -> None:
             for sample in samples:
                 print(f"[Py  <- channel_a] {sample.content} #{sample.counter}")
 
-                reply = dds_lib.ChannelMessage()
+                reply = cm.ChannelMessage()
                 reply.content = f"Python ack #{sample.counter}"
                 reply.counter = counter
                 counter += 1
