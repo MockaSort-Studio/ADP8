@@ -35,7 +35,7 @@ def main() -> None:
     print("py_node started")
     while running:
         bridge.fill_inputs()
-        samples = bridge.get_inputs()
+        samples = bridge.get_channel_a()
 
         if not samples:
             print("py_node/execute step — no message")
@@ -48,7 +48,7 @@ def main() -> None:
                 reply.counter = counter
                 counter += 1
 
-                bridge.push_output(reply)
+                bridge.push_channel_b(reply)
                 print(f"[Py  -> channel_b] {reply.content} #{reply.counter}")
 
         bridge.flush_outputs()

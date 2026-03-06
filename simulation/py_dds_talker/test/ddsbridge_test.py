@@ -35,7 +35,7 @@ def test_bridge_get_inputs_no_peer() -> None:
     bridge = bridge_lib.PyDDSBridge("py_bridge_no_peer_test")
 
     bridge.fill_inputs()
-    samples = bridge.get_inputs()
+    samples = bridge.get_channel_a()
 
     assert isinstance(samples, list)
     assert len(samples) == 0
@@ -49,7 +49,7 @@ def test_bridge_flush_outputs_no_peer() -> None:
     msg.content = "orphan"
     msg.counter = 0
 
-    bridge.push_output(msg)
+    bridge.push_channel_b(msg)
     bridge.flush_outputs()  # unmatched write — should silently succeed
 
 
