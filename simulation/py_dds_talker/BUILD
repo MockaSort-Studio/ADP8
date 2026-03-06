@@ -1,17 +1,18 @@
-load("@pybind11_bazel//:build_defs.bzl", "pybind_extension")
-load("@rules_python//python:defs.bzl", "py_library")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
-pybind_extension(
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
     name = "py_dds_bridge",
-    srcs = ["py_dds_bridge.cpp"],
+    hdrs = ["py_dds_bridge.hpp"],
     deps = [
         "//core/lifecycle:dds",
     ],
 )
 
-py_library(
-    name = "py_dds_lib",
-    data = [":py_dds_bridge"],
-    imports = ["."],
-    visibility = ["//visibility:public"],
-)
+# py_library(
+#     name = "py_dds_lib",
+#     data = [":py_dds_bridge"],
+#     imports = ["."],
+#     visibility = ["//visibility:public"],
+# )

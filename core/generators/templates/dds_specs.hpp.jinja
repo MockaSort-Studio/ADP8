@@ -2,6 +2,7 @@
 #define {{ header_guard }}
 
 #include "core/communication/topic_spec.hpp"
+#include "core/lifecycle/type_traits.hpp"
 {% for include in includes -%}
 #include "{{ include }}"
 {% endfor %}

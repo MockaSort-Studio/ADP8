@@ -31,7 +31,11 @@ def cc_dds_components(name, idls, ports_yaml, namespace = "gen"):
         idls = idls,
         yaml_config = ports_yaml,
         namespace = namespace,
-        deps = [":{}_types".format(name), "//core/communication:dds"],
+        deps = [
+            ":{}_types".format(name),
+            "//core/communication:dds",
+            "//core/lifecycle:dds",
+        ],
     )
 
 def cc_parameters(name, yaml_parameters, namespace = "gen"):

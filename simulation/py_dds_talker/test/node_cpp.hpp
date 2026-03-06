@@ -6,9 +6,9 @@
 #include <iostream>
 #include <string>
 
+#include "chatter_ports_publications.hpp"
+#include "chatter_ports_subscriptions.hpp"
 #include "core/lifecycle/dds_task.hpp"
-#include "node_cpp_ports_publications.hpp"
-#include "node_cpp_ports_subscriptions.hpp"
 
 namespace py_dds_talker {
 

@@ -27,20 +27,14 @@ print(os.environ.get("FASTRTPS_DEFAULT_PROFILES_FILE", "NOT SET"))
 print("+" * 10)
 
 import channel_message_py as cm  # noqa: E402
-import py_dds_bridge  # noqa: E402
 
 _FREQ_HZ: float = 10.0
 _PERIOD: float = 1.0 / _FREQ_HZ
 
 
 def main() -> None:
-    bridge = py_dds_bridge.PyDDSBridge("py_node")
+    bridge = cm.PyDDSBridge("py_node")
     bridge.init()
-
-    sub = cm.Subscriber()
-    pub = cm.Publisher()
-    bridge.register_input("channel_a", sub)
-    bridge.register_output("channel_b", pub)
 
     counter: int = 0
     running: bool = True
@@ -54,10 +48,11 @@ def main() -> None:
 
     print("py_node started")
     while running:
-        samples = bridge.get_inputs("channel_a")
+        bridge.fill_inputs()
+        samples = bridge.get_inputs()
 
         if not samples:
-            print(f"py_node/execute step — no message (matched={sub.is_matched()})")
+            print("py_node/execute step — no message")
         else:
             for sample in samples:
                 print(f"[Py  <- channel_a] {sample.content} #{sample.counter}")
@@ -67,9 +62,10 @@ def main() -> None:
                 reply.counter = counter
                 counter += 1
 
-                bridge.push_output("channel_b", reply)
+                bridge.push_output(reply)
                 print(f"[Py  -> channel_b] {reply.content} #{reply.counter}")
 
+        bridge.flush_outputs()
         time.sleep(_PERIOD)
 
 

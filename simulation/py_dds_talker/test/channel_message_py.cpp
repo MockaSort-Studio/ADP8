@@ -9,11 +9,29 @@
 
 #include "ChannelMessage.hpp"
 #include "ChannelMessagePubSubTypes.hpp"
-#include "core/communication/dds_publisher.hpp"
-#include "core/communication/dds_subscriber.hpp"
+#include "chatter_ports_publications.hpp"
+#include "chatter_ports_subscriptions.hpp"
+#include "simulation/py_dds_talker/py_dds_bridge.hpp"
+// #include "core/communication/dds_publisher.hpp"
+// #include "core/communication/dds_subscriber.hpp"
 
-using Pub = core::communication::DDSPublisher<ChannelMessagePubSubType>;
-using Sub = core::communication::DDSSubscriber<ChannelMessagePubSubType, 10>;
+using Pub = cpp::Publications;
+using Sub = cpp::Subscriptions;
+
+/// we're inverting the pub and sub wtr to cpp talker node
+using OPont = PyDDSBridge<Pub, Sub>;
+
+// PYBIND11_MODULE(py_dds_bridge, module) {
+//   module.doc() = "The pybind11 extension of Javelina";
+//   pybind11::class_<PyDDSBridge>(module, "PyDDSBridge")
+//       .def(pybind11::init<const std::string&>(),
+//            pybind11::arg("participant_name"))
+//       .def("participant_name", &PyDDSBridge::ParticipantName)
+//       .def("get_inputs", &PyDDSBridge::GetInputs,
+//       pybind11::arg("topic_name")) .def("push_output",
+//       &PyDDSBridge::PushOutput, pybind11::arg("topic_name"),
+//            pybind11::arg("message"));
+// }
 
 PYBIND11_MODULE(channel_message_py, module) {
   module.doc() = "ChannelMessage IDL type — pybind11 binding";
@@ -31,23 +49,39 @@ PYBIND11_MODULE(channel_message_py, module) {
                "', counter=" + std::to_string(m.counter()) + ")";
       });
 
-  pybind11::class_<Pub>(module, "Publisher")
-      .def(pybind11::init<>())
-      .def("start", &Pub::Start, pybind11::arg("topic_name"))
-      .def("publish", &Pub::Publish, pybind11::arg("message"))
-      .def("is_matched", &Pub::IsMatched);
+  pybind11::class_<OPont>(module, "PyDDSBridge")
+      .def(pybind11::init<const std::string&>(),
+           pybind11::arg("participant_name"))
+      .def("init", &OPont::Init)
+      .def("participant_name", &OPont::ParticipantName)
+      .def("fill_inputs", &OPont::FillInputs)
+      .def("flush_outputs", &OPont::FlushOutputs)
+      .def(
+          "get_inputs",
+          [](OPont& self) { return self.GetInputs<cpp::kChannelATopicName>(); })
+      .def(
+          "push_output",
+          [](OPont& self, ChannelMessage msg) {
+            self.PushOutput<cpp::kChannelBTopicName>(std::move(msg));
+          },
+          pybind11::arg("message"));
+  //   pybind11::class_<Pub>(module, "Publisher")
+  //       .def(pybind11::init<>())
+  //       .def("start", &Pub::Start, pybind11::arg("topic_name"))
+  //       .def("publish", &Pub::Publish, pybind11::arg("message"))
+  //       .def("is_matched", &Pub::IsMatched);
 
-  pybind11::class_<Sub>(module, "Subscriber")
-      .def(pybind11::init<>())
-      .def("start", &Sub::Start, pybind11::arg("topic_name"))
-      .def("is_matched", &Sub::IsMatched)
-      .def("get_sample", &Sub::GetSample)
-      .def("drain", [](Sub& s) {
-        // this maybe has some issues with mutex stuff
-        std::vector<ChannelMessage> out;
-        while (auto sample = s.GetSample()) {
-          out.push_back(std::move(*sample));
-        }
-        return out;
-      });
+  //   pybind11::class_<Sub>(module, "Subscriber")
+  //       .def(pybind11::init<>())
+  //       .def("start", &Sub::Start, pybind11::arg("topic_name"))
+  //       .def("is_matched", &Sub::IsMatched)
+  //       .def("get_sample", &Sub::GetSample)
+  //       .def("drain", [](Sub& s) {
+  //         // this maybe has some issues with mutex stuff
+  //         std::vector<ChannelMessage> out;
+  //         while (auto sample = s.GetSample()) {
+  //           out.push_back(std::move(*sample));
+  //         }
+  //         return out;
+  //       });
 }
