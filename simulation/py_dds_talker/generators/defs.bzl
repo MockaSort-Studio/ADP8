@@ -90,9 +90,12 @@ def pybind_dds_bridge(name, ports_yaml, idls, namespace, ports_name, bridge_deps
         idls:        List of IDL file labels.
         namespace:   C++ namespace of the generated ports (e.g. "cpp").
         ports_name:  Base name of the generated ports headers (e.g. "chatter_ports").
-        bridge_deps: C++ deps for the pybind_extension.
+        bridge_deps: C++ deps for the pybind_extension (e.g. port specs + py_dds_bridge).
         type_lib:    py_library target providing the type binding module.
         visibility:  Bazel visibility list.
+
+    The ports YAML should describe the Python node's own perspective (its subscriptions
+    and publications directly), not the counterpart node's perspective.
     """
     pybind_bridge_gen(
         name = name + "_srcs",

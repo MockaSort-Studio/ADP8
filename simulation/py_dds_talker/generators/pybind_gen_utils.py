@@ -75,9 +75,9 @@ def build_bridge_model(
 ) -> BridgeBindingModel:
     """Builds a BridgeBindingModel from a ports YAML + IDL files.
 
-    The Python bridge inverts pub/sub relative to the C++ node:
-    - Python subscribes to cpp's publications  → get_<topic>() methods
-    - Python publishes  to cpp's subscriptions → push_<topic>() methods
+    The YAML describes the node's own perspective directly:
+    - subscriptions → get_<topic>() methods
+    - publications  → push_<topic>() methods
     """
     with open(yaml_path) as f:
         raw = yaml.safe_load(f)
@@ -86,11 +86,11 @@ def build_bridge_model(
     ports = dds_ports_from_yaml(yaml_path, available_types)
 
     # Original topic names from YAML (order matches parsed ports model).
-    pub_names = [next(iter(e)) for e in raw.get("publications", [])]
     sub_names = [next(iter(e)) for e in raw.get("subscriptions", [])]
+    pub_names = [next(iter(e)) for e in raw.get("publications", [])]
 
     subs: List[PortBindingEntry] = []
-    for topic_name, spec in zip(pub_names, ports.publications):
+    for topic_name, spec in zip(sub_names, ports.subscriptions):
         type_name = spec.type.replace("PubSubType", "")
         subs.append(
             PortBindingEntry(
@@ -102,7 +102,7 @@ def build_bridge_model(
         )
 
     pubs: List[PortBindingEntry] = []
-    for topic_name, spec in zip(sub_names, ports.subscriptions):
+    for topic_name, spec in zip(pub_names, ports.publications):
         type_name = spec.type.replace("PubSubType", "")
         pubs.append(
             PortBindingEntry(

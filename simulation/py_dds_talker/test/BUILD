@@ -13,6 +13,14 @@ cc_dds_components(
     ports_yaml = "node_cpp_ports.yml",
 )
 
+# py node
+cc_dds_components(
+    name = "chatter_py",
+    idls = glob(["messages/*.idl"]),
+    namespace = "py",
+    ports_yaml = "node_py_ports.yml",
+)
+
 cc_library(
     name = "node_cpp",
     hdrs = ["node_cpp.hpp"],
@@ -40,12 +48,12 @@ pybind_dds_type(
 
 pybind_dds_bridge(
     name = "chatter_bridge_py",
-    ports_yaml = "node_cpp_ports.yml",
+    ports_yaml = "node_py_ports.yml",
     idls = glob(["messages/*.idl"]),
-    namespace = "cpp",
-    ports_name = "chatter_ports",
+    namespace = "py",
+    ports_name = "chatter_py_ports",
     bridge_deps = [
-        ":chatter_ports",
+        ":chatter_py_ports",
         "//simulation/py_dds_talker:py_dds_bridge",
     ],
     type_lib = ":channel_message_py_lib",

@@ -12,8 +12,7 @@
 #include "{{ ports_name }}_subscriptions.hpp"
 #include "simulation/py_dds_talker/py_dds_bridge.hpp"
 
-// pub/sub are inverted wrt the cpp node
-using Bridge = PyDDSBridge<{{ namespace }}::Publications, {{ namespace }}::Subscriptions>;
+using Bridge = PyDDSBridge<{{ namespace }}::Subscriptions, {{ namespace }}::Publications>;
 
 PYBIND11_MODULE({{ module_name }}, module) {
   module.doc() = "pybind11 bridge binding generated from {{ yaml_filename }}.";
