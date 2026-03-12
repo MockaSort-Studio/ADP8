@@ -6,6 +6,8 @@
 #include <memory>
 #include <string>
 
+#include <boost/core/demangle.hpp>
+
 #include "core/communication/topic_spec.hpp"
 #include "fastdds/dds/domain/DomainParticipant.hpp"
 #include "fastdds/dds/domain/DomainParticipantFactory.hpp"
@@ -114,12 +116,34 @@ class DDSContext {
   std::vector<TopicPtr> topics_;
 };
 
-/// @brief Singleton accessor for the process-wide @c DDSContext.
+/// @brief Primary template: singleton @c DDSContext keyed by tag type.
+///
+/// The participant name is derived at construction from the demangled type name
+/// of @p Tag. No @c SetName() needed — context identity is fully encoded in
+/// the type. Non-instantiable — all access is through @c Get().
+template <typename Tag>
+class DDSContextProvider {
+ public:
+  DDSContextProvider(const DDSContextProvider&) = delete;
+  DDSContextProvider& operator=(const DDSContextProvider&) = delete;
+
+  /// @brief Returns the singleton @c DDSContext for @p Tag, constructing it on first call.
+  static DDSContext& Get() {
+    static DDSContext instance{boost::core::demangle(typeid(Tag).name())};
+    return instance;
+  }
+
+ private:
+  DDSContextProvider() = default;
+};
+
+/// @brief @c void specialization: preserves the original @c SetName()/@c Get() singleton.
 ///
 /// The instance is constructed on first call to @c Get(), using the name set
 /// via @c SetName(). Call @c SetName() once at startup before any pub/sub is
 /// created. Non-instantiable — all access is through static methods.
-class DDSContextProvider {
+template <>
+class DDSContextProvider<void> {
  public:
   DDSContextProvider(const DDSContextProvider&) = delete;
   DDSContextProvider& operator=(const DDSContextProvider&) = delete;
