@@ -1,0 +1,17 @@
+// generated — do not edit
+#ifndef {{ header_guard }}
+#define {{ header_guard }}
+
+#include "core/lifecycle/dds_task.hpp"
+#include "{{ subs_include }}"
+#include "{{ pubs_include }}"
+
+namespace {{ namespace }} {
+
+struct {{ tag_name }} {};
+
+using {{ task_base_name }} = core::lifecycle::DDSTask<{{ subs_type }}, {{ pubs_type }}, {{ tag_name }}>;
+
+} // namespace {{ namespace }}
+
+#endif // {{ header_guard }}
