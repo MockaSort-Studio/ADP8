@@ -4,19 +4,16 @@
 #include <iostream>
 #include <string>
 
-#include "core/lifecycle/dds_task.hpp"
 #include "node_alpha_params_parameters.hpp"
-#include "node_alpha_ports_publications.hpp"
-#include "node_alpha_ports_subscriptions.hpp"
+#include "node_alpha_ports_task_base.hpp"
 
 namespace simple_chatter {
 
 // Publishes on channel_a, subscribes on channel_b.
 // if new (counter = 0), kick off chat
-class NodeAlpha : public core::lifecycle::DDSTask<alpha::Subscriptions,
-                                                  alpha::Publications> {
+class NodeAlpha : public alpha::NodeAlphaTaskBase {
  public:
-  using DDSTask<alpha::Subscriptions, alpha::Publications>::DDSTask;
+  using NodeAlphaTaskBase::NodeAlphaTaskBase;
 
  protected:
   void Execute() override {

@@ -32,7 +32,6 @@ cc_library(
     deps = [
         ":node_alpha_params",
         ":node_alpha_ports",
-        "//core/lifecycle:dds",
     ],
 )
 
