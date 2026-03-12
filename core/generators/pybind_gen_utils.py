@@ -5,20 +5,19 @@ TypeBindingModel / BridgeBindingModel instances ready for Jinja2 rendering.
 """
 
 import re
-import yaml
 from pathlib import Path
 from typing import List
 
+import yaml
 from idl_parser.parser import IDLParser
 
 from core.generators.gen_utils import dds_ports_from_yaml, get_available_idl_types
-
-from simulation.py_dds_talker.generators.pybind_gen_models import (
+from core.generators.pybind_gen_models import (
+    IDL_TO_CPP_TYPE,
+    STRING_IDL_TYPES,
     BridgeBindingModel,
     FieldModel,
-    IDL_TO_CPP_TYPE,
     PortBindingEntry,
-    STRING_IDL_TYPES,
     TypeBindingModel,
 )
 

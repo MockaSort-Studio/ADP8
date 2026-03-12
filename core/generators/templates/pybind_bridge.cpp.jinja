@@ -10,7 +10,7 @@
 {% endfor %}
 #include "{{ ports_name }}_publications.hpp"
 #include "{{ ports_name }}_subscriptions.hpp"
-#include "simulation/py_dds_talker/py_dds_bridge.hpp"
+#include "core/pybinds/py_dds_bridge.hpp"
 
 using Bridge = PyDDSBridge<{{ namespace }}::Subscriptions, {{ namespace }}::Publications>;
 

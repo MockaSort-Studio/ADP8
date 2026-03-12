@@ -34,12 +34,12 @@ pybind_bridge_gen = rule(
         "ports_name": attr.string(),
         "module_name": attr.string(default = ""),
         "_generator": attr.label(
-            default = Label("//simulation/py_dds_talker/generators:pybind_generators"),
+            default = Label("//core/generators:pybind_generators"),
             executable = True,
             cfg = "exec",
         ),
         "_templates": attr.label(
-            default = Label("//simulation/py_dds_talker/generators:jinja_templates"),
+            default = Label("//core/generators:jinja_templates"),
             allow_files = [".jinja"],
         ),
     },

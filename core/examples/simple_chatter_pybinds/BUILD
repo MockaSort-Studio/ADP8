@@ -1,9 +1,7 @@
-load("@pip_tools//:requirements.bzl", "requirement")
 load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_python//python:defs.bzl", "py_binary", "py_test")
-load("//core/generators:defs.bzl", "cc_dds_components")
-load("//simulation/py_dds_talker/generators:defs.bzl", "pybind_dds_bridge", "pybind_dds_type")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("//core/generators:defs.bzl", "cc_dds_components", "pybind_dds_bridge", "pybind_dds_type")
 
 # cpp node
 cc_dds_components(
@@ -11,14 +9,6 @@ cc_dds_components(
     idls = glob(["messages/*.idl"]),
     namespace = "cpp",
     ports_yaml = "node_cpp_ports.yml",
-)
-
-# py node
-cc_dds_components(
-    name = "chatter_py",
-    idls = glob(["messages/*.idl"]),
-    namespace = "py",
-    ports_yaml = "node_py_ports.yml",
 )
 
 cc_library(
@@ -40,6 +30,16 @@ cc_binary(
     ],
 )
 
+### pybinds
+
+# py node
+cc_dds_components(
+    name = "chatter_py",
+    idls = glob(["messages/*.idl"]),
+    namespace = "py",
+    ports_yaml = "node_py_ports.yml",
+)
+
 pybind_dds_type(
     name = "channel_message_py",
     idl = "messages/ChannelMessage.idl",
@@ -48,24 +48,15 @@ pybind_dds_type(
 
 pybind_dds_bridge(
     name = "chatter_bridge_py",
-    ports_yaml = "node_py_ports.yml",
+    bridge_deps = [
+        ":chatter_py_ports",
+        "//core/pybinds:py_dds_bridge",
+    ],
     idls = glob(["messages/*.idl"]),
     namespace = "py",
     ports_name = "chatter_py_ports",
-    bridge_deps = [
-        ":chatter_py_ports",
-        "//simulation/py_dds_talker:py_dds_bridge",
-    ],
+    ports_yaml = "node_py_ports.yml",
     type_lib = ":channel_message_py_lib",
-)
-
-py_test(
-    name = "ddsbridge_test",
-    srcs = ["ddsbridge_test.py"],
-    deps = [
-        ":chatter_bridge_py_lib",
-        requirement("pytest"),
-    ],
 )
 
 py_binary(

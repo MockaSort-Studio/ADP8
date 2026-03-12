@@ -5,8 +5,8 @@ Subscribes on channel_a (where cpp_node publishes),
 publishes replies on channel_b (where cpp_node subscribes).
 
 Run alongside cpp_node:
-    bazel run //simulation/py_dds_talker/test:cpp_node
-    bazel run //simulation/py_dds_talker/test:py_node
+    bazel run //core/examples/simple_chatter_pybinds:cpp_node
+    bazel run //core/examples/simple_chatter_pybinds:py_node
 """
 
 import signal

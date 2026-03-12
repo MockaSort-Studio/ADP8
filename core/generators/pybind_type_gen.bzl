@@ -24,12 +24,12 @@ pybind_type_gen = rule(
     attrs = {
         "idls": attr.label_list(allow_files = [".idl"]),
         "_generator": attr.label(
-            default = Label("//simulation/py_dds_talker/generators:pybind_generators"),
+            default = Label("//core/generators:pybind_generators"),
             executable = True,
             cfg = "exec",
         ),
         "_templates": attr.label(
-            default = Label("//simulation/py_dds_talker/generators:jinja_templates"),
+            default = Label("//core/generators:jinja_templates"),
             allow_files = [".jinja"],
         ),
     },

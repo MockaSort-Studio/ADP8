@@ -13,18 +13,18 @@ from typing import NamedTuple
 
 from jinja2 import Template
 
-from simulation.py_dds_talker.generators.pybind_gen_models import (
+from core.generators.pybind_gen_models import (
     BridgeBindingModel,
     TypeBindingModel,
 )
-from simulation.py_dds_talker.generators.pybind_gen_utils import (
+from core.generators.pybind_gen_utils import (
     build_bridge_model,
     build_type_models,
 )
 
 TEMPLATES = {
-    "type": "simulation/py_dds_talker/generators/templates/pybind_type.cpp.jinja",
-    "bridge": "simulation/py_dds_talker/generators/templates/pybind_bridge.cpp.jinja",
+    "type": "core/generators/templates/pybind_type.cpp.jinja",
+    "bridge": "core/generators/templates/pybind_bridge.cpp.jinja",
 }
 
 

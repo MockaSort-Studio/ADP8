@@ -5,12 +5,10 @@ package(default_visibility = ["//visibility:public"])
 
 py_binary(
     name = "generators",
-    srcs = [
-        "generators.py",
-    ],
+    srcs = ["generators.py"],
     deps = [
         requirement("jinja2"),
-        "//core/generators:gen_utils",
+        ":gen_utils",
     ],
 )
 
@@ -21,13 +19,38 @@ py_library(
         "gen_utils.py",
     ],
     deps = [
+        requirement("idl_parser"),
         requirement("pydantic"),
         requirement("pyyaml"),
-        requirement("idl_parser"),
     ],
 )
 
 filegroup(
     name = "jinja_templates",
     srcs = glob(["templates/*.jinja"]),
+)
+
+### pybinds
+
+py_binary(
+    name = "pybind_generators",
+    srcs = ["pybind_generators.py"],
+    deps = [
+        ":pybind_gen_utils",
+        requirement("jinja2"),
+    ],
+)
+
+py_library(
+    name = "pybind_gen_utils",
+    srcs = [
+        "pybind_gen_models.py",
+        "pybind_gen_utils.py",
+    ],
+    deps = [
+        ":gen_utils",
+        requirement("idl_parser"),
+        requirement("pydantic"),
+        requirement("pyyaml"),
+    ],
 )
