@@ -14,12 +14,14 @@ def _dds_ports_impl(ctx):
         ctx.actions.declare_file("{}_sub_ids.hpp".format(ctx.label.name)),
         ctx.actions.declare_file("{}_subscriptions.hpp".format(ctx.label.name)),
         ctx.actions.declare_file("{}_dds_types.hpp".format(ctx.label.name)),
+        ctx.actions.declare_file("{}_task_base.hpp".format(ctx.label.name)),
     ]
 
     headers = {
         "publications": {"ids": outputs[0].path, "specs": outputs[1].path},
         "subscriptions": {"ids": outputs[2].path, "specs": outputs[3].path},
         "dds_types": outputs[4].path,
+        "task_base": outputs[5].path,
     }
 
     args = ctx.actions.args()
@@ -28,6 +30,7 @@ def _dds_ports_impl(ctx):
     args.add("--outputs", json.encode(headers))
     args.add_all("--idl", ctx.files.idls)
     args.add("--namespace", ctx.attr.namespace)
+    args.add("--label", ctx.label.name)
 
     ctx.actions.run(
         outputs = outputs,
