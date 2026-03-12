@@ -20,7 +20,11 @@ namespace core::lifecycle {
 ///
 /// @tparam SubscriptionSpecs @c TopicList of @c TopicSpec types for subscribed topics.
 /// @tparam PublicationSpecs  @c TopicList of @c TopicSpec types for published topics.
-template <typename SubscriptionSpecs, typename PublicationSpecs>
+/// @tparam ContextTag        Tag type forwarded to @c Inputs_t / @c Outputs_t for
+///                           compile-time DDS context selection. Defaults to @c void
+///                           (global context), preserving backward compatibility.
+template <typename SubscriptionSpecs, typename PublicationSpecs,
+          typename ContextTag = void>
 class DDSTask : public TaskInterface {
   using Subs = SubscriptionSpecs;
   using Pubs = PublicationSpecs;
@@ -65,8 +69,8 @@ class DDSTask : public TaskInterface {
                outputs_);
   }
 
-  Inputs_t<Subs> inputs_;
-  Outputs_t<Pubs> outputs_;
+  Inputs_t<Subs, ContextTag> inputs_;
+  Outputs_t<Pubs, ContextTag> outputs_;
 };
 
 }  // namespace core::lifecycle
