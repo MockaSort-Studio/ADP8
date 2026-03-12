@@ -1,5 +1,5 @@
-#ifndef SIMULATION_PY_DDS_TALKER_PY_DDS_BRIDGE
-#define SIMULATION_PY_DDS_TALKER_PY_DDS_BRIDGE
+#ifndef CORE_PYBINDS_PY_DDS_BRIDGE
+#define CORE_PYBINDS_PY_DDS_BRIDGE
 #include <string>
 #include <vector>
 
@@ -17,8 +17,6 @@ class PyDDSBridge {
   explicit PyDDSBridge(const std::string& participant_name) {
     core::communication::DDSContextProvider::SetName(participant_name);
   }
-
-  void Init() {}
 
   // Returns the name the live DomainParticipant was created with.
   [[nodiscard]] std::string ParticipantName() const {
@@ -61,4 +59,4 @@ class PyDDSBridge {
   core::lifecycle::Outputs_t<Pubs> outputs_;
 };
 
-#endif  // SIMULATION_PY_DDS_TALKER_PY_DDS_BRIDGE
+#endif  // CORE_PYBINDS_PY_DDS_BRIDGE

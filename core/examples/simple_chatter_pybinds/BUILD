@@ -40,6 +40,8 @@ cc_dds_components(
     ports_yaml = "node_py_ports.yml",
 )
 
+# Both nodes share the same IDL — intentional. ChannelMessage is symmetric;
+# cpp and Python use the same wire format in both directions.
 pybind_dds_type(
     name = "channel_message_py",
     idl = "messages/ChannelMessage.idl",

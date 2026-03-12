@@ -4,14 +4,13 @@ Parses IDL files (via idl_parser) and ports YAML (via core.generators) into
 TypeBindingModel / BridgeBindingModel instances ready for Jinja2 rendering.
 """
 
-import re
 from pathlib import Path
 from typing import List
 
-import yaml
 from idl_parser.parser import IDLParser
 
-from core.generators.gen_utils import dds_ports_from_yaml, get_available_idl_types
+from core.generators.gen_data_models import pascal_to_snake
+from core.generators.gen_utils import dds_ports_from_yaml, get_available_idl_types, parse_yaml
 from core.generators.pybind_gen_models import (
     IDL_TO_CPP_TYPE,
     STRING_IDL_TYPES,
@@ -22,13 +21,9 @@ from core.generators.pybind_gen_models import (
 )
 
 
-def _pascal_to_snake(name: str) -> str:
-    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
-
-
 def _type_to_module(type_name: str) -> str:
     """ChannelMessage → channel_message_py"""
-    return _pascal_to_snake(type_name) + "_py"
+    return pascal_to_snake(type_name) + "_py"
 
 
 def build_type_models(idl_path: str, output_path: str) -> List[TypeBindingModel]:
@@ -78,8 +73,7 @@ def build_bridge_model(
     - subscriptions → get_<topic>() methods
     - publications  → push_<topic>() methods
     """
-    with open(yaml_path) as f:
-        raw = yaml.safe_load(f)
+    raw = parse_yaml(yaml_path)
 
     available_types = get_available_idl_types(idl_paths)
     ports = dds_ports_from_yaml(yaml_path, available_types)

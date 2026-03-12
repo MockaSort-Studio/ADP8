@@ -11,8 +11,7 @@ from enum import Enum
 from pathlib import Path
 from typing import NamedTuple
 
-from jinja2 import Template
-
+from core.generators.gen_utils import render_template
 from core.generators.pybind_gen_models import (
     BridgeBindingModel,
     TypeBindingModel,
@@ -64,14 +63,6 @@ def _parse() -> _Args:
     )
 
 
-def _render(template_path: str, model_data: dict, output_path: str) -> None:
-    content = Path(template_path).read_text()
-    rendered = Template(content, trim_blocks=True, lstrip_blocks=True).render(model_data)
-    out = Path(output_path)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(rendered)
-
-
 def _generate_type(args: _Args) -> None:
     if not args.idls:
         print("Error: --idls required for modality=type", file=sys.stderr)
@@ -84,7 +75,7 @@ def _generate_type(args: _Args) -> None:
             "only the first is bound. Multi-struct IDLs are not yet supported.",
             file=sys.stderr,
         )
-    _render(TEMPLATES["type"], models[0].model_dump(), args.output)
+    render_template(TEMPLATES["type"], models[0].model_dump(), args.output)
     print(f"Generated: {args.output}")
 
 
@@ -102,7 +93,7 @@ def _generate_bridge(args: _Args) -> None:
         module_name=module_name,
         output_path=args.output,
     )
-    _render(TEMPLATES["bridge"], model.model_dump(), args.output)
+    render_template(TEMPLATES["bridge"], model.model_dump(), args.output)
     print(f"Generated: {args.output}")
 
 

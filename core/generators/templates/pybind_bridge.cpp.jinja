@@ -24,7 +24,6 @@ PYBIND11_MODULE({{ module_name }}, module) {
   pybind11::class_<Bridge>(module, "PyDDSBridge")
       .def(pybind11::init<const std::string&>(),
            pybind11::arg("participant_name"))
-      .def("init", &Bridge::Init)
       .def("participant_name", &Bridge::ParticipantName)
       .def("fill_inputs", &Bridge::FillInputs)
       .def("flush_outputs", &Bridge::FlushOutputs)

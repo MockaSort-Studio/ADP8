@@ -1,5 +1,5 @@
-#ifndef SIMULATION_PY_DDS_TALKER_TEST_NODE_CPP
-#define SIMULATION_PY_DDS_TALKER_TEST_NODE_CPP
+#ifndef CORE_EXAMPLES_SIMPLE_CHATTER_PYBINDS_NODE_CPP
+#define CORE_EXAMPLES_SIMPLE_CHATTER_PYBINDS_NODE_CPP
 
 // proudly AI-generated, human-reviewed
 
@@ -10,12 +10,8 @@
 #include "chatter_ports_subscriptions.hpp"
 #include "core/lifecycle/dds_task.hpp"
 
-namespace py_dds_talker {
-
 // Publishes on channel_a, subscribes on channel_b.
 // Kicks off the conversation on first Execute(), then echoes responses.
-// Mirrors NodeAlpha from core/examples/simple_chatter — the Python
-// DdsTalker plays the NodeBeta role.
 class NodeCpp
     : public core::lifecycle::DDSTask<cpp::Subscriptions, cpp::Publications> {
  public:
@@ -54,6 +50,4 @@ class NodeCpp
   uint32_t counter_{0};
 };
 
-}  // namespace py_dds_talker
-
-#endif  // SIMULATION_PY_DDS_TALKER_TEST_NODE_CPP
+#endif  // CORE_EXAMPLES_SIMPLE_CHATTER_PYBINDS_NODE_CPP
