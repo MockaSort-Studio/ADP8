@@ -4,17 +4,16 @@
 #include <iostream>
 #include <string>
 
-#include "core/lifecycle/dds_task.hpp"
+#include "node_beta_ports_task_base.hpp"
 #include "node_beta_ports_publications.hpp"
 #include "node_beta_ports_subscriptions.hpp"
 
 namespace simple_chatter {
 
 // Subscribes on channel_a, publishes on channel_b.
-class NodeBeta
-    : public core::lifecycle::DDSTask<beta::Subscriptions, beta::Publications> {
+class NodeBeta : public beta::NodeBetaTaskBase {
  public:
-  using DDSTask<beta::Subscriptions, beta::Publications>::DDSTask;
+  using NodeBetaTaskBase::NodeBetaTaskBase;
 
  protected:
   void Execute() override {
