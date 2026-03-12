@@ -1,5 +1,5 @@
 """Model builders and YAML/IDL parsing utilities for the Javelina-RT code generator."""
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import yaml
 from idl_parser.parser import IDLParser
@@ -10,9 +10,12 @@ from core.generators.gen_data_models import (
     ParametersHeader,
     Ports,
     SpecsHeader,
+    TaskBaseHeader,
     TopicId,
     TopicIdHeader,
     TopicSpec,
+    normalize_name,
+    remove_bazel_prefix_path,
 )
 
 DEFAULT_NAMESPACE = "gen"
@@ -180,6 +183,44 @@ def parameterset_model_from_yaml(yaml_path: str) -> ParameterSet:
         Populated ParameterSet model.
     """
     return ParameterSet(**parse_yaml(yaml_path))
+
+
+def task_base_header_model(
+    ports_model: Tuple[SpecsHeader, SpecsHeader],
+    output_path: str,
+    label_name: str,
+    namespace: str = DEFAULT_NAMESPACE,
+) -> TaskBaseHeader:
+    """Builds a TaskBaseHeader model for the task_base.hpp output.
+
+    Derives the base name by stripping the ``_ports`` suffix from ``label_name``
+    and converting to PascalCase. The context tag and task-base alias names follow
+    the ``<BaseName>ContextTag`` / ``<BaseName>TaskBase`` convention.
+
+    Args:
+        ports_model: Tuple of (subs_specs_header, pubs_specs_header) SpecsHeader models,
+            providing output paths (for includes) and specs_list_name (for type args).
+        output_path: Output path for the generated task_base header.
+        label_name: Port label name with ``_ports`` suffix (e.g. ``"node_alpha_ports"``).
+        namespace: C++ namespace for generated code.
+
+    Returns:
+        TaskBaseHeader model ready for template rendering.
+    """
+    base_name = normalize_name(
+        label_name[: -len("_ports")] if label_name.endswith("_ports") else label_name
+    )
+    subs_specs, pubs_specs = ports_model
+    return TaskBaseHeader(
+        output_file_path=output_path,
+        tag_name=f"{base_name}ContextTag",
+        task_base_name=f"{base_name}TaskBase",
+        subs_include=remove_bazel_prefix_path(subs_specs.output_file_path),
+        pubs_include=remove_bazel_prefix_path(pubs_specs.output_file_path),
+        subs_type=subs_specs.specs_list_name,
+        pubs_type=pubs_specs.specs_list_name,
+        namespace=namespace,
+    )
 
 
 def parameters_header_model(
