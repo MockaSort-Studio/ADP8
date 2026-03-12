@@ -232,3 +232,14 @@ class ParametersHeader(GeneratedHeader):
     """Header model for the parameters.hpp output, wrapping a full ParameterSet."""
 
     params: ParameterSet
+
+
+class TaskBaseHeader(GeneratedHeader):
+    """Header model for the task_base.hpp output, providing DDSTask alias and context tag."""
+
+    tag_name: str
+    task_base_name: str
+    subs_include: str
+    pubs_include: str
+    subs_type: str
+    pubs_type: str
