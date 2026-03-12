@@ -26,6 +26,7 @@ from core.generators.gen_utils import (
     get_available_idl_types,
     parameters_header_model,
     parameterset_model_from_yaml,
+    task_base_header_model,
 )
 
 
@@ -44,6 +45,7 @@ class _GeneratorArgs(NamedTuple):
     idls: List[str]
     outputs: Dict[str, Any]
     namespace: str
+    label: str
 
 
 def parse_arguments() -> _GeneratorArgs:
@@ -84,6 +86,12 @@ def parse_arguments() -> _GeneratorArgs:
         default=DEFAULT_NAMESPACE,
         help="C++ namespace for generated code (default: gen)",
     )
+    parser.add_argument(
+        "--label",
+        required=False,
+        default="",
+        help="Bazel label name (ctx.label.name), used to derive task-base class names",
+    )
     args = parser.parse_args()
 
     outputs_dic = json.loads(args.outputs)
@@ -98,6 +106,7 @@ def parse_arguments() -> _GeneratorArgs:
         idls=args.idls,
         outputs=outputs_dic,
         namespace=args.namespace,
+        label=args.label,
     )
 
 
@@ -127,21 +136,23 @@ TEMPLATES: Dict[str, str] = {
     "specs": "core/generators/templates/dds_specs.hpp.jinja",
     "types": "core/generators/templates/dds_types.hpp.jinja",
     "parameters": "core/generators/templates/parameters.hpp.jinja",
+    "task_base": "core/generators/templates/task_base.hpp.jinja",
 }
 
 
 def generate_ports(
-    yaml_cfg: str, idls: List[str], outputs: Dict[str, Any], namespace: str
+    yaml_cfg: str, idls: List[str], outputs: Dict[str, Any], namespace: str, label_name: str = ""
 ) -> None:
-    """Generates the five DDS port headers from a YAML configuration.
+    """Generates the five DDS port headers and the task-base header from a YAML configuration.
 
-    Produces: dds_types, pub_ids, sub_ids, pub_specs, sub_specs headers.
+    Produces: dds_types, pub_ids, sub_ids, pub_specs, sub_specs, task_base headers.
 
     Args:
         yaml_cfg: Path to the ports YAML file.
         idls: List of IDL file paths for type validation.
         outputs: Dict mapping output keys to file paths (from Bazel rule).
         namespace: C++ namespace for generated code.
+        label_name: Bazel label name used to derive task-base class names.
     """
     available_types = get_available_idl_types(idls)
     ports_model = dds_ports_from_yaml(yaml_cfg, available_types)
@@ -183,11 +194,16 @@ def generate_ports(
         namespace=namespace,
     )
 
+    task_base_h_model = task_base_header_model(
+        ports_model, outputs["task_base"], label_name, namespace
+    )
+
     generate_header_file(TEMPLATES["types"], dds_types_h_model)
     generate_header_file(TEMPLATES["ids"], sub_topic_id_h)
     generate_header_file(TEMPLATES["ids"], pub_topic_id_h)
     generate_header_file(TEMPLATES["specs"], sub_specs_h)
     generate_header_file(TEMPLATES["specs"], pub_specs_h)
+    generate_header_file(TEMPLATES["task_base"], task_base_h_model)
 
     print("Generated Ports Headers:")
     print(f"{remove_bazel_prefix_path(dds_types_h_model.output_file_path)}")
@@ -195,6 +211,7 @@ def generate_ports(
     print(f"{remove_bazel_prefix_path(pub_topic_id_h.output_file_path)}")
     print(f"{remove_bazel_prefix_path(sub_specs_h.output_file_path)}")
     print(f"{remove_bazel_prefix_path(pub_specs_h.output_file_path)}")
+    print(f"{remove_bazel_prefix_path(task_base_h_model.output_file_path)}")
 
 
 def generate_parameters(yaml_cfg: str, outputs: Dict[str, Any], namespace: str) -> None:
@@ -219,7 +236,7 @@ def main() -> None:
     print("=================================================================")
     print(f"🐽 🐽 🐽 🐽 🐽 Running Javelina Generators [Modality={args.modality}]")
     if args.modality == Modality.PORTS:
-        generate_ports(args.yaml_cfg, args.idls, args.outputs, namespace=args.namespace)
+        generate_ports(args.yaml_cfg, args.idls, args.outputs, namespace=args.namespace, label_name=args.label)
     if args.modality == Modality.PARAMETERS:
         generate_parameters(args.yaml_cfg, args.outputs, namespace=args.namespace)
 
