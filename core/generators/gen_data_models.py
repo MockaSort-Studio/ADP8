@@ -232,3 +232,20 @@ class ParametersHeader(GeneratedHeader):
     """Header model for the parameters.hpp output, wrapping a full ParameterSet."""
 
     params: ParameterSet
+
+
+class TaskBaseHeader(GeneratedHeader):
+    """Header model for the task-base generated header.
+
+    Carries the tag type name, task base class name, namespace, include paths
+    for subscriptions and publications, the corresponding DDS type names, and
+    the output path for the rendered file.
+    """
+
+    tag_name: str
+    task_base_name: str
+    subs_include: str
+    pubs_include: str
+    subs_type: str
+    pubs_type: str
+    output_path: str
