@@ -1,0 +1,47 @@
+[project]
+site_name = "ADP8"
+site_url = "https://mockasort-studio.github.io/ADP8/"
+site_description = "Yet Another Autonomy Stack"
+site_author = "MockaSort-Studio"
+docs_dir = "docs"
+exclude_docs = "HOWTO.md"
+
+[project.theme]
+variant = "modern"
+favicon = "images/favicon.png"
+features = [
+  "navigation.sections",
+  "navigation.expand",
+  "navigation.indexes",
+  "content.code.copy",
+  "toc.follow",
+]
+
+[project.theme.font]
+text = "Roboto"
+code = "Roboto Mono"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "pink"
+accent = "deep orange"
+
+[[project.nav]]
+Home = "index.md"
+
+[[project.nav]]
+"Javelina-RT" = [
+  {Overview = "javelina-rt/index.md"},
+  {"End-to-End Example" = "javelina-rt/example.md"},
+  {Lifecycle = "javelina-rt/lifecycle.md"},
+  {Communication = "javelina-rt/communication.md"},
+  {Support = "javelina-rt/support.md"},
+  {Generators = "javelina-rt/generators.md"},
+  {Versions = [{"Humble Desert Pork" = "javelina-rt/humble-desert-pork.md"}]}
+]
+
+[[project.nav]]
+"Code of Conduct" = "CODE_OF_CONDUCT.md"
+
+[[project.nav]]
+Contributing = "CONTRIBUTING.md"
