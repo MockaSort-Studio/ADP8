@@ -5,7 +5,9 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <typeinfo>
 
+#include "boost/core/demangle.hpp"
 #include "core/communication/topic_spec.hpp"
 #include "fastdds/dds/domain/DomainParticipant.hpp"
 #include "fastdds/dds/domain/DomainParticipantFactory.hpp"
@@ -114,12 +116,43 @@ class DDSContext {
   std::vector<TopicPtr> topics_;
 };
 
-/// @brief Singleton accessor for the process-wide @c DDSContext.
+/// @brief Singleton accessor for a @c DDSContext keyed on @p Tag.
 ///
-/// The instance is constructed on first call to @c Get(), using the name set
-/// via @c SetName(). Call @c SetName() once at startup before any pub/sub is
-/// created. Non-instantiable — all access is through static methods.
+/// Each distinct @p Tag gets its own singleton @c DDSContext. The participant
+/// name is derived at construction from the demangled name of @p Tag.
+/// Non-instantiable — all access is through static methods.
+template <typename Tag>
 class DDSContextProvider {
+ public:
+  DDSContextProvider(const DDSContextProvider&) = delete;
+  DDSContextProvider& operator=(const DDSContextProvider&) = delete;
+
+  /// @brief Returns the singleton @c DDSContext for @p Tag, constructing it on first call.
+  ///        The DomainParticipant name is the demangled name of @p Tag.
+  static DDSContext& Get() {
+    using Deleter = std::function<void(DDSContext*)>;
+
+    static std::unique_ptr<DDSContext, Deleter> instance = []() {
+      return std::unique_ptr<DDSContext, Deleter>(
+          new DDSContext(boost::core::demangle(typeid(Tag).name())),
+          [](DDSContext* ptr) {
+            if (ptr) {
+              delete ptr;
+            }
+          });
+    }();
+
+    return *instance;
+  }
+
+ private:
+  DDSContextProvider() = default;
+};
+
+/// @brief Explicit specialization for @c void — preserves the original
+///        process-wide singleton with @c SetName()/@c Get() behavior.
+template <>
+class DDSContextProvider<void> {
  public:
   DDSContextProvider(const DDSContextProvider&) = delete;
   DDSContextProvider& operator=(const DDSContextProvider&) = delete;
