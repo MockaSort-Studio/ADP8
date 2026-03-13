@@ -71,7 +71,7 @@ class DDSPublisher {
   void Start(const std::string& topic_name) {
     // we store a pointer to participant for lifecycle mgmt of publisher and
     // data writer
-    auto& ctx = DDSContextProvider::Get();
+    auto& ctx = DDSContextProvider<>::Get();
     participant_ = ctx.GetDomainParticipant();
 
     auto* raw_pub =

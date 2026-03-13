@@ -6,6 +6,8 @@
 #include <memory>
 #include <string>
 
+#include <boost/core/demangle.hpp>
+
 #include "core/communication/topic_spec.hpp"
 #include "fastdds/dds/domain/DomainParticipant.hpp"
 #include "fastdds/dds/domain/DomainParticipantFactory.hpp"
@@ -114,40 +116,27 @@ class DDSContext {
   std::vector<TopicPtr> topics_;
 };
 
-/// @brief Singleton accessor for the process-wide @c DDSContext.
+/// @brief Tag type for the default (process-wide) @c DDSContext.
+struct DefaultContext {};
+
+/// @brief Singleton @c DDSContext keyed by tag type.
 ///
-/// The instance is constructed on first call to @c Get(), using the name set
-/// via @c SetName(). Call @c SetName() once at startup before any pub/sub is
-/// created. Non-instantiable — all access is through static methods.
+/// The participant name is derived at construction from the demangled type name
+/// of @p Tag. Non-instantiable — all access is through @c Get().
+template <typename Tag = DefaultContext>
 class DDSContextProvider {
  public:
   DDSContextProvider(const DDSContextProvider&) = delete;
   DDSContextProvider& operator=(const DDSContextProvider&) = delete;
 
-  /// @brief Sets the DomainParticipant name used when the singleton is first constructed.
-  ///        Must be called before the first @c Get() invocation. No effect after construction.
-  static void SetName(std::string name) { name_ = std::move(name); }
-
-  /// @brief Returns the singleton @c DDSContext, constructing it on first call.
+  /// @brief Returns the singleton @c DDSContext for @p Tag, constructing it on first call.
   static DDSContext& Get() {
-    using Deleter = std::function<void(DDSContext*)>;
-
-    static std::unique_ptr<DDSContext, Deleter> instance = []() {
-      return std::unique_ptr<DDSContext, Deleter>(new DDSContext(name_),
-                                                  [](DDSContext* ptr) {
-                                                    if (ptr) {
-                                                      delete ptr;
-                                                    }
-                                                  });
-    }();
-
-    return *instance;
+    static DDSContext instance{boost::core::demangle(typeid(Tag).name())};
+    return instance;
   }
 
  private:
   DDSContextProvider() = default;
-
-  static inline std::string name_ = "MockaMammT";
 };
 }  // namespace core::communication
 

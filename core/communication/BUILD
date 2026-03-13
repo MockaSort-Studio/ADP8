@@ -13,6 +13,7 @@ cc_library(
     ],
     deps = [
         "//core/support/utils",
+        "@boost.core//:core",
         "@fastdds",
     ],
 )
