@@ -14,14 +14,20 @@ class PyDDSBridge {
   using Pubs = PublicationSpecs;
 
  public:
-  explicit PyDDSBridge(const std::string& participant_name) {
-    core::communication::DDSContextProvider::SetName(participant_name);
+  explicit PyDDSBridge(
+      const std::string& /*participant_name*/)  // @TODO: new DDSContextProvider
+                                                // API derives the name from the
+                                                // tag type, not a runtime
+                                                // string. To revisit this once
+                                                // the rework is done.
+  {
+    core::communication::DDSContextProvider<>::Get();  // trigger singleton init
   }
 
   // Returns the name the live DomainParticipant was created with.
   [[nodiscard]] std::string ParticipantName() const {
     auto participant =
-        core::communication::DDSContextProvider::Get().GetDomainParticipant();
+        core::communication::DDSContextProvider<>::Get().GetDomainParticipant();
     eprosima::fastdds::dds::DomainParticipantQos qos;
     participant->get_qos(qos);
     return qos.name().c_str();
