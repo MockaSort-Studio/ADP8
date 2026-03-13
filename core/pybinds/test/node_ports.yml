@@ -1,0 +1,6 @@
+subscriptions:
+  - ping_in:
+      type: PingMessage
+publications:
+  - ping_out:
+      type: PingMessage

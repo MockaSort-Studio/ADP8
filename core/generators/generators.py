@@ -11,8 +11,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, NamedTuple
 
-from jinja2 import Template
-
 from core.generators.gen_data_models import (
     GeneratedHeader,
     remove_bazel_prefix_path,
@@ -26,6 +24,7 @@ from core.generators.gen_utils import (
     get_available_idl_types,
     parameters_header_model,
     parameterset_model_from_yaml,
+    render_template,
 )
 
 
@@ -111,15 +110,7 @@ def generate_header_file(
         template_path: Path to the .jinja template file.
         model_instance: Pydantic model whose fields are passed to the template.
     """
-    template_content = Path(template_path).read_text()
-
-    template = Template(template_content, trim_blocks=True, lstrip_blocks=True)
-
-    rendered_content = template.render(model_instance.model_dump())
-
-    output_file = Path(model_instance.output_file_path)
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    output_file.write_text(rendered_content)
+    render_template(template_path, model_instance.model_dump(), model_instance.output_file_path)
 
 
 TEMPLATES: Dict[str, str] = {

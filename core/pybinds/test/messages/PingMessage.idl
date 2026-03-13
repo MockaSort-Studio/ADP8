@@ -1,0 +1,5 @@
+struct PingMessage
+{
+    string content;
+    unsigned long id;
+};

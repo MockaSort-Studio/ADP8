@@ -6,6 +6,14 @@ this makes bazel linter happy
 ##
 bazel_dep(name = "fastdds", version = "3.1.1.bcr.1")
 
+# fastdds cmake build only sets CMAKE_C_FLAGS=-fPIC, not CMAKE_CXX_FLAGS.
+# pybind11 extensions (.so) require all linked static libs to be PIC.
+single_version_override(
+    module_name = "fastdds",
+    patch_strip = 1,
+    patches = ["//third_party/patches:fastdds_pic.patch"],
+)
+
 ##
 bazel_dep(name = "fastcdr", version = "2.2.2")
 bazel_dep(name = "foonathan_memory", version = "0.7.3.bcr.2")

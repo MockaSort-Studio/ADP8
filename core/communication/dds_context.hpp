@@ -28,7 +28,13 @@ class DDSContext {
   /// @param domain_participant_name Name assigned to the FastDDS DomainParticipant.
   /// @throws std::runtime_error if participant creation fails.
   DDSContext(const std::string& domain_participant_name) {
+    // Start from the factory's default QoS so that any XML profile loaded via
+    // FASTRTPS_DEFAULT_PROFILES_FILE is honoured (e.g. custom transports for
+    // simulation). A manually constructed DomainParticipantQos bypasses the
+    // XML default profile entirely.
     dds::DomainParticipantQos participantQos;
+    dds::DomainParticipantFactory::get_instance()->get_default_participant_qos(
+        participantQos);
     participantQos.name(domain_participant_name);
 
     auto* raw_part =

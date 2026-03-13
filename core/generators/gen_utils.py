@@ -1,8 +1,10 @@
 """Model builders and YAML/IDL parsing utilities for the Javelina-RT code generator."""
+from pathlib import Path
 from typing import Any, Dict, List
 
 import yaml
 from idl_parser.parser import IDLParser
+from jinja2 import Template
 
 from core.generators.gen_data_models import (
     IdlTypeHeader,
@@ -201,3 +203,19 @@ def parameters_header_model(
         "namespace": namespace,
     }
     return ParametersHeader(**model_raw)
+
+
+def render_template(template_path: str, model_data: Dict[str, Any], output_path: str) -> None:
+    """Renders a Jinja2 template with model data and writes the result to disk.
+
+    Args:
+        template_path: Path to the .jinja template file.
+        model_data: Dict of values passed to the template context.
+        output_path: Destination path for the rendered output.
+    """
+    rendered = Template(
+        Path(template_path).read_text(), trim_blocks=True, lstrip_blocks=True
+    ).render(model_data)
+    out = Path(output_path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(rendered)

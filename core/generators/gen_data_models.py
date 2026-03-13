@@ -106,6 +106,20 @@ def normalize_name(raw_name: str) -> str:
     return "".join(word.capitalize() for word in raw_name.split("_"))
 
 
+def pascal_to_snake(name: str) -> str:
+    """Converts a PascalCase identifier to snake_case.
+
+    Args:
+        name: PascalCase name, e.g. ``"ChannelMessage"``.
+
+    Returns:
+        snake_case string, e.g. ``"channel_message"``.
+    """
+    import re
+
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
+
+
 class Ports(BaseModel):
     """Subscriptions and publications parsed from a ports YAML file.
 
