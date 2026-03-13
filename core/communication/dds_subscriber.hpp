@@ -94,15 +94,13 @@ class DDSSubscriber {
   DDSSubscriber() = default;
 
   /// @brief Creates the FastDDS Subscriber and DataReader for the given topic.
-  ///        Retrieves the DomainParticipant from @c DDSContextProvider<ContextTag>.
-  /// @tparam ContextTag Tag type selecting the @c DDSContextProvider singleton (default: void).
+  ///        Retrieves the DomainParticipant from @c DDSContextProvider.
   /// @param topic_name DDS topic name.
   /// @throws std::runtime_error if Subscriber or DataReader creation fails.
-  template <typename ContextTag = void>
   void Start(const std::string& topic_name) {
     // we store a pointer to participant for lifecycle mgmt of subscriber and
     // data reader
-    auto& ctx = DDSContextProvider<ContextTag>::Get();
+    auto& ctx = DDSContextProvider<>::Get();
     participant_ = ctx.GetDomainParticipant();
 
     auto* raw_sub =

@@ -116,12 +116,14 @@ class DDSContext {
   std::vector<TopicPtr> topics_;
 };
 
-/// @brief Primary template: singleton @c DDSContext keyed by tag type.
+/// @brief Tag type for the default (process-wide) @c DDSContext.
+struct DefaultContext {};
+
+/// @brief Singleton @c DDSContext keyed by tag type.
 ///
 /// The participant name is derived at construction from the demangled type name
-/// of @p Tag. No @c SetName() needed — context identity is fully encoded in
-/// the type. Non-instantiable — all access is through @c Get().
-template <typename Tag>
+/// of @p Tag. Non-instantiable — all access is through @c Get().
+template <typename Tag = DefaultContext>
 class DDSContextProvider {
  public:
   DDSContextProvider(const DDSContextProvider&) = delete;
@@ -135,43 +137,6 @@ class DDSContextProvider {
 
  private:
   DDSContextProvider() = default;
-};
-
-/// @brief @c void specialization: preserves the original @c SetName()/@c Get() singleton.
-///
-/// The instance is constructed on first call to @c Get(), using the name set
-/// via @c SetName(). Call @c SetName() once at startup before any pub/sub is
-/// created. Non-instantiable — all access is through static methods.
-template <>
-class DDSContextProvider<void> {
- public:
-  DDSContextProvider(const DDSContextProvider&) = delete;
-  DDSContextProvider& operator=(const DDSContextProvider&) = delete;
-
-  /// @brief Sets the DomainParticipant name used when the singleton is first constructed.
-  ///        Must be called before the first @c Get() invocation. No effect after construction.
-  static void SetName(std::string name) { name_ = std::move(name); }
-
-  /// @brief Returns the singleton @c DDSContext, constructing it on first call.
-  static DDSContext& Get() {
-    using Deleter = std::function<void(DDSContext*)>;
-
-    static std::unique_ptr<DDSContext, Deleter> instance = []() {
-      return std::unique_ptr<DDSContext, Deleter>(new DDSContext(name_),
-                                                  [](DDSContext* ptr) {
-                                                    if (ptr) {
-                                                      delete ptr;
-                                                    }
-                                                  });
-    }();
-
-    return *instance;
-  }
-
- private:
-  DDSContextProvider() = default;
-
-  static inline std::string name_ = "MockaMammT";
 };
 }  // namespace core::communication
 
