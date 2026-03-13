@@ -100,7 +100,7 @@ class DDSSubscriber {
   void Start(const std::string& topic_name) {
     // we store a pointer to participant for lifecycle mgmt of subscriber and
     // data reader
-    auto& ctx = DDSContextProvider::Get();
+    auto& ctx = DDSContextProvider<>::Get();
     participant_ = ctx.GetDomainParticipant();
 
     auto* raw_sub =

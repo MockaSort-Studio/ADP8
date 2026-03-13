@@ -17,15 +17,15 @@ inline constexpr char kTopicName[] = "Topic";
 
 TEST_F(DDSContextTest, SuccessfulInitialization) {
   EXPECT_NO_THROW({
-    DDSContext& ctx = DDSContextProvider::Get();
+    DDSContext& ctx = DDSContextProvider<>::Get();
     auto participant = ctx.GetDomainParticipant();
     EXPECT_NE(participant, nullptr);
   });
 }
 
 TEST_F(DDSContextTest, ReturnsSameInstanceAddress) {
-  DDSContext& ref1 = DDSContextProvider::Get();
-  DDSContext& ref2 = DDSContextProvider::Get();
+  DDSContext& ref1 = DDSContextProvider<>::Get();
+  DDSContext& ref2 = DDSContextProvider<>::Get();
 
   EXPECT_EQ(&ref1, &ref2) << "Provider should return the same memory address";
 }

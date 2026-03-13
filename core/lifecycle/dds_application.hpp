@@ -36,11 +36,9 @@ class DDSAPPlication final {
  public:
   /// @brief Constructs the application: sets up DDS, installs signal handlers, builds tasks.
   /// @param domain_participant_name Name assigned to the FastDDS DomainParticipant.
-  DDSAPPlication(const std::string domain_participant_name) {
+  DDSAPPlication([[maybe_unused]] const std::string domain_participant_name) {
     std::signal(SIGINT, detail::signal_handler);
     std::signal(SIGTERM, detail::signal_handler);
-
-    communication::DDSContextProvider::SetName(domain_participant_name);
 
     BuildTaskManager();
   }
