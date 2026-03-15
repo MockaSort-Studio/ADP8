@@ -4,3 +4,18 @@ build --cxxopt=-std=c++17 --linkopt="-fuse-ld=ld" --nostart_end_lib#this last op
 build --action_env=CC=/usr/bin/clang
 build --action_env=CXX=/usr/bin/clang++
 build --compiler=clang
+
+#local build with remote cache
+build:remote --bes_results_url=https://app.buildbuddy.io/invocation/
+build:remote --bes_backend=grpcs://remote.buildbuddy.io
+common:remote --remote_cache=grpcs://remote.buildbuddy.io
+common:remote --remote_timeout=10m
+common:remote --remote_cache_compression
+
+#ci build with remote cache and RBE
+build:ci --config=remote
+build:ci --remote_header=x-buildbuddy-api-key=${BUILD_BUDDY_KEY}
+common:ci --remote_executor=grpcs://remote.buildbuddy.io
+
+
+try-import %workspace%/.bazelrc.user
