@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - '**/*.md'
+      - "docs/**"
+      - "mkdocs.yml"
+      - "**/*.md"
 
 jobs:
   build-main:
@@ -17,7 +17,7 @@ jobs:
       matrix:
         include:
           - name: "Build All"
-            target: "-- //... -//ai/..."
+            target: "//..."
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup_environment

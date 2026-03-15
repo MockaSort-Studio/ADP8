@@ -15,6 +15,7 @@ common:remote --remote_cache_compression
 
 #ci build with remote cache and RBE
 build:ci --config=remote
+common:ci --build_metadata=ROLE=CI
 common:ci --remote_header=x-buildbuddy-api-key=${BUILD_BUDDY_KEY}
 common:ci --remote_executor=grpcs://remote.buildbuddy.io
 
