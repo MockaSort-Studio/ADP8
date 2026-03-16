@@ -37,9 +37,11 @@ struct find_hash_impl<Hash, Tuple, std::index_sequence<Is...>> {
   static constexpr size_t value = get_index();
 };
 
-/// @brief Finds the index of the @c DataEndpoint in @p Tuple whose @c kHash equals @p TargetHash.
+/// @brief Finds the index of the @c DataEndpoint in @p Tuple whose @c kHash
+/// equals @p TargetHash.
 ///        Produces a compile error if not found.
-/// @tparam TargetHash Hash value to search for. Use @c Hash(TopicName) to compute.
+/// @tparam TargetHash Hash value to search for. Use @c Hash(TopicName) to
+/// compute.
 /// @tparam Tuple      @c std::tuple of @c DataEndpoint specializations.
 template <uint64_t TargetHash, typename Tuple>
 struct find_by_hash {
@@ -54,7 +56,8 @@ struct find_by_hash {
 /// @brief Tag-dispatched accessor: returns the @c DataEndpoint in @p storage
 ///        whose @c TopicSpec::kName matches @p TopicName.
 ///        Fails to compile if the name is not found.
-/// @tparam TopicName Compile-time string literal matching a @c TopicSpec::kName.
+/// @tparam TopicName Compile-time string literal matching a @c
+/// TopicSpec::kName.
 template <const char* TopicName, typename Tuple>
 auto& get(Tuple& storage) {
   using T = std::decay_t<Tuple>;

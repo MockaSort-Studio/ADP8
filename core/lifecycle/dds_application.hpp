@@ -23,10 +23,12 @@ inline void signal_handler(int) { shutdown_requested.store(true); }
 /// the @c TasksManager from @p ApplicationConfig. Call @c Run() to block the
 /// main thread until a shutdown signal is received.
 ///
-/// @p ApplicationConfig must be a @c LookupTable mapping task types (@c TaskInterface
-/// subclasses) to @c TaskSpec values. The engine starts automatically at construction.
+/// @p ApplicationConfig must be a @c LookupTable mapping task types (@c
+/// TaskInterface subclasses) to @c TaskSpec values. The engine starts
+/// automatically at construction.
 ///
-/// @tparam ApplicationConfig A @c LookupTable of @c {TaskType -> TaskSpec} entries.
+/// @tparam ApplicationConfig A @c LookupTable of @c {TaskType -> TaskSpec}
+/// entries.
 template <typename ApplicationConfig>
 class DDSAPPlication final {
   static_assert(core::utils::is_lookup_table_v<ApplicationConfig>,
@@ -34,8 +36,10 @@ class DDSAPPlication final {
                 "core/support/utils/lookup_table.hpp");
 
  public:
-  /// @brief Constructs the application: sets up DDS, installs signal handlers, builds tasks.
-  /// @param domain_participant_name Name assigned to the FastDDS DomainParticipant.
+  /// @brief Constructs the application: sets up DDS, installs signal handlers,
+  /// builds tasks.
+  /// @param domain_participant_name Name assigned to the FastDDS
+  /// DomainParticipant.
   DDSAPPlication([[maybe_unused]] const std::string domain_participant_name) {
     std::signal(SIGINT, detail::signal_handler);
     std::signal(SIGTERM, detail::signal_handler);

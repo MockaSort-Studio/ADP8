@@ -24,14 +24,15 @@ struct Job {
   bool operator>(const Job& other) const { return time > other.time; }
 };
 
-/// @brief Single-threaded periodic task scheduler backed by a min-heap priority queue.
+/// @brief Single-threaded periodic task scheduler backed by a min-heap priority
+/// queue.
 ///
-/// Each registered function wraps into a self-rescheduling callback: after execution
-/// it re-enqueues itself at @c now + period. The worker thread sleeps until the next
-/// deadline using @c condition_variable::wait_until.
+/// Each registered function wraps into a self-rescheduling callback: after
+/// execution it re-enqueues itself at @c now + period. The worker thread sleeps
+/// until the next deadline using @c condition_variable::wait_until.
 ///
-/// Exceptions from callbacks are caught and logged; the failed task is not rescheduled.
-/// Non-copyable. Destruction automatically calls @c Stop().
+/// Exceptions from callbacks are caught and logged; the failed task is not
+/// rescheduled. Non-copyable. Destruction automatically calls @c Stop().
 class ExecutionEngine final {
  public:
   ExecutionEngine() = default;
@@ -44,7 +45,8 @@ class ExecutionEngine final {
   /// @brief Spawns the worker thread. No-op if already running.
   void Start();
 
-  /// @brief Clears the queue, signals the worker to exit, and joins it. Idempotent.
+  /// @brief Clears the queue, signals the worker to exit, and joins it.
+  /// Idempotent.
   void Stop();
 
   /// @brief Registers a periodic task.

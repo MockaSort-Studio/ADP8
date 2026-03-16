@@ -4,9 +4,10 @@
 // No peer node — covers construction, FillInputs/FlushOutputs, and
 // empty reads. Integration with a live peer lives in the examples.
 
+#include "core/pybinds/py_dds_bridge.hpp"
+
 #include <gtest/gtest.h>
 
-#include "core/pybinds/py_dds_bridge.hpp"
 #include "ping_ports_publications.hpp"
 #include "ping_ports_subscriptions.hpp"
 

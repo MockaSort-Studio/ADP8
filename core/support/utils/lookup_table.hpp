@@ -20,9 +20,11 @@ struct single_type_extractor<std::tuple<Ts...>> {
   using type = std::tuple<Ts...>;
 };
 
-/// @brief One entry in a @c LookupTable: a tag type paired with one or more values.
+/// @brief One entry in a @c LookupTable: a tag type paired with one or more
+/// values.
 ///
-/// @tparam KeyType    Tag type used for compile-time lookup. Typically an empty struct.
+/// @tparam KeyType    Tag type used for compile-time lookup. Typically an empty
+/// struct.
 /// @tparam ValueTypes Types of the values stored under this key.
 template <typename KeyType, typename... ValueTypes>
 struct TableItem {
@@ -81,14 +83,16 @@ constexpr const auto& find_val(const First& first, const Rest&... rest) {
   }
 }
 
-/// @brief Constructs the defaults tuple for a @c LookupTable using @c Init helpers.
+/// @brief Constructs the defaults tuple for a @c LookupTable using @c Init
+/// helpers.
 ///        Order-independent: each @c Init is matched to its entry by tag.
 template <typename Table, typename... Inits>
 constexpr auto TableDefaults(const Inits&... inits) {
   return Table::SetDefaults(inits...);
 }
 
-/// @brief Compile-time heterogeneous key-value map backed by multiple inheritance.
+/// @brief Compile-time heterogeneous key-value map backed by multiple
+/// inheritance.
 ///
 /// Inherits from every @c TableItem, enabling tag-dispatched value lookup with
 /// no runtime overhead. Keys must be unique — a @c static_assert enforces this.
@@ -97,12 +101,14 @@ constexpr auto TableDefaults(const Inits&... inits) {
 /// @code
 /// struct SpeedTag {};
 /// struct TimeoutTag {};
-/// using MyTable = LookupTable<TableItem<SpeedTag, float>, TableItem<TimeoutTag, int>>;
-/// constexpr MyTable table({std::make_tuple(10.0f), std::make_tuple(500)});
-/// float v = table.GetValue<SpeedTag>();  // 10.0f
+/// using MyTable = LookupTable<TableItem<SpeedTag, float>,
+/// TableItem<TimeoutTag, int>>; constexpr MyTable
+/// table({std::make_tuple(10.0f), std::make_tuple(500)}); float v =
+/// table.GetValue<SpeedTag>();  // 10.0f
 /// @endcode
 ///
-/// @tparam TableElements Pack of @c TableItem specializations. Keys must be unique.
+/// @tparam TableElements Pack of @c TableItem specializations. Keys must be
+/// unique.
 template <typename... TableElements>
 struct LookupTable : public TableElements... {
   // --- Your original consistency checks ---
@@ -159,7 +165,8 @@ struct LookupTable : public TableElements... {
     return GetValue<Tag>();
   }
 
-  /// @brief Calls @p func once per table entry, passing a default-constructed element.
+  /// @brief Calls @p func once per table entry, passing a default-constructed
+  /// element.
   ///        Useful for iterating over entry types without a table instance.
   /// @tparam Func Callable accepting any @c TableItem by value.
   template <typename Func>

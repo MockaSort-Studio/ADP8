@@ -33,13 +33,15 @@ constexpr auto collapse_tuple(T&& t) {
 /// @see core/lifecycle/test/parameters_provider_tests.cpp for usage examples.
 ///
 /// @tparam Params         @c LookupTable type defining the parameter schema.
-/// @tparam ParamsDefaults Tuple of default value tuples (order matches @p Params).
+/// @tparam ParamsDefaults Tuple of default value tuples (order matches @p
+/// Params).
 // proudly AI-generated, human-reviewed
 template <typename Params, typename ParamsDefaults>
 class ParametersProvider {
  public:
   /// @brief Returns the current value for @p ParameterTag.
-  ///        Single-value entries return the scalar; multi-value entries return a @c std::array.
+  ///        Single-value entries return the scalar; multi-value entries return
+  ///        a @c std::array.
   /// @tparam ParameterTag Tag type identifying the parameter in @p Params.
   template <typename ParameterTag>
   constexpr auto GetParameterValue() const {
@@ -47,7 +49,8 @@ class ParametersProvider {
   }
 
  protected:
-  // Protected to allow derived classes (e.g. a parameter server) to update values.
+  // Protected to allow derived classes (e.g. a parameter server) to update
+  // values.
   /// @brief Updates the value for @p ParameterTag.
   /// @tparam ParameterTag Tag type identifying the parameter in @p Params.
   /// @param  args         New values, forwarded into the parameter tuple.

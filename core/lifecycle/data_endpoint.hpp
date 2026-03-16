@@ -9,20 +9,24 @@
 // this should be moved in communication
 namespace core::lifecycle {
 
-/// @brief Direction tag for @c DataEndpoint. @c In = subscriber, @c Out = publisher.
+/// @brief Direction tag for @c DataEndpoint. @c In = subscriber, @c Out =
+/// publisher.
 enum class DataDirection { In, Out };
 
-/// @brief Generic DDS endpoint: subscriber (@c In) or publisher (@c Out) for one topic.
+/// @brief Generic DDS endpoint: subscriber (@c In) or publisher (@c Out) for
+/// one topic.
 ///
-/// Uses @c if constexpr to instantiate only the relevant DDS primitive — the other
-/// member collapses to @c int. Owns the sample queue.
+/// Uses @c if constexpr to instantiate only the relevant DDS primitive — the
+/// other member collapses to @c int. Owns the sample queue.
 ///
 /// @c Sync() drives data transfer each step:
 /// - @c In: drains samples from the DDS listener queue into the local buffer.
 /// - @c Out: publishes the most recent queued sample if one is pending.
 ///
-/// @tparam Spec A @c TopicSpec specialization defining type, name, and queue size.
-/// @tparam D    @c DataDirection::In (subscriber) or @c DataDirection::Out (publisher).
+/// @tparam Spec A @c TopicSpec specialization defining type, name, and queue
+/// size.
+/// @tparam D    @c DataDirection::In (subscriber) or @c DataDirection::Out
+/// (publisher).
 template <typename Spec, DataDirection D>
 class DataEndpoint {
   static_assert(communication::is_topic_spec_v<Spec>,

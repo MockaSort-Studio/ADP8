@@ -98,7 +98,8 @@ class DDSPublisher {
             });
   }
 
-  /// @brief Writes @p payload to the topic if at least one subscriber is matched.
+  /// @brief Writes @p payload to the topic if at least one subscriber is
+  /// matched.
   /// @return True if the write succeeded; false if unmatched or write failed.
   bool Publish(const DDSDataType& payload) {
     if (listener_.matched_count_ > 0) {

@@ -9,16 +9,22 @@ namespace core::communication {
 
 namespace dds = eprosima::fastdds::dds;
 
-/// @brief Compile-time descriptor binding a FastDDS PubSubType to a named topic and queue depth.
+/// @brief Compile-time descriptor binding a FastDDS PubSubType to a named topic
+/// and queue depth.
 ///
-/// Pass specializations of this struct as template arguments to @c DataEndpoint,
+/// Pass specializations of this struct as template arguments to @c
+/// DataEndpoint,
 /// @c DDSPublisher, and @c DDSSubscriber. All three parameters are resolved at
 /// compile time — no runtime overhead for topic lookup.
 ///
-/// @tparam T              FastDDS PubSubType. Must derive from @c TopicDataType.
-///                        The inner @c ::type alias gives the message payload type.
-/// @tparam TopicName      Null-terminated string literal identifying the DDS topic.
-/// @tparam max_queue_size Maximum samples buffered in the subscriber queue (default: 1).
+/// @tparam T              FastDDS PubSubType. Must derive from @c
+/// TopicDataType.
+///                        The inner @c ::type alias gives the message payload
+///                        type.
+/// @tparam TopicName      Null-terminated string literal identifying the DDS
+/// topic.
+/// @tparam max_queue_size Maximum samples buffered in the subscriber queue
+/// (default: 1).
 template <typename T, const char* TopicName, size_t max_queue_size = 1>
 struct TopicSpec {
   static_assert(std::is_base_of_v<dds::TopicDataType, T>,
@@ -30,7 +36,8 @@ struct TopicSpec {
 };
 
 /// @brief Detects whether @p T is a @c TopicSpec specialization.
-/// @tparam T Type to test. Evaluates to @c std::true_type for any @c TopicSpec<...>.
+/// @tparam T Type to test. Evaluates to @c std::true_type for any @c
+/// TopicSpec<...>.
 template <typename T>
 struct is_topic_spec : std::false_type {};
 

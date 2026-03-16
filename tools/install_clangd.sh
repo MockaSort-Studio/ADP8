@@ -21,7 +21,7 @@ mkdir -p "${WORKSPACE_ROOT}/.bin"
 
 # Resolve through the runfiles symlinks to the stable path inside Bazel's
 # external repository cache, so .bin/ entries survive after the run exits.
-ln -sf "$(realpath "$(rlocation llvm_toolchain/clangd)")"       "${WORKSPACE_ROOT}/.bin/clangd"
+ln -sf "$(realpath "$(rlocation llvm_toolchain/clangd)")" "${WORKSPACE_ROOT}/.bin/clangd"
 ln -sf "$(realpath "$(rlocation llvm_toolchain/clang-format)")" "${WORKSPACE_ROOT}/.bin/clang-format"
 
 echo "hermetic clangd      → ${WORKSPACE_ROOT}/.bin/clangd"

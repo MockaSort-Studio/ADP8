@@ -11,7 +11,8 @@ namespace core::utils {
 using Clock = std::chrono::steady_clock;
 using Timestamp = std::chrono::time_point<Clock>;
 
-/// @brief A timestamped data sample produced by @c SizeConstrainedQueue::Push().
+/// @brief A timestamped data sample produced by @c
+/// SizeConstrainedQueue::Push().
 /// @tparam T Data type of the stored value.
 template <typename T>
 struct Sample {
@@ -50,7 +51,8 @@ class SizeConstrainedQueue {
     return buffer_[(h + N - 1 - index) % N];
   }
 
-  /// @brief Pushes @p message into the queue, overwriting the oldest sample if full.
+  /// @brief Pushes @p message into the queue, overwriting the oldest sample if
+  /// full.
   ///        Timestamps the sample with the current steady clock.
   template <typename U>
   void Push(U&& message) {

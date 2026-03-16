@@ -1,12 +1,11 @@
 #ifndef CORE_COMMUNICATION_DDS_CONTEXT
 #define CORE_COMMUNICATION_DDS_CONTEXT
 
+#include <boost/core/demangle.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
-
-#include <boost/core/demangle.hpp>
 
 #include "core/communication/topic_spec.hpp"
 #include "fastdds/dds/domain/DomainParticipant.hpp"
@@ -24,8 +23,10 @@ namespace dds = eprosima::fastdds::dds;
 /// Non-copyable; move-constructible.
 class DDSContext {
  public:
-  /// @brief Constructs the context and creates a DomainParticipant with the given name.
-  /// @param domain_participant_name Name assigned to the FastDDS DomainParticipant.
+  /// @brief Constructs the context and creates a DomainParticipant with the
+  /// given name.
+  /// @param domain_participant_name Name assigned to the FastDDS
+  /// DomainParticipant.
   /// @throws std::runtime_error if participant creation fails.
   DDSContext(const std::string& domain_participant_name) {
     // Start from the factory's default QoS so that any XML profile loaded via
@@ -56,7 +57,8 @@ class DDSContext {
   ~DDSContext() = default;
 
   /// @brief Get or create a topic from a @c TopicSpec.
-  /// @tparam Spec A @c TopicSpec specialization. Derives topic name and PubSubType from it.
+  /// @tparam Spec A @c TopicSpec specialization. Derives topic name and
+  /// PubSubType from it.
   /// @return Pointer to the FastDDS topic. Owned by this context.
   template <typename Spec>
   dds::Topic* GetDDSTopic() {
@@ -135,7 +137,8 @@ class DDSContextProvider {
   DDSContextProvider(const DDSContextProvider&) = delete;
   DDSContextProvider& operator=(const DDSContextProvider&) = delete;
 
-  /// @brief Returns the singleton @c DDSContext for @p Tag, constructing it on first call.
+  /// @brief Returns the singleton @c DDSContext for @p Tag, constructing it on
+  /// first call.
   static DDSContext& Get() {
     static DDSContext instance{boost::core::demangle(typeid(Tag).name())};
     return instance;

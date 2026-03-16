@@ -12,7 +12,8 @@ namespace core::lifecycle {
 /// Returned by @c DDSTask::GetInputSource(). Provides indexed sample access
 /// and size queries; does not own the endpoint.
 ///
-/// @tparam Spec @c TopicSpec specialization. Determines the data type and queue size.
+/// @tparam Spec @c TopicSpec specialization. Determines the data type and queue
+/// size.
 template <typename Spec>
 struct InputSource {
   static_assert(communication::is_topic_spec_v<Spec>,
