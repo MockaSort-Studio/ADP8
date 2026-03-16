@@ -4,14 +4,18 @@ on:
     branches:
       - main
     paths:
-      - 'docs/**'
-      - 'zensical.toml'
-      - '.github/workflows/docs_deploy.yml'
+      - "docs/**"
+      - "zensical.toml"
+      - ".github/workflows/docs_deploy.yml"
 
 permissions:
   contents: read
   pages: write
   id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
