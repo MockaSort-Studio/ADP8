@@ -9,7 +9,6 @@
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 #include <optional>
-#include <thread>
 
 #include "core/communication/dds_context.hpp"
 #include "core/support/utils/size_constrained_queue.hpp"
@@ -73,10 +72,12 @@ class SubListener : public dds::DataReaderListener {
 };
 }  // namespace
 
-/// @brief Wraps a FastDDS DataReader for a single topic, with a fixed-size sample queue.
+/// @brief Wraps a FastDDS DataReader for a single topic, with a fixed-size
+/// sample queue.
 ///
-/// Incoming samples are pushed into a @c SizeConstrainedQueue by the listener callback.
-/// Call @c DrainQueue() to transfer all buffered samples at once (used by
+/// Incoming samples are pushed into a @c SizeConstrainedQueue by the listener
+/// callback. Call @c DrainQueue() to transfer all buffered samples at once
+/// (used by
 /// @c DataEndpoint::Sync()), or @c GetSample() to consume one sample at a time.
 ///
 /// @tparam PubSubType FastDDS PubSubType. Must derive from @c TopicDataType.
@@ -136,8 +137,10 @@ class DDSSubscriber {
     return std::move(listener_.GetSample());
   }
 
-  /// @brief Transfers all buffered samples from the listener queue into @p other.
-  ///        Replaces the contents of @p other entirely. Used by @c DataEndpoint::Sync().
+  /// @brief Transfers all buffered samples from the listener queue into @p
+  /// other.
+  ///        Replaces the contents of @p other entirely. Used by @c
+  ///        DataEndpoint::Sync().
   inline void DrainQueue(
       utils::SizeConstrainedQueue<DDSDataType, QueueSize>& other) noexcept {
     listener_.DrainQueue(other);

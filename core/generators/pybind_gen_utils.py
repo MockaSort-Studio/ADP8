@@ -10,7 +10,11 @@ from typing import List
 from idl_parser.parser import IDLParser
 
 from core.generators.gen_data_models import pascal_to_snake
-from core.generators.gen_utils import dds_ports_from_yaml, get_available_idl_types, parse_yaml
+from core.generators.gen_utils import (
+    dds_ports_from_yaml,
+    get_available_idl_types,
+    parse_yaml,
+)
 from core.generators.pybind_gen_models import (
     IDL_TO_CPP_TYPE,
     STRING_IDL_TYPES,

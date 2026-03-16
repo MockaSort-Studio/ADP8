@@ -47,9 +47,8 @@
     "clangd.arguments": [
         "--query-driver=/**/*",
         "--compile-commands-dir=${workspaceFolder}",
-        // "--header-insertion=never",
-        // "--background-index",
     ],
+    "python.defaultInterpreterPath": "${workspaceFolder}/.py_external_symlink/bin/python3",
     // Bazel
     "bazel.buildifierExecutable": "buildifier",
     "bazel.lsp.command": "starpls",
