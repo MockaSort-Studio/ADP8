@@ -18,4 +18,4 @@ jobs:
       - uses: MockaSort-Studio/actions/.github/actions/build-bazel@main
         with:
           targets: //...
-          config: ci
+          config: main
