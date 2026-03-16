@@ -9,7 +9,7 @@ create_aliases()
 create_compile_commands(
     name = "compile_cc",
     targets = {
-        "//core/...": "",
+        "//...": "",
         "@fastdds": "",
     },
 )
