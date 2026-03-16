@@ -13,6 +13,7 @@ pyenv.cfg
 venv
 __pycache__
 bazel-*
+.bin/
 .bazelrc.user
 **/*.bazel.lock
 .vscode/launch.json

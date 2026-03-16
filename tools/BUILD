@@ -3,12 +3,10 @@ load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["fixup_compile_commands_transient.sh.in"])
-
-sh_binary(
-    name = "clang_formatting",
-    srcs = ["clang_format_wrap.sh"],
-)
+exports_files([
+    "fixup_compile_commands_transient.sh.in",
+    "install_clangd.sh",
+])
 
 sh_binary(
     name = "shell_formatting",
@@ -17,6 +15,6 @@ sh_binary(
 
 format_multirun(
     name = "format",
-    cc = ":clang_formatting",
+    cc = "@llvm_toolchain//:clang-format",
     shell = ":shell_formatting",
 )
