@@ -21,8 +21,6 @@ jobs:
           lfs: true
           token: ${{ secrets.CI_RW_CONTENT_KEY }}
 
-      - uses: ./.github/actions/setup_environment
-
       - name: Generate compile_commands.json
         run: |
           bazel run //:compile_cc

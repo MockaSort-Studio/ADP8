@@ -1,9 +1,9 @@
-# cpp 17
-build --cxxopt=-std=c++17 --linkopt="-fuse-ld=ld" --nostart_end_lib#this last option is a workaround
-#clang toolchain
-build --action_env=CC=/usr/bin/clang
-build --action_env=CXX=/usr/bin/clang++
-build --compiler=clang
+# cpp 17 + hermetic libc++ (toolchains_llvm clang 19)
+build --cxxopt=-std=c++17
+build --cxxopt=-stdlib=libc++
+build --linkopt=-stdlib=libc++
+build --linkopt=-lc++abi
+build --nostart_end_lib
 
 #local build with remote cache
 build:remote --bes_results_url=https://app.buildbuddy.io/invocation/
@@ -16,7 +16,7 @@ common:remote --remote_cache_compression
 #ci build with remote cache and RBE
 build:ci --config=remote
 common:ci --build_metadata=ROLE=CI
-# common:ci --remote_executor=grpcs://remote.buildbuddy.io
+common:ci --remote_executor=grpcs://remote.buildbuddy.io
 
 #ci config for main branch build that will keep the remote cache up to date
 build:main --config=ci

@@ -27,6 +27,15 @@ bazel_dep(name = "google_benchmark", version = "1.9.5")
 bazel_dep(name = "rules_cc", version = "0.1.5")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "boost.core", version = "1.83.0.bcr.1")
+bazel_dep(name = "toolchains_llvm", version = "1.6.0")
+
+llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
+llvm.toolchain(
+    name = "llvm_toolchain",
+    llvm_versions = {"": "19.1.7"},
+)
+use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
+register_toolchains("@llvm_toolchain//:all")
 
 include("//:tools.MODULE.bazel")
 include("//:simulation.MODULE.bazel")

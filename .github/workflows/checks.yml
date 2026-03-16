@@ -33,7 +33,6 @@ jobs:
         with:
           ref: ${{ needs.trigger.outputs.head-sha }}
           lfs: true
-      - uses: ./.github/actions/setup_environment
       - uses: MockaSort-Studio/actions/.github/actions/build-bazel@main
         with:
           targets: //...
