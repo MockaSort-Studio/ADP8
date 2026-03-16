@@ -33,6 +33,7 @@
     "customizations": {
         "vscode": {
             "extensions": [
+                "anthropic.claude-code",
                 "astral-sh.ty",
                 "charliermarsh.ruff",
                 "kevinrose.vsc-python-indent",
