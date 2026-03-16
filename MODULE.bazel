@@ -18,6 +18,9 @@ python.toolchain(
     is_default = True,
     python_version = "3.14",
 )
+use_repo(python, "python_3_14")
+
+register_toolchains("@python_3_14//:all")
 ######################
 ####  rules  C++  ####
 ######################
@@ -35,6 +38,7 @@ llvm.toolchain(
     llvm_versions = {"": "19.1.7"},
 )
 use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
+
 register_toolchains("@llvm_toolchain//:all")
 
 include("//:tools.MODULE.bazel")

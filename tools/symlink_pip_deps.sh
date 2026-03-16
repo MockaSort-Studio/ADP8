@@ -5,8 +5,17 @@ DEST_DIR=".py_external_symlink"
 EXTERNAL_ROOT=$(bazel info output_base)/external
 mkdir -p "$DEST_DIR/bin"
 
-ln -sf $(which python3) ${PWD}/${DEST_DIR}/bin/python3
-echo "🐍 Found Python interpreter: $(which python3)"
+HERMETIC_PYTHON=$(bazel run --ui_event_filters=-info,-stdout,-stderr \
+  --noshow_progress \
+  --noshow_loading_progress \
+  @rules_python//python/bin:python -- -c "import sys; print(sys.executable)")
+VERSION=$(bazel run --ui_event_filters=-info,-stdout,-stderr \
+  --noshow_progress \
+  --noshow_loading_progress \
+  @rules_python//python/bin:python -- --version)
+  
+ln -sf $HERMETIC_PYTHON ${PWD}/${DEST_DIR}/bin/python3
+echo "🐍 Found Python interpreter: $VERSION"
 echo "   └─ Merging interpreter into $DEST_DIR"
 
 echo "🔎 Scanning Bazel external for pypi packages..."
