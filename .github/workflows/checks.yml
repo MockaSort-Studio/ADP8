@@ -28,6 +28,8 @@ jobs:
     needs: trigger
     if: needs.trigger.outputs.triggered == 'true'
     runs-on: ubuntu-latest
+    env:
+      BUILD_BUDDY_KEY: ${{ secrets.BUILD_BUDDY_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
