@@ -16,7 +16,7 @@ runs:
       shell: bash
       run: |
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        brew install bazel-diff llvm@18
+        brew install llvm@18
         echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
     - name: Bazel Cache

@@ -12,16 +12,10 @@ on:
 jobs:
   build-main:
     runs-on: ubuntu-latest
-    strategy:
-      #leaving it as a matrix for easy future expansion
-      matrix:
-        include:
-          - name: "Build All"
-            target: "//..."
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup_environment
-
-      - name: Bazel Build
-        run: |
-          bazel build --config=ci ${{ matrix.target }}
+      - uses: MockaSort-Studio/actions/.github/actions/build-bazel@main
+        with:
+          targets: //...
+          config: ci
