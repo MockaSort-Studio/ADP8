@@ -28,8 +28,6 @@ jobs:
     needs: trigger
     if: needs.trigger.outputs.triggered == 'true'
     runs-on: ubuntu-latest
-    env:
-      BUILD_BUDDY_KEY: ${{ secrets.BUILD_BUDDY_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,6 +37,8 @@ jobs:
         with:
           targets: //...
           config: ci
+          build_buddy_key: ${{ secrets.BUILD_BUDDY_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   finish:
     needs: [trigger, build]
