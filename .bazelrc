@@ -16,7 +16,7 @@ common:remote --remote_cache_compression
 #ci build with remote cache and RBE
 build:ci --config=remote
 common:ci --build_metadata=ROLE=CI
-common:ci --remote_executor=grpcs://remote.buildbuddy.io
+# common:ci --remote_executor=grpcs://remote.buildbuddy.io
 
 #ci config for main branch build that will keep the remote cache up to date
 build:main --config=ci
