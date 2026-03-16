@@ -1,0 +1,38 @@
+name: Update compile_commands.json
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+
+permissions:
+  contents: write
+
+jobs:
+  update-compile-commands:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/setup_environment
+
+      - name: Generate compile_commands.json
+        run: |
+          bazel run //:compile_cc
+          bazel run //:compile_cc_fix
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add compile_commands.json
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "chore: update compile_commands.json [skip ci]"
+          git push
