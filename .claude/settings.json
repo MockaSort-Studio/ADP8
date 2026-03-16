@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "mdbase-lsp@claude-code-lsps": true,
+    "basedpyright@claude-code-lsps": true,
+    "clangd@claude-code-lsps": true
+  }
+}
