@@ -12,12 +12,13 @@ def create_aliases(name = "create_aliases"):
         actual = "//tools:format",
     )
 
-def create_compile_commands(name = "compile_commands", targets = {}):
+def create_compile_commands(name = "compile_commands", targets = {}, tags = []):
     refresh_compile_commands(
         name = name,
         # Specify the targets of interest.
         # For example, specify a dict of targets and any flags required to build.
         targets = targets,
+        tags = tags,
 
         # No need to add flags already in .bazelrc. They're automatically picked up.
         # If you don't need flags, a list of targets is also okay, as is a single target string.
@@ -30,6 +31,7 @@ def create_compile_commands(name = "compile_commands", targets = {}):
         is_executable = True,
         name = "fix_compile_commands_script",
         out = "fix_compile_commands.sh",
+        tags = tags,
     )
 
     # this rules replaces the current directory (fastbuild, debug ecc...) with the bazel-bin symlink
@@ -37,4 +39,5 @@ def create_compile_commands(name = "compile_commands", targets = {}):
         name = "{}_fix".format(name),
         srcs = [":fix_compile_commands_script"],
         data = [":{}".format(name), "compile_commands.json"],
+        tags = tags,
     )

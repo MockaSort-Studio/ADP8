@@ -8,6 +8,10 @@ create_aliases()
 
 create_compile_commands(
     name = "compile_cc",
+    tags = [
+        "manual",
+        "no-remote",
+    ],
     targets = {
         "//...": "",
         "@fastdds": "",
