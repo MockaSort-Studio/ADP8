@@ -49,11 +49,17 @@ def _cc_fastdds_types_impl(ctx):
     #input IDL files
     args.add_all(idls_paths)
 
+    java_runtime = ctx.toolchains["@bazel_tools//tools/jdk:runtime_toolchain_type"].java_runtime
+
+    java_args = ctx.actions.args()
+    java_args.add("-jar")
+    java_args.add(ctx.file._jar)
+
     ctx.actions.run(
         outputs = output_files,
-        inputs = idls,
-        executable = ctx.executable._generator,
-        arguments = [args],
+        inputs = depset(idls + [ctx.file._jar], transitive = [java_runtime.files]),
+        executable = java_runtime.java_executable_exec_path,
+        arguments = [java_args, args],
         mnemonic = "FastDDSGen",
     )
     srcs = [f for f in output_files if f.extension == "cxx"]
@@ -76,13 +82,15 @@ cc_fastdds_types = rule(
         "idl_srcs": attr.label_list(allow_files = True),
         "_deps": attr.label_list(providers = [CcInfo], default = ["@fastdds"]),
         "linkstatic": attr.bool(default = True),
-        "_generator": attr.label(
-            executable = True,
-            cfg = "exec",
-            default = Label("@fastddsgen"),
+        "_jar": attr.label(
+            default = Label("@fastddsgen//:fastddsgen_jar"),
+            allow_single_file = True,
         ),
         "_cc_toolchain": attr.label(default = Label("@bazel_tools//tools/cpp:current_cc_toolchain")),
     },
     fragments = ["cpp"],
-    toolchains = ["@bazel_tools//tools/cpp:toolchain_type"],
+    toolchains = [
+        "@bazel_tools//tools/cpp:toolchain_type",
+        "@bazel_tools//tools/jdk:runtime_toolchain_type",
+    ],
 )

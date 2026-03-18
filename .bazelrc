@@ -5,8 +5,15 @@ build --linkopt=-stdlib=libc++
 build --linkopt=-lc++abi
 build --nostart_end_lib
 
+#FastDDSGen runtime
+# tool_java_* = exec config (tools running during build); hermetic everywhere.
+# java_* = target config (Java binaries being built); only needed on CI.
+build --java_runtime_version=remotejdk_17
+build --tool_java_runtime_version=remotejdk_17
+build --java_language_version=17
+build --tool_java_language_version=17
+
 # hermetic interpreter Python 3.14
-# Use the modern bootstrap that doesn't rely on a system 'python3' to start
 build --@rules_python//python/config_settings:bootstrap_impl=script
 # Ensure we never "leak" into the system interpreter
 build --incompatible_use_python_toolchains
@@ -26,15 +33,9 @@ build:ci --config=remote
 build:ci --platforms=@toolchains_llvm//platforms:linux-x86_64
 build:ci --build_metadata=ROLE=CI
 build:ci --remote_executor=grpcs://remote.buildbuddy.io
+build:ci --remote_default_exec_properties=container-image=docker://ubuntu:22.04
 build:ci --jobs=20
 
-build:ci --remote_default_exec_properties=container-image=docker://ubuntu:22.04
-
-#FastDDSGen runtime
-common:ci --java_language_version=17
-common:ci --tool_java_language_version=17
-common:ci --java_runtime_version=remotejdk_17
-common:ci --tool_java_runtime_version=remotejdk_17
 #ci config for main branch build that will keep the remote cache up to date
 build:main --config=ci
 build:main --remote_upload_local_results

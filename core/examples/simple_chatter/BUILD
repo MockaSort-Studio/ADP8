@@ -7,7 +7,6 @@ load("//core/generators:fastdds_types_gen.bzl", "cc_fastdds_types")
 cc_fastdds_types(
     name = "chatter_types",
     idl_srcs = glob(["messages/*.idl"]),
-    tags = ["no-remote-exec"],
 )
 
 # node alpha
