@@ -32,16 +32,40 @@ bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "boost.core", version = "1.83.0.bcr.1")
 bazel_dep(name = "toolchains_llvm", version = "1.6.0")
 
+include("//:third_party/third_party.MODULE.bazel")
+include("//:tools.MODULE.bazel")
+include("//:simulation.MODULE.bazel")
+include("//core:core.MODULE.bazel")
+
+##### TOOLCHAINS #####
+
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
     name = "llvm_toolchain",
     llvm_versions = {"": "19.1.7"},
+    # BuildBuddy RBE mounts the sandbox at /proc/self/cwd (a real directory in
+    # their executor, not just the procfs symlink).  clang resolves relative
+    # -isystem paths against that CWD and writes /proc/self/cwd/... in .d files.
+    # Bazel validates .d files client-side against the local execroot, which
+    # doesn't match /proc/self/cwd/, causing "absolute path inclusion" errors.
+    # Adding /proc/self/cwd here tells Bazel to accept any path under that
+    # prefix as a known builtin include.  The entry survives the
+    # _is_hermetic_or_exists filter because /proc/self/cwd exists on Linux
+    # (procfs); on macOS it is filtered out harmlessly.
+    cxx_builtin_include_directories = {
+        "linux-x86_64": ["/proc/self/cwd"],
+    },
 )
-use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
+llvm.toolchain_root(
+    name = "llvm_toolchain",
+    label = "@llvm_toolchain_linux_x86_64//:dummy",
+    targets = ["linux-x86_64"],
+)
+llvm.sysroot(
+    name = "llvm_toolchain",
+    label = "@llvm_toolchain_linux_x86_64//sysroot:sysroot",
+    targets = ["linux-x86_64"],
+)
+use_repo(llvm, "llvm_toolchain")
 
 register_toolchains("@llvm_toolchain//:all")
-
-include("//:tools.MODULE.bazel")
-include("//:simulation.MODULE.bazel")
-include("//core:core.MODULE.bazel")
-include("//:third_party/third_party.MODULE.bazel")

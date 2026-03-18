@@ -10,6 +10,7 @@ filegroup(
 cc_fastdds_types(
     name = "test_dds_types",
     idl_srcs = glob(["idl/*.idl"]),
+    tags = ["no-remote-exec"],
     visibility = ["//core:__subpackages__"],
 )
 

@@ -12,6 +12,7 @@ load("//core/generators:parameters_gen.bzl", _cc_parameters = "cc_parameters")
 load("//core/generators:pybind_bridge_gen.bzl", "pybind_bridge_gen")
 load("//core/generators:pybind_type_gen.bzl", "pybind_type_gen")
 
+### NOTE TODO: setting no-remote-exec for fast_dds_gen until I find a better way to find java on buildbuddy runner
 def cc_dds_components(name, idls, ports_yaml, namespace = "gen"):
     """Generates a suite of DDS communication components including port specs and type support.
 
@@ -28,6 +29,7 @@ def cc_dds_components(name, idls, ports_yaml, namespace = "gen"):
     _cc_fastdds_types(
         name = "{}_types".format(name),
         idl_srcs = idls,
+        tags = ["no-remote-exec"],
     )
 
     _cc_dds_ports(
