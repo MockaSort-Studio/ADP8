@@ -19,15 +19,11 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume
     libegl1 \
     libgl1 \
     libglx0 \
-    libgl1-mesa-dri \
     mesa-utils \
     libosmesa6-dev \
     x11-apps \
-    libopenmpi-dev \
     direnv \
-    curl \
-    # for fastdds gen 
-    openjdk-17-jre-headless && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+    curl && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # for teleops
 RUN groupadd -g 104 input && usermod -aG input vscode
@@ -41,10 +37,7 @@ RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.co
 
 
 # Add brew and llvm to PATH for Dockerfile RUN steps
-ENV PATH="/home/linuxbrew/.linuxbrew/bin: \
-    /home/linuxbrew/.linuxbrew/sbin: \
-    /home/linuxbrew/.linuxbrew/opt/llvm/bin: \
-    /home/linuxbrew/.linuxbrew/opt/binutils/bin:${PATH}"
+ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}"
 
 RUN sudo chown -R vscode:vscode /home/linuxbrew/.linuxbrew
 RUN --mount=type=cache,target=/home/vscode/.cache/Homebrew

@@ -45,7 +45,6 @@
                 "BazelBuild.vscode-bazel",
                 "akiramiyakoda.cppincludeguard",
                 "eamodio.gitlens",
-                "hediet.vscode-drawio",
                 "ms-azuretools.vscode-containers"
             ]
         }
