@@ -36,9 +36,9 @@ create_compile_commands(
 # Define exactly how the interpreter is accessed
 py_runtime(
     name = "hermetic_python_3",
-    files = ["@python_3_14//:files"],
+    files = ["@python_3_12//:files"],
     # Points to the binary inside the downloaded hermetic repository
-    interpreter = "@python_3_14//:python3",
+    interpreter = "@python_3_12//:python3",
     python_version = "PY3",
     # If the system has NO 'env' at all, you can use a hard path
     # OR an empty string to let Bazel try to resolve it relatively.

@@ -152,6 +152,8 @@ or accept that formatting is honor-system.
 environments and will break the moment anyone tries to build outside this devcontainer.
 3.12 or 3.13 would be more stable.
 
+Indeed, reverted back to 3.12
+
 **17. `float[0]` in YAML parameters causes silent broken output**
 `gen_data_models.py` normalizes `float[3]` → `float, float, float` but never validates
 that the size is > 0. An array of zero elements generates `TableItem<Tag>` with no types,

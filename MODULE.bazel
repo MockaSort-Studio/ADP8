@@ -16,11 +16,11 @@ bazel_dep(name = "pybind11_bazel", version = "3.0.0")
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
 python.toolchain(
     is_default = True,
-    python_version = "3.14",
+    python_version = "3.12",
 )
-use_repo(python, "python_3_14")
+use_repo(python, "python_3_12")
 
-register_toolchains("@python_3_14//:all")
+register_toolchains("@python_3_12//:all")
 ######################
 ####  rules  C++  ####
 ######################

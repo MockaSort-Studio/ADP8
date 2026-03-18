@@ -13,7 +13,7 @@ build --tool_java_runtime_version=remotejdk_17
 build --java_language_version=17
 build --tool_java_language_version=17
 
-# hermetic interpreter Python 3.14
+# hermetic interpreter Python 3.12
 build --@rules_python//python/config_settings:bootstrap_impl=script
 # Ensure we never "leak" into the system interpreter
 build --incompatible_use_python_toolchains
