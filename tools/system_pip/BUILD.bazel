@@ -1,0 +1,2 @@
+# system_pip — Bazel module extension exposing host-installed Python packages.
+# See extensions.bzl for the implementation.
