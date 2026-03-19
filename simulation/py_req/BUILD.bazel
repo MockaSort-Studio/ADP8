@@ -1,9 +1,3 @@
-load("@rules_python//python:pip.bzl", "compile_pip_requirements")
-
-compile_pip_requirements(
-    name = "requirements",
-    src = "requirements.in",
-    requirements_txt = "requirements.txt",
-    timeout = "long",
-    tags = ["manual"],
-)
+# The label //simulation/py_req:requirements.in requires simulation/py_req/
+# to be a Bazel package, which means a BUILD.bazel must exist there.
+# This file can be empty.

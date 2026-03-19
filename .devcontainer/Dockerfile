@@ -23,10 +23,22 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume
     libosmesa6-dev \
     x11-apps \
     direnv \
+    python3-pip \
     curl && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
+# Simulation packages — owned by the container image, not by Bazel's pip hubs.
+# torch is installed first so genesis-world's import check passes at install time.
+# CPU-only torch: ~250 MB. Swap index URL for a CUDA wheel if GPU support is needed.
+# python3-pip is a prerequisite; the rest of the system Python is untouched.
+RUN pip3 install --break-system-packages --no-cache-dir \
+    torch --index-url https://download.pytorch.org/whl/cpu
+RUN pip3 install --break-system-packages --no-cache-dir \
+    genesis-world
 
 # for teleops
 RUN groupadd -g 104 input && usermod -aG input vscode
+
+
 
 WORKDIR /home/vscode
 USER vscode
