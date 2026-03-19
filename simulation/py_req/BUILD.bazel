@@ -1,3 +1,4 @@
 # The label //simulation/py_req:requirements.in requires simulation/py_req/
 # to be a Bazel package, which means a BUILD.bazel must exist there.
-# This file can be empty.
+
+exports_files(["requirements.in"])
