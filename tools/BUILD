@@ -1,4 +1,5 @@
 load("@aspect_rules_lint//format:defs.bzl", "format_multirun")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
 
 package(default_visibility = ["//visibility:public"])
@@ -17,4 +18,10 @@ format_multirun(
     name = "format",
     cc = "@llvm_toolchain//:clang-format",
     shell = ":shell_formatting",
+)
+
+compile_pip_requirements(
+    name = "requirements",
+    src = "requirements.in",
+    requirements_txt = "requirements.txt",
 )

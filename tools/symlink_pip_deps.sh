@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-PYTHON_VERSION=3.14
 DEST_DIR=".py_external_symlink"
 EXTERNAL_ROOT=$(bazel info output_base)/external
 mkdir -p "$DEST_DIR/bin"

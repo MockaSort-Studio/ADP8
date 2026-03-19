@@ -1,7 +1,9 @@
-# load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
 
-# compile_pip_requirements(
-#     name = "requirements",
-#     src = "requirements.in",
-#     requirements_txt = "requirements.txt",
-# )
+compile_pip_requirements(
+    name = "requirements",
+    src = "requirements.in",
+    requirements_txt = "requirements.txt",
+    timeout = "long",
+    tags = ["manual"],
+)
