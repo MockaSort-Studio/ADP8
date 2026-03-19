@@ -1,0 +1,2 @@
+# testdata package for system_pip tests.
+# requirements.in here is used by the system_pip_test_hub defined in tools.MODULE.bazel.

@@ -1,0 +1,5 @@
+# system_pip test fixtures.
+# numpy    — must be installed; validates the full discovery chain.
+# nonexistent-test-package — must NOT be installed; validates stub behaviour.
+numpy
+nonexistent-test-package

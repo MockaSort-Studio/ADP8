@@ -28,3 +28,14 @@ pip_tools.parse(
     requirements_lock = "//tools:requirements.txt",
 )
 use_repo(pip_tools, "pip_tools")
+
+#### system_pip unit tests ####
+# A dedicated hub with one installed package (numpy) and one fake package,
+# so the import and stub tests have predictable, environment-independent deps.
+system_pip_test = use_extension("//tools/system_pip:extensions.bzl", "system_pip")
+system_pip_test.parse(
+    fail_on_missing = False,
+    hub_name = "system_pip_test_hub",
+    requirements_lock = "//tools/system_pip/testdata:requirements.in",
+)
+use_repo(system_pip_test, "system_pip_test_hub")
