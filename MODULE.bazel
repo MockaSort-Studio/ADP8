@@ -27,7 +27,7 @@ register_toolchains("@python_3_12//:all")
 
 bazel_dep(name = "googletest", version = "1.17.0")
 bazel_dep(name = "google_benchmark", version = "1.9.5")
-bazel_dep(name = "rules_cc", version = "0.1.5")
+bazel_dep(name = "rules_cc", version = "0.2.17")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "boost.core", version = "1.83.0.bcr.1")
 bazel_dep(name = "toolchains_llvm", version = "1.6.0")
@@ -42,7 +42,6 @@ include("//core:core.MODULE.bazel")
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
 llvm.toolchain(
     name = "llvm_toolchain",
-    llvm_versions = {"": "19.1.7"},
     # BuildBuddy RBE mounts the sandbox at /proc/self/cwd (a real directory in
     # their executor, not just the procfs symlink).  clang resolves relative
     # -isystem paths against that CWD and writes /proc/self/cwd/... in .d files.
@@ -55,6 +54,7 @@ llvm.toolchain(
     cxx_builtin_include_directories = {
         "linux-x86_64": ["/proc/self/cwd"],
     },
+    llvm_versions = {"": "19.1.7"},
 )
 llvm.toolchain_root(
     name = "llvm_toolchain",
