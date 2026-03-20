@@ -2,13 +2,8 @@
 this makes bazel linter happy
 """
 
-# system_pip cannot live here: use_repo() inside include()-d files does not
-# populate the root module's repo mapping in Bazel 8, so BUILD files in the
-# workspace would be unable to see the hub. Moved to MODULE.bazel.
-
 # Simulation packages — sourced from the host Python env, not from PyPI.
 # use_extension + use_repo must both be in MODULE.bazel (not an include()-d file):
-# Bazel 8 does not propagate use_repo() repo mappings across include() boundaries.
 sim_pip = use_extension("//tools/system_pip:extensions.bzl", "system_pip")
 sim_pip.parse(
     fail_on_missing = False,
