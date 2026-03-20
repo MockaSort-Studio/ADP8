@@ -167,22 +167,25 @@ def _llvm_repo_impl(rctx):
 
     # ── 1. LLVM release tarball ───────────────────────────────────────────────
     rctx.download_and_extract(
-        url         = cfg.llvm_url,
-        sha256      = cfg.llvm_sha256,
+        url = cfg.llvm_url,
+        sha256 = cfg.llvm_sha256,
         stripPrefix = cfg.llvm_strip_prefix,
     )
 
     # ── 2. Target sysroot ─────────────────────────────────────────────────────
     rctx.download_and_extract(
-        url    = cfg.sysroot_url,
+        url = cfg.sysroot_url,
         sha256 = cfg.sysroot_sha256,
         output = "sysroot",
     )
 
     # ── 3. Extra libs from sysroot (not covered by the debs) ──────────────────
     for (src_dir, glob_pattern, dest) in cfg.sysroot_libs:
-        result = rctx.execute(["sh", "-c",
-            "find sysroot/{} -name '{}' -not -type l".format(src_dir, glob_pattern)])
+        result = rctx.execute([
+            "sh",
+            "-c",
+            "find sysroot/{} -name '{}' -not -type l".format(src_dir, glob_pattern),
+        ])
         if result.return_code != 0 or not result.stdout.strip():
             fail("could not find {} in sysroot/{}".format(glob_pattern, src_dir))
         matches = [f for f in result.stdout.strip().split("\n") if f.strip()]
@@ -234,6 +237,7 @@ done
         rctx.execute(["rm", sym_path])
         wrapper = _WRAPPER_SYMLINK.format(ld_interp = cfg.ld_interp, target = target)
         rctx.file(sym_path, wrapper, executable = True)
+
         # clang's driver resolves its tool-search directory from argv[0].
         # When invoked as bin-real/clang-19 it looks for ld.lld (and other
         # tools) in bin-real/, not bin/.  Mirror every symlink wrapper there
@@ -265,7 +269,7 @@ _llvm_repo = repository_rule(
 def _llvm_extension_impl(_ctx):
     for platform in LLVM_PLATFORMS:
         _llvm_repo(
-            name     = "llvm_toolchain_" + platform.replace("-", "_"),
+            name = "llvm_toolchain_" + platform.replace("-", "_"),
             platform = platform,
         )
 

@@ -13,12 +13,10 @@ pyenv.cfg
 venv
 __pycache__
 bazel-*
-.bin/
 .bazelrc.user
 **/*.bazel.lock
 .vscode/launch.json
-# compile_commands.json
-# if you dont have external symlink use: ln -s $(bazel info output_base)/external external
+vscode/settings.json
 external
 node_modules
 
@@ -27,3 +25,5 @@ node_modules
 # symlink to all external python deps pulled in by repo rule
 # useful for configuring ty linter
 .py_external_symlink
+# symlink folder to tools
+.bin/

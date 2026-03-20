@@ -31,10 +31,10 @@ mkdir -p "${DEST_DIR}/bin"
 # Search by path rather than hardcoding the canonical name so this survives
 # platform changes and rules_python version bumps.
 PYTHON_BIN=$(find "${RUNFILES_DIR}" -name "python3" -path "*/bin/python3" \
-    -not -path "*/site-packages/*" 2>/dev/null | head -1)
+	-not -path "*/site-packages/*" 2>/dev/null | head -1)
 if [[ -z "${PYTHON_BIN}" ]]; then
-    echo "ERROR: hermetic python3 not found in runfiles — did @python_3_12//:python3 build?" >&2
-    exit 1
+	echo "ERROR: hermetic python3 not found in runfiles — did @python_3_12//:python3 build?" >&2
+	exit 1
 fi
 PYTHON_BIN="$(realpath "${PYTHON_BIN}")"
 
@@ -49,11 +49,28 @@ EXTERNAL_ROOT="${PYTHON_BIN%%/external/*}/external"
 # Merge site-packages from all rules_python pip hubs.
 echo "Scanning for pip hubs in ${EXTERNAL_ROOT}..."
 for REPO_PATH in "${EXTERNAL_ROOT}"/rules_python++*pip*; do
-    [[ -d "${REPO_PATH}" ]] || continue
-    SITE_PKG="$(find "${REPO_PATH}" -maxdepth 4 -type d -name "site-packages" 2>/dev/null | head -n 1)"
-    [[ -n "${SITE_PKG}" ]] || continue
-    echo "merging pip hub:      $(basename "${REPO_PATH}")"
-    cp -as "${SITE_PKG}"/* "${DEST_DIR}/" 2>/dev/null || true
+	[[ -d "${REPO_PATH}" ]] || continue
+	SITE_PKG="$(find "${REPO_PATH}" -maxdepth 4 -type d -name "site-packages" 2>/dev/null | head -n 1)"
+	[[ -n "${SITE_PKG}" ]] || continue
+	echo "merging pip hub:      $(basename "${REPO_PATH}")"
+	cp -as "${SITE_PKG}"/* "${DEST_DIR}/" 2>/dev/null || true
+done
+
+# Merge packages from all system_pip hubs.
+# system_pip repos expose package dirs/files at the top level (not nested under
+# site-packages), with only BUILD.bazel, REPO.bazel, and requirements.bzl as
+# non-package entries.
+echo "Scanning for system_pip hubs in ${EXTERNAL_ROOT}..."
+for REPO_PATH in "${EXTERNAL_ROOT}"/+system_pip+*; do
+	[[ -d "${REPO_PATH}" ]] || continue
+	echo "merging system_pip hub: $(basename "${REPO_PATH}")"
+	for ENTRY in "${REPO_PATH}"/*; do
+		NAME="$(basename "${ENTRY}")"
+		case "${NAME}" in
+		BUILD.bazel | REPO.bazel | requirements.bzl) continue ;;
+		esac
+		[[ -e "${DEST_DIR}/${NAME}" ]] || cp -as "${ENTRY}" "${DEST_DIR}/${NAME}" 2>/dev/null || true
+	done
 done
 
 echo ""

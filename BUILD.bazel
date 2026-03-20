@@ -8,8 +8,18 @@ package(
 
 create_aliases()
 
+# Downloads hermetic buildifier (if not cached) and installs .bin/buildifier
+# in the workspace root.
+# Run once after container creation: bazel run //:install_buildifier
+sh_binary(
+    name = "install_buildifier",
+    srcs = ["//tools:install_buildifier.sh"],
+    data = ["@buildifier_prebuilt//:buildifier"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)
+
 # Downloads the hermetic clang 19 toolchain (if not cached) and installs
-# .bin/clangd and .bin/clang-format in the workspace root.
+# .bin/clangd and .bin/clang-format in the workspace root.s
 # Run once after container creation: bazel run //:install_clangd
 sh_binary(
     name = "install_clangd",

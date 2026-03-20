@@ -22,12 +22,23 @@
                 "panel": "shared"
             }
         },
+        {
+            "label": "install: buildifier",
+            "type": "shell",
+            "command": "bazel run //:install_buildifier",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
         // ── restore everything after bazel clean --expunge ──────────────────
         {
             "label": "install: all IDE tools",
             "dependsOn": [
                 "install: clangd",
-                "install: python"
+                "install: python",
+                "install: buildifier",
             ],
             "dependsOrder": "parallel",
             "group": {

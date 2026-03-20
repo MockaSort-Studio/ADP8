@@ -1,8 +1,7 @@
 # system_pip — Bazel module extension exposing host-installed Python packages.
 # See extensions.bzl for the implementation.
-
-load("@rules_python//python:defs.bzl", "py_test")
 load("@system_pip_test_hub//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_test")
 
 py_test(
     name = "test_import",

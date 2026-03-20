@@ -38,8 +38,8 @@ LLVM_PLATFORMS = {
                 url = "https://ftp.debian.org/debian/pool/main/g/glibc/libc6_2.36-9+deb12u13_amd64.deb",
                 sha256 = "3d8072c73b017e907bbf44b7db870687888a991961d74f1ecbba6b9458f32a2c",
                 extractions = [
-                    ("./lib/x86_64-linux-gnu/libc.so.6",            "lib/libc.so.6"),
-                    ("./lib/x86_64-linux-gnu/libm.so.6",            "lib/libm.so.6"),
+                    ("./lib/x86_64-linux-gnu/libc.so.6", "lib/libc.so.6"),
+                    ("./lib/x86_64-linux-gnu/libm.so.6", "lib/libm.so.6"),
                     ("./lib/x86_64-linux-gnu/ld-linux-x86-64.so.2", "lib/ld-linux-x86-64.so.2"),
                 ],
             ),
@@ -74,7 +74,7 @@ LLVM_PLATFORMS = {
                 url = "https://ftp.debian.org/debian/pool/main/i/icu/libicu72_72.1-3+deb12u1_amd64.deb",
                 sha256 = "f7f6f99c6d7b025914df2447fc93e11d22c44c0c8bdd8b6f36691c9e7ddcef88",
                 extractions = [
-                    ("./usr/lib/x86_64-linux-gnu/libicuuc.so.72.1",   "lib/libicuuc.so.72"),
+                    ("./usr/lib/x86_64-linux-gnu/libicuuc.so.72.1", "lib/libicuuc.so.72"),
                     ("./usr/lib/x86_64-linux-gnu/libicudata.so.72.1", "lib/libicudata.so.72"),
                 ],
             ),
@@ -92,7 +92,7 @@ LLVM_PLATFORMS = {
         # (src_dir_in_sysroot, glob_pattern, dest_in_lib)
         sysroot_libs = [
             ("usr/lib/x86_64-linux-gnu", "libzstd.so.1.*", "lib/libzstd.so.1"),
-            ("lib/x86_64-linux-gnu",     "libz.so.1.*",    "lib/libz.so.1"),
+            ("lib/x86_64-linux-gnu", "libz.so.1.*", "lib/libz.so.1"),
         ],
     ),
     # ── linux-aarch64 ──────────────────────────────────────────────────────────
