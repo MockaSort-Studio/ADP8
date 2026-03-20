@@ -1,11 +1,15 @@
 [project]
 name = "adp8-devcontainer"
 version = "0.1.0"
-requires-python = ">=3.12,<3.13"
+requires-python = "<3.13"
 dependencies = [
     # simulation runtime — torch CPU-only, see [[tool.uv.index]] below
     "torch",
     "genesis-world",
+]
+
+[project.optional-dependencies]
+dev = [
     # python dev tools — binaries land in .venv/bin, on PATH via ENV
     "ty",
     "ruff",

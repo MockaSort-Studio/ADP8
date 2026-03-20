@@ -1,0 +1,41 @@
+# proudly AI-generated, human-reviewed
+#
+# RBE base image: Python simulation dependencies only, no dev tools.
+# Used as:
+#   - Remote Build Execution runner
+#   - Base layer for the devcontainer (FROM this image)
+#
+# Rebuild via:  docker build -f .devcontainer/Dockerfile.rbe .devcontainer/
+# Push via:     see .github/workflows/rbe-container.yml
+
+FROM ubuntu:24.04
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    ca-certificates \
+    curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# vscode user at uid 1000 — matches devcontainer convention and avoids volume
+# permission mismatches when the Bazel cache is bind-mounted.
+RUN useradd -m -u 1000 -s /bin/bash vscode
+
+# /devcontainer holds the Python project manifest, lockfile and .venv.
+# Owned by vscode so uv (running as vscode) can write freely.
+RUN mkdir -p /devcontainer && chown vscode:vscode /devcontainer
+COPY --chown=vscode:vscode pyproject.toml /devcontainer/pyproject.toml
+RUN printf '3.12\n' > /devcontainer/.python-version && \
+    chown vscode:vscode /devcontainer/.python-version
+
+WORKDIR /home/vscode
+USER vscode
+RUN mkdir -p /home/vscode/.local/bin
+
+# Install uv — package and virtualenv manager.
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+ENV VIRTUAL_ENV="/devcontainer/.venv"
+ENV PATH="/devcontainer/.venv/bin:/home/vscode/.local/bin:${PATH}"
+
+# Install simulation dependencies (torch CPU-only, genesis-world).
+# Dev tools (ty, ruff) are NOT installed here — they live in the devcontainer layer.
+RUN uv sync --project /devcontainer
