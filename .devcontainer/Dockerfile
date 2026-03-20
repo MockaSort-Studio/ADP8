@@ -1,6 +1,13 @@
-FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+# proudly AI-generated, human-reviewed
+#
+# Devcontainer image: RBE base + X11/GL, dev tools, and standalone binaries.
+# The heavy Python sim deps (torch, genesis-world) come pre-baked in the base image,
+# so this layer only adds what the interactive dev environment needs.
 
-RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume-yes \
+FROM ghcr.io/mockasort-studio/adp8-rbe:latest
+
+USER root
+RUN apt-get update && apt-get install --no-install-recommends --assume-yes \
     libx11-6 \
     libx11-dev \
     libxext6 \
@@ -16,7 +23,8 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume
     libosmesa6-dev \
     x11-apps \
     direnv \
-    curl && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+    curl && \
+    apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # Install gh (GitHub CLI) via the official apt repository.
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
@@ -28,35 +36,17 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     && apt-get install -y --no-install-recommends gh \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-# for teleops
+# For teleops: add vscode to the input group.
 RUN groupadd -g 104 input && usermod -aG input vscode
 
-# Python dependency manifest — uv reads this to install simulation libs and dev tools.
-# /devcontainer is owned by vscode so uv (running as vscode) can write .venv there.
-RUN mkdir -p /devcontainer && printf '3.12\n' > /devcontainer/.python-version && chown -R vscode:vscode /devcontainer
-COPY --chown=vscode:vscode pyproject.toml /devcontainer/pyproject.toml
-
-# Bootstrap script for standalone Go binaries.
+# Bootstrap script for standalone dev binaries (starpls, shfmt, buildifier).
 COPY --chown=vscode:vscode scripts/bootstrap.sh /home/vscode/scripts/bootstrap.sh
 RUN chmod +x /home/vscode/scripts/bootstrap.sh
 
-WORKDIR /home/vscode
 USER vscode
-RUN mkdir -p /home/vscode/.local/bin
 
-# Install uv — package and tool manager.
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+# Add dev tools (ty, ruff) on top of the sim-only venv from the base image.
+RUN uv sync --project /devcontainer --extra dev
 
-# Activate the project venv system-wide: binaries (ty, ruff) and libs are on PATH
-# without any shell activation step.
-ENV VIRTUAL_ENV="/devcontainer/.venv"
-ENV PATH="/devcontainer/.venv/bin:/home/vscode/.local/bin:${PATH}"
-
-# Install all Python dependencies in one shot:
-#   simulation — torch (CPU-only wheel), genesis-world
-#   dev tools  — ty (type checker), ruff (formatter/linter)
-# CPU-only torch: ~250 MB. Swap the pytorch-cpu index for a CUDA wheel if needed.
-RUN uv sync --project /devcontainer
-
-# Install standalone Go binaries: starpls (Bazel LSP), shfmt, buildifier.
+# Install standalone dev binaries.
 RUN /home/vscode/scripts/bootstrap.sh

@@ -28,6 +28,9 @@
     "remoteUser": "vscode",
     "postCreateCommand": "sudo update-ca-certificates && bazel run //:install_clangd && bazel run //:install_python && bazel run //:install_buildifier",
     "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "username": "vscode"
+        },
         "ghcr.io/balazs23/devcontainers-features/bazel:1": {},
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1.6.5": {},
         "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
