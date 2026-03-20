@@ -1,4 +1,5 @@
 """Model builders and YAML/IDL parsing utilities for the Javelina-RT code generator."""
+
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -185,7 +186,9 @@ def parameterset_model_from_yaml(yaml_path: str) -> ParameterSet:
 
 
 def parameters_header_model(
-    parameter_model: ParameterSet, header_output_path: str, namespace: str = DEFAULT_NAMESPACE
+    parameter_model: ParameterSet,
+    header_output_path: str,
+    namespace: str = DEFAULT_NAMESPACE,
 ) -> ParametersHeader:
     """Builds a ParametersHeader model for the parameters.hpp output.
 
@@ -205,7 +208,9 @@ def parameters_header_model(
     return ParametersHeader(**model_raw)
 
 
-def render_template(template_path: str, model_data: Dict[str, Any], output_path: str) -> None:
+def render_template(
+    template_path: str, model_data: Dict[str, Any], output_path: str
+) -> None:
     """Renders a Jinja2 template with model data and writes the result to disk.
 
     Args:

@@ -23,7 +23,7 @@
         "--ipc=host",
     ],
     "remoteUser": "vscode",
-    "postCreateCommand": "sudo update-ca-certificates && bazel run //:install_clangd",
+    "postCreateCommand": "sudo update-ca-certificates && bazel run //:install_clangd && bazel run //:install_python",
     "features": {
         "ghcr.io/balazs23/devcontainers-features/bazel:1": {},
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1.6.5": {},

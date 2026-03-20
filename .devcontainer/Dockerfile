@@ -1,12 +1,5 @@
 FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
-# Install misc deps
-RUN mkdir /home/vscode/scripts
-COPY scripts/bootstrap.sh /home/vscode/scripts
-COPY scripts/.Brewfile /home/vscode
-RUN chown -R vscode:vscode /home/vscode/
-RUN chmod +x /home/vscode/scripts/bootstrap.sh /home/vscode/.Brewfile
 
-RUN sudo apt-get update
 RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume-yes \
     libx11-6 \
     libx11-dev \
@@ -23,38 +16,47 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume
     libosmesa6-dev \
     x11-apps \
     direnv \
-    python3-pip \
     curl && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-# Simulation packages — owned by the container image, not by Bazel's pip hubs.
-# torch is installed first so genesis-world's import check passes at install time.
-# CPU-only torch: ~250 MB. Swap index URL for a CUDA wheel if GPU support is needed.
-# python3-pip is a prerequisite; the rest of the system Python is untouched.
-RUN pip3 install --break-system-packages --no-cache-dir \
-    torch --index-url https://download.pytorch.org/whl/cpu
-RUN pip3 install --break-system-packages --no-cache-dir \
-    genesis-world
+# Install gh (GitHub CLI) via the official apt repository.
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+    | tee /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gh \
+    && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
 # for teleops
 RUN groupadd -g 104 input && usermod -aG input vscode
 
+# Python dependency manifest — uv reads this to install simulation libs and dev tools.
+# /devcontainer is owned by vscode so uv (running as vscode) can write .venv there.
+RUN mkdir -p /devcontainer && printf '3.12\n' > /devcontainer/.python-version && chown -R vscode:vscode /devcontainer
+COPY --chown=vscode:vscode pyproject.toml /devcontainer/pyproject.toml
 
+# Bootstrap script for standalone Go binaries.
+COPY --chown=vscode:vscode scripts/bootstrap.sh /home/vscode/scripts/bootstrap.sh
+RUN chmod +x /home/vscode/scripts/bootstrap.sh
 
 WORKDIR /home/vscode
 USER vscode
 RUN mkdir -p /home/vscode/.local/bin
 
-RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && \
-    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+# Install uv — package and tool manager.
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Activate the project venv system-wide: binaries (ty, ruff) and libs are on PATH
+# without any shell activation step.
+ENV VIRTUAL_ENV="/devcontainer/.venv"
+ENV PATH="/devcontainer/.venv/bin:/home/vscode/.local/bin:${PATH}"
 
-# Add brew and llvm to PATH for Dockerfile RUN steps
-ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}"
+# Install all Python dependencies in one shot:
+#   simulation — torch (CPU-only wheel), genesis-world
+#   dev tools  — ty (type checker), ruff (formatter/linter)
+# CPU-only torch: ~250 MB. Swap the pytorch-cpu index for a CUDA wheel if needed.
+RUN uv sync --project /devcontainer
 
-RUN sudo chown -R vscode:vscode /home/linuxbrew/.linuxbrew
-RUN --mount=type=cache,target=/home/vscode/.cache/Homebrew
-RUN sudo chown -R vscode /home/vscode
-
-RUN /home/vscode/scripts/bootstrap.sh /workspaces/ADP8
-
-
+# Install standalone Go binaries: starpls (Bazel LSP), shfmt, buildifier.
+RUN /home/vscode/scripts/bootstrap.sh

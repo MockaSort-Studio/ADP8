@@ -5,6 +5,9 @@ this makes bazel linter happy
 #####################
 #### bazel tools ####
 #####################
+
+bazel_dep(name = "buildifier_prebuilt", version = "6.1.2")
+
 # Hedron's Compile Commands Extractor for Bazel
 # https://github.com/hedronvision/bazel-compile-commands-extractor
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)

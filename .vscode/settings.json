@@ -49,6 +49,12 @@
         "--compile-commands-dir=${workspaceFolder}",
     ],
     "python.defaultInterpreterPath": "${workspaceFolder}/.py_external_symlink/bin/python3",
+    "ruff.path": [
+        "ruff"
+    ],
+    "ty.path": [
+        "ty"
+    ],
     // Bazel
     "bazel.buildifierExecutable": "buildifier",
     "bazel.lsp.command": "starpls",

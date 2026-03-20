@@ -21,6 +21,16 @@ sh_binary(
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )
 
+# Downloads the hermetic Python 3.12 toolchain (if not cached) and installs
+# .py_external_symlink/bin/python3 plus a merged site-packages forest.
+# Run once after container creation: bazel run //:install_python
+sh_binary(
+    name = "install_python",
+    srcs = ["//tools:install_python.sh"],
+    data = ["@python_3_12//:python3"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)
+
 create_compile_commands(
     name = "compile_cc",
     tags = [
