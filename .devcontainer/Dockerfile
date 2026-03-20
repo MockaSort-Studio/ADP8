@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install --no-install-recommends --assume-yes \
     libosmesa6-dev \
     x11-apps \
     direnv \
+    wget \
     curl && \
     apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 

@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 # vscode user at uid 1000 — matches devcontainer convention and avoids volume
 # permission mismatches when the Bazel cache is bind-mounted.
-RUN useradd -m -u 1000 -s /bin/bash vscode
+RUN userdel ubuntu 2>/dev/null || true && \
+    useradd -m -u 1000 -s /bin/bash vscode
 
 # /devcontainer holds the Python project manifest, lockfile and .venv.
 # Owned by vscode so uv (running as vscode) can write freely.
