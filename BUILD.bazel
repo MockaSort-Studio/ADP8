@@ -25,8 +25,8 @@ sh_binary(
     name = "install_clangd",
     srcs = ["//tools:install_clangd.sh"],
     data = [
-        "@llvm_toolchain//:clang-format",
-        "@llvm_toolchain//:clangd",
+        "@llvm_toolchain_linux_x86_64//:clang-format",
+        "@llvm_toolchain_linux_x86_64//:clangd",
     ],
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )

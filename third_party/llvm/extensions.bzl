@@ -10,15 +10,24 @@ Layout of each created repository:
 Executor-agnostic: clang runs on any Linux regardless of system glibc.
 Adding a platform: one entry in platforms.bzl, zero logic changes here.
 
-Why wrappers and not patchelf?
-  PT_INTERP (the ELF interpreter path) must be absolute.  The Bazel cache path
-  is machine-specific, so we cannot embed it at fetch time.  Wrappers compute
-  the absolute path at runtime via $(cd … && pwd) and invoke the bundled
-  ld-linux with --library-path, bypassing the system interpreter entirely.
+Two wrapper flavors:
 
-  $(cd … && pwd) is intentional — NOT readlink -f.  readlink -f resolves
-  execroot symlinks to the real cache path, which breaks clang's resource-dir
-  computation and triggers "absolute path inclusion" errors with -no-canonical-prefixes.
+  _WRAPPER (compilation tools — clang, lld, llvm-ar, …)
+    Uses $(cd … && pwd) (logical path, NOT readlink -f).
+    readlink -f would resolve execroot symlinks to the real Bazel cache path,
+    breaking clang's resource-dir computation and causing "absolute path
+    inclusion" errors under -no-canonical-prefixes on RBE.
+    bin-real/ must be in the filegroup so sandbox/RBE actions can find the
+    ELFs via the logical runfiles path.
+
+  _WRAPPER_STANDALONE (standalone tools — clang-format, clangd, clang-tidy)
+    Uses readlink -f (physical path).
+    These tools do not derive resource-dir or include paths from argv[0], so
+    physical-path resolution is safe.  The physical path points directly into
+    the Bazel external cache, so bin-real/ does NOT need to be in the
+    filegroup — format_multirun (and other callers) see only bin/<tool> and
+    cannot accidentally pick up the raw ELF, which would pair the system
+    ld-linux with our bundled libc and cause stack smashing.
 
 proudly AI-generated, human-reviewed
 """
@@ -27,21 +36,11 @@ load(":platforms.bzl", "LLVM_PLATFORMS")
 
 # ── wrapper templates ─────────────────────────────────────────────────────────
 
-# Generic wrapper for ELF binaries.  $(basename "$0") gives the real name after
-# the binary has been moved to bin-real/.
+# Generic wrapper for compilation-toolchain ELF binaries.
+# ROOT is the logical path (cd+pwd, NOT readlink): this preserves the execroot
+# symlink chain that clang uses to locate its own resource directory.
 _WRAPPER = """\
 #!/bin/bash
-# ROOT = toolchain root (contains bin-real/ and lib/).
-# On local builds, non-clang tools may be invoked via a forwarding symlink
-# from the toolchains_llvm repo; on RBE (BuildBuddy) Bazel uploads symlink
-# *contents*, so the forwarding entry is a regular file — readlink returns
-# nothing and any symlink-following strategy fails.
-# Solution: when lib/ is not reachable from ROOT, search sibling repos under
-# external/ for the one that owns lib/{ld_interp}.  Only our toolchain repo
-# puts that file there, so the glob matches exactly one directory.
-# Clang is unaffected: cc_wrapper.sh calls it with the direct repo path, so
-# lib/ IS reachable and the search is never triggered — the logical execroot
-# path (needed for clang's resource-dir) is preserved via cd+pwd (not readlink).
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 if [ ! -f "$ROOT/lib/{ld_interp}" ]; then
     _ext="$(cd "$ROOT/.." && pwd)"
@@ -58,7 +57,7 @@ exec "$ROOT/lib/{ld_interp}" \\
 """
 
 # Wrapper for symlinks (e.g. clang → clang-19, ld.lld → lld).
-# Same ROOT-search logic; target binary name is hardcoded at fetch time.
+# Same logical-path ROOT search; target binary name is hardcoded at fetch time.
 # --argv0 "$0" passes the wrapper's own full path as argv[0] to the ELF.
 # This matters for tools that dispatch on argv[0] basename (e.g. lld selects
 # ld.lld / lld-link / wasm-ld mode from it).  Using the full path (not bare
@@ -81,6 +80,32 @@ exec "$ROOT/lib/{ld_interp}" \\
      "$ROOT/bin-real/{target}" \\
      "$@"
 """
+
+# Wrapper for standalone tools (clang-format, clangd, clang-tidy).
+# Uses readlink -f to resolve the physical Bazel cache path regardless of
+# how the script is invoked ($0 may be a runfiles symlink, a sandbox path,
+# or a plain path on an RBE executor — readlink -f handles all three).
+# Physical-path resolution is safe for these tools: they do not derive
+# include paths or resource directories from argv[0].
+# Because ROOT is the physical cache path, bin-real/<tool> is always
+# reachable without a runfiles symlink, so the filegroups for these tools
+# intentionally omit :_bin_real.
+_WRAPPER_STANDALONE = """\
+#!/bin/bash
+REAL="$(readlink -f "$0")"
+ROOT="$(cd "$(dirname "$REAL")/.." && pwd)"
+exec "$ROOT/lib/{ld_interp}" \\
+     --library-path "$ROOT/lib" \\
+     "$ROOT/bin-real/{name}" \\
+     "$@"
+"""
+
+# Standalone tools that should receive the readlink-f wrapper.
+_STANDALONE_ELF_TOOLS = {
+    "clang-format": True,
+    "clangd": True,
+    "clang-tidy": True,
+}
 
 # ── BUILD templates ───────────────────────────────────────────────────────────
 
@@ -141,10 +166,18 @@ filegroup(name = "ranlib",           srcs = ["bin/llvm-ranlib",     ":_bin_real"
 filegroup(name = "readelf",          srcs = ["bin/llvm-readelf",    ":_bin_real", ":host_runtime_libs"])
 filegroup(name = "strip",            srcs = ["bin/llvm-strip",      ":_bin_real", ":host_runtime_libs"])
 filegroup(name = "symbolizer",       srcs = ["bin/llvm-symbolizer", ":_bin_real", ":host_runtime_libs"])
-filegroup(name = "clang-tidy",       srcs = ["bin/clang-tidy",      ":_bin_real", ":host_runtime_libs"])
-filegroup(name = "clang-format",     srcs = ["bin/clang-format",    ":_bin_real", ":host_runtime_libs"])
-filegroup(name = "clangd",           srcs = ["bin/clangd",          ":_bin_real", ":host_runtime_libs"])
-filegroup(name = "git-clang-format", srcs = ["bin/git-clang-format",             ":host_runtime_libs"])
+
+# Standalone tools used outside the compilation toolchain (format_multirun,
+# VSCode extensions, IDE integrations).  No :_bin_real: the _WRAPPER_STANDALONE
+# scripts use readlink -f to find the physical Bazel cache path directly, so
+# the ELF does not need to be present in the runfiles/sandbox file tree.
+# Omitting :_bin_real also prevents format_multirun from picking bin-real/<tool>
+# (the raw ELF) before bin/<tool> (the wrapper), which would pair the system
+# ld-linux with our bundled libc — a mismatched glibc build — and crash.
+filegroup(name = "clang-tidy",       srcs = ["bin/clang-tidy",      ":host_runtime_libs"])
+filegroup(name = "clang-format",     srcs = ["bin/clang-format",    ":host_runtime_libs"])
+filegroup(name = "clangd",           srcs = ["bin/clangd",          ":host_runtime_libs"])
+filegroup(name = "git-clang-format", srcs = ["bin/git-clang-format",":host_runtime_libs"])
 filegroup(name = "libclang",         srcs = glob(["lib/libclang.so", "lib/libclang.dylib"], allow_empty = True))
 
 # Anchor label for llvm.toolchain_root() in MODULE.bazel.
@@ -254,7 +287,11 @@ done
     for elf in [f.strip() for f in result.stdout.strip().split("\n") if f.strip()]:
         name = elf.split("/")[-1]
         rctx.execute(["mv", elf, "bin-real/" + name])
-        rctx.file(elf, _WRAPPER.format(ld_interp = cfg.ld_interp), executable = True)
+        if name in _STANDALONE_ELF_TOOLS:
+            wrapper = _WRAPPER_STANDALONE.format(ld_interp = cfg.ld_interp, name = name)
+        else:
+            wrapper = _WRAPPER.format(ld_interp = cfg.ld_interp)
+        rctx.file(elf, wrapper, executable = True)
 
     rctx.file("BUILD.bazel", _LLVM_BUILD)
     rctx.file("sysroot/BUILD.bazel", _SYSROOT_BUILD)
