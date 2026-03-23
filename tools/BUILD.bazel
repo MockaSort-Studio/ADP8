@@ -6,18 +6,16 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files([
     "fixup_compile_commands_transient.sh.in",
+    "install_buildifier.sh",
     "install_clangd.sh",
+    "install_python.sh",
 ])
-
-sh_binary(
-    name = "shell_formatting",
-    srcs = ["shell_format_wrap.sh"],
-)
 
 format_multirun(
     name = "format",
-    cc = "@llvm_toolchain//:clang-format",
-    shell = ":shell_formatting",
+    cc = "@llvm_toolchain_linux_x86_64//:clang-format",
+    shell = "@aspect_rules_lint//format:shfmt",
+    starlark = "@buildifier_prebuilt//:buildifier",
 )
 
 compile_pip_requirements(

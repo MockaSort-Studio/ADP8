@@ -1,0 +1,13 @@
+"""
+this makes bazel linter happy
+"""
+
+# Simulation packages — sourced from the host Python env, not from PyPI.
+# use_extension + use_repo must both be in MODULE.bazel (not an include()-d file):
+sim_pip = use_extension("//tools/system_pip:extensions.bzl", "system_pip")
+sim_pip.parse(
+    fail_on_missing = False,
+    hub_name = "sim_py_req",
+    requirements_lock = "//simulation/py_req:requirements.in",
+)
+use_repo(sim_pip, "sim_py_req")

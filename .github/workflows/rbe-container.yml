@@ -1,0 +1,29 @@
+name: RBE Container
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .devcontainer/Dockerfile.rbe
+      - .devcontainer/pyproject.toml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: MockaSort-Studio/actions/.github/actions/push-container@main
+        with:
+          image-name: adp8-rbe
+          image-description: "ADP8 RBE base image — Python simulation deps, no dev tools"
+          dockerfile: .devcontainer/Dockerfile.rbe
+          context: .devcontainer
+          token: ${{ secrets.GITHUB_TOKEN }}

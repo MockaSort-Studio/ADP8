@@ -8,16 +8,36 @@ package(
 
 create_aliases()
 
+# Downloads hermetic buildifier (if not cached) and installs .bin/buildifier
+# in the workspace root.
+# Run once after container creation: bazel run //:install_buildifier
+sh_binary(
+    name = "install_buildifier",
+    srcs = ["//tools:install_buildifier.sh"],
+    data = ["@buildifier_prebuilt//:buildifier"],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)
+
 # Downloads the hermetic clang 19 toolchain (if not cached) and installs
-# .bin/clangd and .bin/clang-format in the workspace root.
+# .bin/clangd and .bin/clang-format in the workspace root.s
 # Run once after container creation: bazel run //:install_clangd
 sh_binary(
     name = "install_clangd",
     srcs = ["//tools:install_clangd.sh"],
     data = [
-        "@llvm_toolchain//:clang-format",
-        "@llvm_toolchain//:clangd",
+        "@llvm_toolchain_linux_x86_64//:clang-format",
+        "@llvm_toolchain_linux_x86_64//:clangd",
     ],
+    deps = ["@bazel_tools//tools/bash/runfiles"],
+)
+
+# Downloads the hermetic Python 3.12 toolchain (if not cached) and installs
+# .py_external_symlink/bin/python3 plus a merged site-packages forest.
+# Run once after container creation: bazel run //:install_python
+sh_binary(
+    name = "install_python",
+    srcs = ["//tools:install_python.sh"],
+    data = ["@python_3_12//:python3"],
     deps = ["@bazel_tools//tools/bash/runfiles"],
 )
 

@@ -1,0 +1,21 @@
+load("@rules_python//python:defs.bzl", "py_test")
+load("@sim_py_req//:requirements.bzl", "requirement")
+
+py_test(
+    name = "test_sim_imports",
+    # genesis import does device detection and kernel compilation on first run.
+    timeout = "long",
+    srcs = ["test_sim_imports.py"],
+    # requirements.in is read at runtime to discover what to import — no
+    # hardcoded module list in the Python source.
+    data = ["//simulation/py_req:requirements.in"],
+    deps = [
+        requirement("evdev"),
+        requirement("genesis-world"),
+        requirement("lightning"),
+        requirement("numpy"),
+        requirement("pytest"),
+        requirement("torch"),
+        requirement("torchmetrics"),
+    ],
+)

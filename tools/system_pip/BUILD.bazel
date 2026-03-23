@@ -1,0 +1,17 @@
+# system_pip — Bazel module extension exposing host-installed Python packages.
+# See extensions.bzl for the implementation.
+load("@system_pip_test_hub//:requirements.bzl", "requirement")
+load("@rules_python//python:defs.bzl", "py_test")
+
+py_test(
+    name = "test_import",
+    srcs = ["test_import.py"],
+    deps = [requirement("numpy")],
+)
+
+py_test(
+    name = "test_stub",
+    srcs = ["test_stub.py"],
+    # The stub dep has no files — that is exactly what the test verifies.
+    deps = [requirement("nonexistent-test-package")],
+)

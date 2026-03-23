@@ -1,0 +1,44 @@
+"""
+this makes bazel linter happy
+"""
+
+#####################
+#### bazel tools ####
+#####################
+
+bazel_dep(name = "buildifier_prebuilt", version = "6.1.2")
+
+# Hedron's Compile Commands Extractor for Bazel
+# https://github.com/hedronvision/bazel-compile-commands-extractor
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    commit = "02d15621b528efd877f5d5657c4b738523a0eb17",
+    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
+)
+
+bazel_dep(name = "bazel_skylib", version = "1.8.2")
+bazel_dep(name = "aspect_rules_lint", version = "1.4.4")
+bazel_dep(name = "aspect_bazel_lib", version = "2.20.0")
+bazel_dep(name = "rules_shell", version = "0.6.1")
+bazel_dep(name = "rules_multirun", version = "0.13.0")
+
+#### python linter ####
+pip_tools = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+pip_tools.parse(
+    hub_name = "pip_tools",
+    python_version = "3.12",
+    requirements_lock = "//tools:requirements.txt",
+)
+use_repo(pip_tools, "pip_tools")
+
+#### system_pip unit tests ####
+# A dedicated hub with one installed package (numpy) and one fake package,
+# so the import and stub tests have predictable, environment-independent deps.
+system_pip_test = use_extension("//tools/system_pip:extensions.bzl", "system_pip")
+system_pip_test.parse(
+    fail_on_missing = False,
+    hub_name = "system_pip_test_hub",
+    requirements_lock = "//tools/system_pip/testdata:requirements.in",
+)
+use_repo(system_pip_test, "system_pip_test_hub")

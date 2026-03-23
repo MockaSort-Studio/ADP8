@@ -33,7 +33,7 @@ build:ci --config=remote
 build:ci --platforms=@toolchains_llvm//platforms:linux-x86_64
 build:ci --build_metadata=ROLE=CI
 build:ci --remote_executor=grpcs://remote.buildbuddy.io
-build:ci --remote_default_exec_properties=container-image=docker://ubuntu:22.04
+build:ci --remote_default_exec_properties=container-image=docker://ghcr.io/mockasort-studio/adp8-rbe:latest
 build:ci --jobs=20
 
 #ci config for main branch build that will keep the remote cache up to date

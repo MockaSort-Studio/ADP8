@@ -1,13 +1,67 @@
 {
     "version": "2.0.0",
     "tasks": [
+        // ── individual install tasks ────────────────────────────────────────
         {
-            "label": "Python Linting: Symlink Pip Hubs",
+            "label": "install: clangd",
             "type": "shell",
-            "command": "./tools/symlink_pip_deps.sh",
+            "command": "bazel run //:install_clangd",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "install: python",
+            "type": "shell",
+            "command": "bazel run //:install_python",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "install: buildifier",
+            "type": "shell",
+            "command": "bazel run //:install_buildifier",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        // ── restore everything after bazel clean --expunge ──────────────────
+        {
+            "label": "install: all IDE tools",
+            "dependsOn": [
+                "install: clangd",
+                "install: python",
+                "install: buildifier",
+            ],
+            "dependsOrder": "parallel",
             "group": {
                 "kind": "build",
                 "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        // ── nuclear option ──────────────────────────────────────────────────
+        {
+            "label": "bazel: clean --expunge + restore IDE tools",
+            "dependsOn": [
+                "bazel: clean --expunge",
+                "install: all IDE tools"
+            ],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
             }
         }
     ]

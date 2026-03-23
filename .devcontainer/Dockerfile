@@ -1,13 +1,13 @@
-FROM mcr.microsoft.com/devcontainers/base:ubuntu-24.04
-# Install misc deps
-RUN mkdir /home/vscode/scripts
-COPY scripts/bootstrap.sh /home/vscode/scripts
-COPY scripts/.Brewfile /home/vscode
-RUN chown -R vscode:vscode /home/vscode/
-RUN chmod +x /home/vscode/scripts/bootstrap.sh /home/vscode/.Brewfile
+# proudly AI-generated, human-reviewed
+#
+# Devcontainer image: RBE base + X11/GL, dev tools, and standalone binaries.
+# The heavy Python sim deps (torch, genesis-world) come pre-baked in the base image,
+# so this layer only adds what the interactive dev environment needs.
 
-RUN sudo apt-get update
-RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume-yes \
+FROM ghcr.io/mockasort-studio/adp8-rbe:latest
+
+USER root
+RUN apt-get update && apt-get install --no-install-recommends --assume-yes \
     libx11-6 \
     libx11-dev \
     libxext6 \
@@ -23,26 +23,31 @@ RUN sudo apt-get update && sudo apt-get install --no-install-recommends --assume
     libosmesa6-dev \
     x11-apps \
     direnv \
-    curl && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+    wget \
+    curl && \
+    apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-# for teleops
+# Install gh (GitHub CLI) via the official apt repository.
+RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+    | tee /etc/apt/sources.list.d/github-cli.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gh \
+    && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
+# For teleops: add vscode to the input group.
 RUN groupadd -g 104 input && usermod -aG input vscode
 
-WORKDIR /home/vscode
+# Bootstrap script for standalone dev binaries (starpls, shfmt, buildifier).
+COPY --chown=vscode:vscode scripts/bootstrap.sh /home/vscode/scripts/bootstrap.sh
+RUN chmod +x /home/vscode/scripts/bootstrap.sh
+
 USER vscode
-RUN mkdir -p /home/vscode/.local/bin
 
-RUN NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && \
-    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
+# Add dev tools (ty, ruff) on top of the sim-only venv from the base image.
+RUN uv sync --project /devcontainer --extra dev
 
-
-# Add brew and llvm to PATH for Dockerfile RUN steps
-ENV PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}"
-
-RUN sudo chown -R vscode:vscode /home/linuxbrew/.linuxbrew
-RUN --mount=type=cache,target=/home/vscode/.cache/Homebrew
-RUN sudo chown -R vscode /home/vscode
-
-RUN /home/vscode/scripts/bootstrap.sh /workspaces/ADP8
-
-
+# Install standalone dev binaries.
+RUN /home/vscode/scripts/bootstrap.sh

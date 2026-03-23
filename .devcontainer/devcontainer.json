@@ -18,13 +18,19 @@
     "containerEnv": {
         "DISPLAY": "${localEnv:DISPLAY}",
     },
+    "remoteEnv": {
+        "PATH": "${containerWorkspaceFolder}/.bin:${containerEnv:PATH}"
+    },
     "runArgs": [
         "--network=host",
         "--ipc=host",
     ],
     "remoteUser": "vscode",
-    "postCreateCommand": "sudo update-ca-certificates && bazel run //:install_clangd",
+    "postCreateCommand": "sudo update-ca-certificates && bazel run //:install_clangd && bazel run //:install_python && bazel run //:install_buildifier",
     "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "username": "vscode"
+        },
         "ghcr.io/balazs23/devcontainers-features/bazel:1": {},
         "ghcr.io/devcontainers/features/docker-outside-of-docker:1.6.5": {},
         "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
@@ -46,7 +52,78 @@
                 "akiramiyakoda.cppincludeguard",
                 "eamodio.gitlens",
                 "ms-azuretools.vscode-containers"
-            ]
+            ],
+            "settings": {
+                // Editor
+                "editor.detectIndentation": false,
+                "editor.formatOnSave": true,
+                // Language-specific overrides
+                "[cpp]": {
+                    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
+                    "editor.formatOnSave": true
+                },
+                "[python]": {
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll": "explicit",
+                        "source.organizeImports": "explicit"
+                    },
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.formatOnSave": true,
+                    "editor.tabSize": 4
+                },
+                "[toml]": {
+                    "editor.defaultFormatter": "tamasfe.even-better-toml",
+                    "editor.formatOnSave": true,
+                    "editor.insertSpaces": true,
+                    "editor.tabSize": 4
+                },
+                "[yaml]": {
+                    "editor.autoIndent": "advanced",
+                    "editor.defaultFormatter": "redhat.vscode-yaml",
+                    "editor.formatOnSave": true,
+                    "editor.insertSpaces": true,
+                    "editor.tabSize": 2
+                },
+                "[dockerfile]": {
+                    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
+                },
+                "[bazel]": {
+                    "editor.defaultFormatter": "BazelBuild.vscode-bazel",
+                    "editor.formatOnSave": true
+                },
+                "[starlark]": {
+                    "editor.defaultFormatter": "BazelBuild.vscode-bazel",
+                    "editor.formatOnSave": true
+                },
+                // C/C++ (MS C_Cpp)
+                "C_Cpp.intelliSenseEngine": "disabled",
+                "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+                "C_Cpp.codeAnalysis.runAutomatically": true,
+                "C_Cpp.clang_format_path": "${workspaceFolder}/.bin/clang-format",
+                "C_Cpp.formatting": "clangFormat",
+                "C/C++ Include Guard.Comment Style": "Line",
+                "C/C++ Include Guard.Macro Type": "Filepath",
+                // C/C++ (clangd)
+                "clangd.path": "${workspaceFolder}/.bin/clangd",
+                "clangd.checkUpdates": false,
+                "clangd.arguments": [
+                    "--query-driver=/**/*",
+                    "--compile-commands-dir=${workspaceFolder}"
+                ],
+                // Python
+                "python.defaultInterpreterPath": "/devcontainer/.venv/bin/python3",
+                "ruff.path": [
+                    "ruff"
+                ],
+                "ty.configurationFile": "${workspaceFolder}/ty.toml",
+                "ty.path": [
+                    "ty"
+                ],
+                // Bazel
+                "bazel.buildifierExecutable": "buildifier",
+                "bazel.buildifierFixOnFormat": true,
+                "bazel.lsp.command": "starpls"
+            }
         }
     }
 }
