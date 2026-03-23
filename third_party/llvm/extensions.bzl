@@ -232,12 +232,7 @@ def _llvm_repo_impl(rctx):
         rctx.download(url = deb.url, sha256 = deb.sha256, output = deb.name)
         for (inner, dest) in deb.extractions:
             result = rctx.execute(["sh", "-c", """\
-data=$(ar t {deb} | grep '^data\\.tar\\.')
-case "$data" in
-    *.xz) ar p {deb} "$data" | tar xJf - -O '{inner}' > '{dest}' ;;
-    *.gz) ar p {deb} "$data" | tar xzf - -O '{inner}' > '{dest}' ;;
-    *)    echo "unsupported deb data archive: $data" >&2; exit 1 ;;
-esac
+dpkg-deb --fsys-tarfile {deb} | tar xf - -O '{inner}' > '{dest}'
 """.format(deb = deb.name, inner = inner, dest = dest)])
             if result.return_code != 0:
                 fail("extracting {} from {}: {}".format(inner, deb.name, result.stderr))
